@@ -27,7 +27,7 @@ start_time = time.time()
 movement_count = 0
 
 # Bewegungsbestätigungslogik
-def is_movement_confirmed(pin, threshold=3, delay=0.1):
+def is_movement_confirmed(pin, threshold=5, delay=0.2):
     count = 0
     for _ in range(threshold):
         if GPIO.input(pin):
@@ -44,8 +44,9 @@ try:
                 movement_count += 1
                 log_message(f"Bewegung erkannt! Gesamtanzahl der Bewegungen: {movement_count}")
             else:
-                movement_count = 0  # Zähler zurücksetzen, wenn keine Bewegung erkannt wird
-                log_message("Keine Bewegung. Zähler zurückgesetzt.")
+                if movement_count > 0:
+                    movement_count = 0
+                    log_message("Keine Bewegung. Zähler zurückgesetzt.")
         else:
             log_message("Erste 30 Sekunden. Ignoriere Bewegungserkennung.")
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
