@@ -12,7 +12,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 # Logdatei öffnen
-log_file_path = "/path/to/your/logfile.log"
+log_file_path = "/home/mehrdad/git/Post/logfile.log"
 
 def log_message(message):
     now = datetime.now()
@@ -43,6 +43,11 @@ try:
             if is_movement_confirmed(SENSOR_PIN):
                 movement_count += 1
                 log_message(f"Bewegung erkannt! Gesamtanzahl der Bewegungen: {movement_count}")
+            else:
+                movement_count = 0  # Zähler zurücksetzen, wenn keine Bewegung erkannt wird
+                log_message("Keine Bewegung. Zähler zurückgesetzt.")
+        else:
+            log_message("Erste 30 Sekunden. Ignoriere Bewegungserkennung.")
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
 except KeyboardInterrupt:
     GPIO.cleanup()
