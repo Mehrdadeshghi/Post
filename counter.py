@@ -26,12 +26,21 @@ def log_message(message):
 start_time = time.time()
 movement_count = 0
 
+# Bewegungsbestätigungslogik
+def is_movement_confirmed(pin, threshold=3, delay=0.1):
+    count = 0
+    for _ in range(threshold):
+        if GPIO.input(pin):
+            count += 1
+        time.sleep(delay)
+    return count >= threshold
+
 try:
     log_message("Warte auf Bewegung...")
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
-            if GPIO.input(SENSOR_PIN):
+            if is_movement_confirmed(SENSOR_PIN):
                 movement_count += 1
                 log_message(f"Bewegung erkannt! Gesamtanzahl der Bewegungen: {movement_count}")
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
