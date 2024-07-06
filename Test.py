@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 
 # GPIO Pins definieren
-SENSOR_PIN = 17  # Pin für den Bewegungssensor
+SENSOR_PIN = 25  # Pin für den Bewegungssensor
 
 # GPIO-Modus festlegen (BCM)
 GPIO.setmode(GPIO.BCM)
