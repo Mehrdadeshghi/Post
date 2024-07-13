@@ -34,7 +34,7 @@ try:
 
     while True:
         elapsed_time = time.time() - start_time
-        if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
+        if elapsed_time > 2:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             if GPIO.input(SENSOR_PIN):
                 log_message("Bewegung erkannt! Brief ist da.")
                 last_signal_time = time.time()
