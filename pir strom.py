@@ -34,16 +34,19 @@ try:
 
     while True:
         elapsed_time = time.time() - start_time
-        if elapsed_time > 2:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
+        if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             if GPIO.input(SENSOR_PIN):
+                # Der PIR-Sensor hat Strom
+                if pir_no_power_start_time is not None:
+                    pir_no_power_start_time = None  # Reset if PIR has power
+                
                 log_message("Bewegung erkannt! Brief ist da.")
                 last_signal_time = time.time()
-                pir_no_power_start_time = None  # Reset if PIR has power
                 movement_count += 1
                 
-                # Überprüfen, ob mehr als 10 Bewegungen innerhalb von 1 Minute erkannt wurden
+                # Überprüfen, ob mehr als 30 Bewegungen innerhalb von 1 Minute erkannt wurden
                 if time.time() - movement_window_start <= 60:
-                    if movement_count > 10:
+                    if movement_count > 30:
                         log_message("Du hast Post")
                         movement_count = 0  # Reset count after notification
                         movement_window_start = time.time()  # Reset the window
@@ -53,15 +56,14 @@ try:
                     movement_window_start = time.time()
                     
             else:
-                # Check if the PIR sensor has no power
+                # Der PIR-Sensor hat keinen Strom
                 if pir_no_power_start_time is None:
                     pir_no_power_start_time = time.time()
                 
-                # If the PIR has had no power for more than 10 seconds
+                # Wenn der PIR-Sensor mehr als 10 Sekunden keinen Strom hat
                 if time.time() - pir_no_power_start_time > 10:
                     log_message("Briefkasten ist offen.")
-                else:
-                    log_message("Keine Bewegung. Kein Brief.")
+                    pir_no_power_start_time = time.time()  # Reset to avoid continuous logging
 
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
 except KeyboardInterrupt:
