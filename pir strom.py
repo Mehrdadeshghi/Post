@@ -28,19 +28,25 @@ start_time = time.time()
 try:
     log_message("Warte auf Bewegung...")
     last_signal_time = time.time()
+    pir_no_power_start_time = None
+
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             if GPIO.input(SENSOR_PIN):
                 log_message("Bewegung erkannt! Brief ist da.")
                 last_signal_time = time.time()
+                pir_no_power_start_time = None  # Reset if PIR has power
             else:
-                log_message("Keine Bewegung. Kein Brief.")
-
-            # Überprüfen, ob innerhalb der letzten 10 Sekunden ein Signal empfangen wurde
-            if time.time() - last_signal_time > 10:
-                log_message("Briefkasten ist offen.")
-                last_signal_time = time.time()  # Zurücksetzen, um die Warnung nicht ständig zu wiederholen
+                # Check if the PIR sensor has no power
+                if pir_no_power_start_time is None:
+                    pir_no_power_start_time = time.time()
+                
+                # If the PIR has had no power for more than 10 seconds
+                if time.time() - pir_no_power_start_time > 10:
+                    log_message("Briefkasten ist offen.")
+                else:
+                    log_message("Keine Bewegung. Kein Brief.")
 
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
 except KeyboardInterrupt:
