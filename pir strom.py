@@ -34,7 +34,7 @@ try:
 
     while True:
         elapsed_time = time.time() - start_time
-        if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
+        if elapsed_time > 5:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             if GPIO.input(SENSOR_PIN):
                 # Der PIR-Sensor hat Strom
                 if pir_no_power_start_time is not None:
@@ -61,7 +61,7 @@ try:
                     pir_no_power_start_time = time.time()
                 
                 # Wenn der PIR-Sensor mehr als 10 Sekunden keinen Strom hat
-                if time.time() - pir_no_power_start_time > 10:
+                if time.time() - pir_no_power_start_time > 2:
                     log_message("Briefkasten ist offen.")
                     pir_no_power_start_time = time.time()  # Reset to avoid continuous logging
 
