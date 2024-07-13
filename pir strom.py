@@ -37,9 +37,9 @@ try:
             else:
                 log_message("Keine Bewegung. Kein Brief.")
 
-            # Überprüfen, ob innerhalb der letzten 60 Sekunden ein Signal empfangen wurde
-            if time.time() - last_signal_time > 60:
-                log_message("Warnung: Kein Signal vom PIR-Sensor empfangen. Überprüfen Sie die Stromversorgung.")
+            # Überprüfen, ob innerhalb der letzten 10 Sekunden ein Signal empfangen wurde
+            if time.time() - last_signal_time > 10:
+                log_message("Briefkasten ist offen.")
                 last_signal_time = time.time()  # Zurücksetzen, um die Warnung nicht ständig zu wiederholen
 
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
