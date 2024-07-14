@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefkasten Status</title>
+    <script>
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                document.getElementById('status').innerText = data.message;
+                document.getElementById('last_update').innerText = "Last Update: " + data.last_update;
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        setInterval(fetchStatus, 1000);
+        window.onload = fetchStatus;
+    </script>
+</head>
+<body>
+    <h1>Briefkasten Status</h1>
+    <p id="status">Lade...</p>
+    <p id="last_update"></p>
+</body>
+</html>
