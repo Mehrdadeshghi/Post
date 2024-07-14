@@ -12,75 +12,54 @@
             padding: 0;
         }
         .container {
-            display: flex;
-            height: 100vh;
-        }
-        .sidebar {
-            width: 20%;
-            background-color: #2C3E50;
-            color: #fff;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
         }
-        .sidebar img {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-        }
-        .sidebar h2 {
-            margin-top: 10px;
-        }
-        .menu {
-            margin-top: 30px;
-            width: 100%;
-        }
-        .menu a {
-            display: block;
-            color: #fff;
-            padding: 10px;
-            text-decoration: none;
+        .header {
             text-align: center;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-        .menu a:hover {
-            background-color: #34495E;
-        }
-        .content {
-            width: 80%;
-            padding: 20px;
-        }
-        .cards {
-            display: flex;
-            justify-content: space-around;
             margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
         }
         .card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            background-color: #f9f9f9;
             padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: 30%;
+            vertical-align: top;
             text-align: center;
-            width: 23%;
         }
-        .card h3 {
-            margin-bottom: 10px;
-        }
-        .card p {
-            font-size: 24px;
-            margin: 0;
+        .card h2 {
+            margin-top: 0;
         }
         .chart-container {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+            margin-top: 20px;
         }
-        .chart-container h3 {
-            margin-bottom: 20px;
+        canvas {
+            width: 100% !important;
+            max-width: 1000px;
+            height: 400px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
         }
         footer {
             text-align: center;
@@ -89,107 +68,217 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let movementChart;
+        let hourlyChart;
+
+        async function fetchStatus() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                document.getElementById('status').innerText = data.message;
+                document.getElementById('last_update').innerText = "Last Update: " + data.last_update;
+            } catch (error) {
+                console.error('Error fetching status:', error);
+            }
+        }
+
+        async function fetchMovements() {
+            try {
+                const response = await fetch('/movements');
+                const data = await response.json();
+                updateChart(data);
+                updateTable(data);
+            } catch (error) {
+                console.error('Error fetching movements:', error);
+            }
+        }
+
+        async function fetchSummary() {
+            try {
+                const response = await fetch('/summary');
+                const data = await response.json();
+                document.getElementById('total_movements').innerText = data.total_movements;
+                document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+            }
+        }
+
+        async function fetchHourlyMovements() {
+            try {
+                const response = await fetch('/hourly_movements');
+                const data = await response.json();
+                updateHourlyChart(data);
+            } catch (error) {
+                console.error('Error fetching hourly movements:', error);
+            }
+        }
+
+        function updateChart(movements) {
+            const labels = movements.map((time, index) => index + 1);
+            const dataPoints = movements.map(time => new Date(`${time.replace(' ', 'T')}Z`).getTime());
+
+            if (movementChart) {
+                movementChart.data.labels = labels;
+                movementChart.data.datasets[0].data = dataPoints;
+                movementChart.update();
+            } else {
+                const ctx = document.getElementById('movementChart').getContext('2d');
+                movementChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Movement Times',
+                            data: dataPoints,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            fill: false,
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        const date = new Date(tooltipItem.raw);
+                                        const movementNumber = tooltipItem.dataIndex + 1;
+                                        const formattedTime = date.toISOString().substr(11, 8);
+                                        const formattedDate = date.toISOString().substr(0, 10);
+                                        return `Movement #${movementNumber}: ${formattedDate} ${formattedTime}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Movement Number'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Time (ms since 1970-01-01)'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        const date = new Date(value);
+                                        return date.toISOString().substr(11, 8);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateHourlyChart(hourlyMovements) {
+            const labels = Object.keys(hourlyMovements);
+            const dataPoints = Object.values(hourlyMovements);
+
+            if (hourlyChart) {
+                hourlyChart.data.labels = labels;
+                hourlyChart.data.datasets[0].data = dataPoints;
+                hourlyChart.update();
+            } else {
+                const ctx = document.getElementById('hourlyChart').getContext('2d');
+                hourlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Movements per Hour',
+                            data: dataPoints,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hour of the Day'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Movements'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTable(movements) {
+            const tableBody = document.getElementById('movements-table-body');
+            tableBody.innerHTML = '';
+            movements.slice(-10).forEach((time, index) => {
+                const row = document.createElement('tr');
+                const cellIndex = document.createElement('td');
+                const cellTime = document.createElement('td');
+                cellIndex.innerText = movements.length - 10 + index + 1;
+                cellTime.innerText = time;
+                row.appendChild(cellIndex);
+                row.appendChild(cellTime);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function refreshDashboard() {
+            fetchStatus();
+            fetchMovements();
+            fetchSummary();
+            fetchHourlyMovements();
+        }
+
+        setInterval(refreshDashboard, 1000);
+        window.onload = refreshDashboard;
+    </script>
 </head>
 <body>
     <div class="container">
-        <div class="sidebar">
-            <img src="https://via.placeholder.com/100" alt="User">
-            <h2>John Don</h2>
-            <p>johndon@company.com</p>
-            <div class="menu">
-                <a href="#">Home</a>
-                <a href="#">File</a>
-                <a href="#">Messages</a>
-                <a href="#">Notification</a>
-                <a href="#">Location</a>
-                <a href="#">Graph</a>
-            </div>
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <p id="status">Loading...</p>
+            <p id="last_update"></p>
         </div>
-        <div class="content">
-            <div class="cards">
-                <div class="card">
-                    <h3>Earning</h3>
-                    <p>$ 628</p>
-                </div>
-                <div class="card">
-                    <h3>Share</h3>
-                    <p>2434</p>
-                </div>
-                <div class="card">
-                    <h3>Likes</h3>
-                    <p>1259</p>
-                </div>
-                <div class="card">
-                    <h3>Rating</h3>
-                    <p>8.5</p>
-                </div>
-            </div>
-            <div class="chart-container">
-                <h3>Results</h3>
-                <canvas id="resultsChart"></canvas>
-            </div>
-            <div class="chart-container">
-                <h3>Movements</h3>
-                <canvas id="movementsChart"></canvas>
-            </div>
+        <div class="card">
+            <h2>Total Movements</h2>
+            <p id="total_movements">0</p>
         </div>
+        <div class="card">
+            <h2>Last Hour Movements</h2>
+            <p id="last_hour_movements">0</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="movementChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+        <h2>Last 10 Movements</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body"></tbody>
+        </table>
+        <footer>
+            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
+        </footer>
     </div>
-    <footer>
-        <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
-    </footer>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const resultsCtx = document.getElementById('resultsChart').getContext('2d');
-            const resultsChart = new Chart(resultsCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: '2019',
-                        data: [12, 19, 3, 5, 2, 3, 9],
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }, {
-                        label: '2020',
-                        data: [2, 3, 20, 5, 1, 4, 7],
-                        backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                        borderColor: 'rgba(255, 206, 86, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-
-            const movementsCtx = document.getElementById('movementsChart').getContext('2d');
-            const movementsChart = new Chart(movementsCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Movements',
-                        data: [5, 15, 10, 20, 30, 25, 35],
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        });
-    </script>
 </body>
 </html>
