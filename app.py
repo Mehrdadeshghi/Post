@@ -62,7 +62,7 @@ def get_hourly_movements():
 @app.route('/download/csv')
 def download_csv():
     df = pd.DataFrame(status["movements"], columns=["Time"])
-    output = io.StringIO()
+    output = io.BytesIO()
     df.to_csv(output, index_label="Index")
     output.seek(0)
     return send_file(output, mimetype='text/csv', download_name='movements.csv', as_attachment=True)
