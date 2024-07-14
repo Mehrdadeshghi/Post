@@ -65,16 +65,16 @@ def download_csv():
     output = io.StringIO()
     df.to_csv(output, index_label="Index")
     output.seek(0)
-    return send_file(output, mimetype='text/csv', attachment_filename='movements.csv', as_attachment=True)
+    return send_file(output, mimetype='text/csv', download_name='movements.csv', as_attachment=True)
 
 @app.route('/download/excel')
 def download_excel():
     df = pd.DataFrame(status["movements"], columns=["Time"])
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index_label="Index")
     output.seek(0)
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', attachment_filename='movements.xlsx', as_attachment=True)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='movements.xlsx', as_attachment=True)
 
 def log_message(message):
     now = datetime.now()
