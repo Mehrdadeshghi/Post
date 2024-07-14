@@ -48,10 +48,24 @@
             max-width: 1000px;
             height: 400px;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let movementChart;
+        let hourlyChart;
 
         async function fetchStatus() {
             try {
@@ -69,6 +83,7 @@
                 const response = await fetch('/movements');
                 const data = await response.json();
                 updateChart(data);
+                updateTable(data);
             } catch (error) {
                 console.error('Error fetching movements:', error);
             }
@@ -82,6 +97,16 @@
                 document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
             } catch (error) {
                 console.error('Error fetching summary:', error);
+            }
+        }
+
+        async function fetchHourlyMovements() {
+            try {
+                const response = await fetch('/hourly_movements');
+                const data = await response.json();
+                updateHourlyChart(data);
+            } catch (error) {
+                console.error('Error fetching hourly movements:', error);
             }
         }
 
@@ -134,10 +159,68 @@
             }
         }
 
+        function updateHourlyChart(hourlyMovements) {
+            const labels = Object.keys(hourlyMovements);
+            const dataPoints = Object.values(hourlyMovements);
+
+            if (hourlyChart) {
+                hourlyChart.data.labels = labels;
+                hourlyChart.data.datasets[0].data = dataPoints;
+                hourlyChart.update();
+            } else {
+                const ctx = document.getElementById('hourlyChart').getContext('2d');
+                hourlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Movements per Hour',
+                            data: dataPoints,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hour of the Day'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Movements'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTable(movements) {
+            const tableBody = document.getElementById('movements-table-body');
+            tableBody.innerHTML = '';
+            movements.slice(-10).forEach((time, index) => {
+                const row = document.createElement('tr');
+                const cellIndex = document.createElement('td');
+                const cellTime = document.createElement('td');
+                cellIndex.innerText = movements.length - 10 + index + 1;
+                cellTime.innerText = time;
+                row.appendChild(cellIndex);
+                row.appendChild(cellTime);
+                tableBody.appendChild(row);
+            });
+        }
+
         function refreshDashboard() {
             fetchStatus();
             fetchMovements();
             fetchSummary();
+            fetchHourlyMovements();
         }
 
         setInterval(refreshDashboard, 1000);
@@ -162,6 +245,19 @@
         <div class="chart-container">
             <canvas id="movementChart"></canvas>
         </div>
+        <div class="chart-container">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+        <h2>Last 10 Movements</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body"></tbody>
+        </table>
     </div>
 </body>
 </html>
