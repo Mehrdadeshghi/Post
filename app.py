@@ -17,7 +17,7 @@ GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 status = {
     "message": "Waiting for motion...",
-    "last_update": datetime.now().strftime("%H:%M:%S"),
+    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     "movements": []
 }
 
@@ -38,7 +38,7 @@ def get_movements():
 @app.route('/summary')
 def get_summary():
     now = datetime.now()
-    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%H:%M:%S") > now - timedelta(hours=1)]
+    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=1)]
     summary = {
         "total_movements": len(status["movements"]),
         "last_hour_movements": len(last_hour_movements)
@@ -50,7 +50,7 @@ def get_hourly_movements():
     now = datetime.now()
     hourly_movements = {str(hour): 0 for hour in range(24)}
     for movement in status["movements"]:
-        movement_time = datetime.strptime(movement, "%H:%M:%S")
+        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
         if movement_time.date() == now.date():
             hour = movement_time.hour
             hourly_movements[str(hour)] += 1
@@ -58,7 +58,7 @@ def get_hourly_movements():
 
 def log_message(message):
     now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
+    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
     if "mail" in message.lower() or "detected" in message.lower():
@@ -69,7 +69,8 @@ def check_sensor():
     global pir_no_power_start_time
 
     while True:
-        if GPIO.input(SENSOR_PIN) == 0:
+        sensor_input = GPIO.input(SENSOR_PIN)
+        if sensor_input == 0:
             if pir_no_power_start_time is None:
                 pir_no_power_start_time = time.time()
 
@@ -79,7 +80,7 @@ def check_sensor():
         else:
             pir_no_power_start_time = None
 
-            if GPIO.input(SENSOR_PIN):
+            if sensor_input:
                 log_message("Motion detected! There is mail.")
 
         time.sleep(1)
