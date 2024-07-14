@@ -21,8 +21,6 @@ status = {
     "movements": []
 }
 
-movement_count = 0
-last_movement_time = None
 pir_no_power_start_time = None
 
 @app.route('/')
@@ -68,7 +66,7 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global movement_count, last_movement_time, pir_no_power_start_time
+    global pir_no_power_start_time
 
     while True:
         if GPIO.input(SENSOR_PIN) == 0:
@@ -82,12 +80,7 @@ def check_sensor():
             pir_no_power_start_time = None
 
             if GPIO.input(SENSOR_PIN):
-                current_time = time.time()
-                if last_movement_time is None or (current_time - last_movement_time > 10):
-                    log_message("Motion detected! There is mail.")
-                    last_movement_time = current_time
-                else:
-                    last_movement_time = current_time
+                log_message("Motion detected! There is mail.")
 
         time.sleep(1)
 
