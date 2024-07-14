@@ -17,7 +17,8 @@ GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 status = {
     "message": "Waiting for motion...",
-    "last_update": datetime.now().strftime("%H:%M:%S")
+    "last_update": datetime.now().strftime("%H:%M:%S"),
+    "movements": []
 }
 
 movement_count = 0
@@ -37,6 +38,8 @@ def log_message(message):
     current_time = now.strftime("%H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
+    if "mail" in message.lower():
+        status["movements"].append(current_time)
     print(f"{current_time} - {message}")
 
 def check_sensor():
