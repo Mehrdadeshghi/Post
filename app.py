@@ -1,7 +1,9 @@
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, send_file
+import pandas as pd
+import io
 
 app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
@@ -56,6 +58,23 @@ def get_hourly_movements():
             hour = movement_time.hour
             hourly_movements[str(hour)] += 1
     return jsonify(hourly_movements)
+
+@app.route('/download/csv')
+def download_csv():
+    df = pd.DataFrame(status["movements"], columns=["Time"])
+    output = io.StringIO()
+    df.to_csv(output, index_label="Index")
+    output.seek(0)
+    return send_file(output, mimetype='text/csv', attachment_filename='movements.csv', as_attachment=True)
+
+@app.route('/download/excel')
+def download_excel():
+    df = pd.DataFrame(status["movements"], columns=["Time"])
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index_label="Index")
+    output.seek(0)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', attachment_filename='movements.xlsx', as_attachment=True)
 
 def log_message(message):
     now = datetime.now()
