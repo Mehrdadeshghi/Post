@@ -23,7 +23,6 @@ status = {
 
 movement_count = 0
 last_movement_time = None
-movement_window_start = None
 pir_no_power_start_time = None
 
 @app.route('/')
@@ -40,12 +39,24 @@ def get_movements():
 
 @app.route('/summary')
 def get_summary():
-    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%H:%M:%S") > datetime.now() - timedelta(hours=1)]
+    now = datetime.now()
+    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%H:%M:%S") > now - timedelta(hours=1)]
     summary = {
         "total_movements": len(status["movements"]),
         "last_hour_movements": len(last_hour_movements)
     }
     return jsonify(summary)
+
+@app.route('/hourly_movements')
+def get_hourly_movements():
+    now = datetime.now()
+    hourly_movements = {str(hour): 0 for hour in range(24)}
+    for movement in status["movements"]:
+        movement_time = datetime.strptime(movement, "%H:%M:%S")
+        if movement_time.date() == now.date():
+            hour = movement_time.hour
+            hourly_movements[str(hour)] += 1
+    return jsonify(hourly_movements)
 
 def log_message(message):
     now = datetime.now()
@@ -57,7 +68,7 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global movement_count, last_movement_time, movement_window_start, pir_no_power_start_time
+    global movement_count, last_movement_time, pir_no_power_start_time
 
     while True:
         if GPIO.input(SENSOR_PIN) == 0:
@@ -75,7 +86,6 @@ def check_sensor():
                 if last_movement_time is None or (current_time - last_movement_time > 10):
                     log_message("Motion detected! There is mail.")
                     last_movement_time = current_time
-                    movement_window_start = current_time
                 else:
                     last_movement_time = current_time
 
