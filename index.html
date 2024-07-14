@@ -6,29 +6,39 @@
     <title>Mailbox Dashboard</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
         .container {
-            background-color: #fff;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
+        }
+        .header {
             text-align: center;
-            width: 600px;
+            margin-bottom: 20px;
         }
         h1 {
             color: #333;
-            margin-bottom: 20px;
         }
-        p {
-            font-size: 1.2em;
+        .card {
+            display: inline-block;
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: 30%;
+            vertical-align: top;
+            text-align: center;
+        }
+        .card h2 {
+            margin-top: 0;
         }
         .chart-container {
             margin-top: 20px;
@@ -38,25 +48,18 @@
             max-width: 1000px;
             height: 400px;
         }
-        .cards {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            text-align: center;
-            width: 23%;
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
-        .card h3 {
-            margin-bottom: 10px;
-        }
-        .card p {
-            font-size: 24px;
-            margin: 0;
+        th {
+            background-color: #f2f2f2;
         }
         footer {
             text-align: center;
@@ -66,6 +69,9 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let movementChart;
+        let hourlyChart;
+
         async function fetchStatus() {
             try {
                 const response = await fetch('/status');
@@ -111,7 +117,7 @@
 
         function updateChart(movements) {
             const labels = movements.map((time, index) => index + 1);
-            const dataPoints = movements.map(time => new Date(`${time.replace(' ', 'T')}Z`).getTime());
+            const dataPoints = movements.map(time => new Date(`2024-01-01T${time}Z`).getTime());
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -241,25 +247,23 @@
 </head>
 <body>
     <div class="container">
-        <h1>Mailbox Dashboard</h1>
-        <p id="status">Loading...</p>
-        <p id="last_update"></p>
-        <div class="cards">
-            <div class="card">
-                <h3>Total Movements</h3>
-                <p id="total_movements">0</p>
-            </div>
-            <div class="card">
-                <h3>Last Hour Movements</h3>
-                <p id="last_hour_movements">0</p>
-            </div>
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <p id="status">Loading...</p>
+            <p id="last_update"></p>
+        </div>
+        <div class="card">
+            <h2>Total Movements</h2>
+            <p id="total_movements">0</p>
+        </div>
+        <div class="card">
+            <h2>Last Hour Movements</h2>
+            <p id="last_hour_movements">0</p>
         </div>
         <div class="chart-container">
-            <h3>Movements Chart</h3>
             <canvas id="movementChart"></canvas>
         </div>
         <div class="chart-container">
-            <h3>Hourly Movements</h3>
             <canvas id="hourlyChart"></canvas>
         </div>
         <h2>Last 10 Movements</h2>
