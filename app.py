@@ -33,6 +33,19 @@ def index():
 def get_status():
     return jsonify(status)
 
+@app.route('/movements')
+def get_movements():
+    return jsonify(status["movements"])
+
+@app.route('/summary')
+def get_summary():
+    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%H:%M:%S") > datetime.now() - timedelta(hours=1)]
+    summary = {
+        "total_movements": len(status["movements"]),
+        "last_hour_movements": len(last_hour_movements)
+    }
+    return jsonify(summary)
+
 def log_message(message):
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
@@ -70,6 +83,7 @@ def check_sensor():
 
 if __name__ == '__main__':
     from threading import Thread
+    from datetime import timedelta
     sensor_thread = Thread(target=check_sensor)
     sensor_thread.start()
     app.run(host='0.0.0.0', port=5000)
