@@ -4,19 +4,19 @@ from datetime import datetime
 from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
-app.config['DEBUG'] = True  # Aktivieren Sie den Debug-Modus
+app.config['DEBUG'] = True  # Activate debug mode
 
-# GPIO Pins definieren
-SENSOR_PIN = 25  # Pin für den Bewegungssensor
+# Define GPIO pins
+SENSOR_PIN = 25  # Pin for the motion sensor
 
-# GPIO-Modus festlegen (BCM)
+# Set GPIO mode (BCM)
 GPIO.setmode(GPIO.BCM)
 
-# GPIO-Pin als Eingang definieren
+# Set GPIO pin as input
 GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 status = {
-    "message": "Warte auf Bewegung...",
+    "message": "Waiting for motion...",
     "last_update": datetime.now().strftime("%H:%M:%S")
 }
 
@@ -48,17 +48,18 @@ def check_sensor():
                 pir_no_power_start_time = time.time()
 
             if time.time() - pir_no_power_start_time > 10:
-                log_message("Briefkasten ist offen.")
+                log_message("Mailbox is open.")
                 pir_no_power_start_time = time.time()
         else:
             pir_no_power_start_time = None
 
             if GPIO.input(SENSOR_PIN):
+                log_message("Motion detected! There is mail.")
                 movement_count += 1
 
             if time.time() - movement_window_start > 10:
                 if movement_count > 2:
-                    log_message("Du hast Post")
+                    log_message("You have mail")
                 movement_count = 0
                 movement_window_start = time.time()
 
