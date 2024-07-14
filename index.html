@@ -117,7 +117,7 @@
 
         function updateChart(movements) {
             const labels = movements.map((time, index) => index + 1);
-            const dataPoints = movements.map(time => new Date('1970-01-01T' + time + 'Z').getTime());
+            const dataPoints = movements.map(time => new Date(`2024-01-01T${time}Z`).getTime());
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -139,6 +139,19 @@
                         }]
                     },
                     options: {
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        const date = new Date(tooltipItem.raw);
+                                        const movementNumber = tooltipItem.dataIndex + 1;
+                                        const formattedTime = date.toISOString().substr(11, 8);
+                                        const formattedDate = date.toISOString().substr(0, 10);
+                                        return `Movement #${movementNumber}: ${formattedDate} ${formattedTime}`;
+                                    }
+                                }
+                            }
+                        },
                         scales: {
                             x: {
                                 title: {
