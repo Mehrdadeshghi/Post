@@ -22,9 +22,6 @@ def log_message(message):
     with open(log_file_path, "a") as log_file:
         log_file.write(log_entry + "\n")
 
-# Initiale Zeit zum Ignorieren der Bewegungserkennung setzen
-start_time = time.time()
-
 try:
     log_message("Warte auf Bewegung...")
     movement_count = 0
