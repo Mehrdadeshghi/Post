@@ -51,7 +51,7 @@ try:
                 
                 # Überprüfen, ob mehr als 30 Bewegungen innerhalb von 1 Minute erkannt wurden
                 if time.time() - movement_window_start <= 60:
-                    if movement_count > 30:
+                    if movement_count >= 30:
                         log_message("Du hast Post")
                         movement_count = 0  # Zurücksetzen nach der Benachrichtigung
                         movement_window_start = time.time()  # Zeitfenster zurücksetzen
@@ -61,6 +61,7 @@ try:
                     movement_window_start = time.time()
             else:
                 log_message("Keine Bewegung.")
+                movement_count = 0  # Reset movement count if no movement detected
 
         time.sleep(1)  # Sensor jede Sekunde überprüfen
 except KeyboardInterrupt:
