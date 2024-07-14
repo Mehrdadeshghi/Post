@@ -21,6 +21,8 @@ status = {
     "movements": []
 }
 
+movement_detected_times = []
+movement_window_start = None
 pir_no_power_start_time = None
 
 @app.route('/')
@@ -66,22 +68,29 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global pir_no_power_start_time
+    global movement_detected_times, movement_window_start, pir_no_power_start_time
 
     while True:
         sensor_input = GPIO.input(SENSOR_PIN)
+        current_time = time.time()
+        
         if sensor_input == 0:
             if pir_no_power_start_time is None:
-                pir_no_power_start_time = time.time()
+                pir_no_power_start_time = current_time
 
-            if time.time() - pir_no_power_start_time > 10:
+            if current_time - pir_no_power_start_time > 10:
                 log_message("Mailbox is open.")
-                pir_no_power_start_time = time.time()
+                pir_no_power_start_time = current_time
         else:
             pir_no_power_start_time = None
 
             if sensor_input:
-                log_message("Motion detected! There is mail.")
+                movement_detected_times.append(current_time)
+                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+
+                if len(movement_detected_times) >= 2:
+                    log_message("Motion detected! There is mail.")
+                    movement_detected_times = []
 
         time.sleep(1)
 
