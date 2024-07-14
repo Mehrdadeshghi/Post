@@ -40,25 +40,17 @@ try:
                 pir_no_power_start_time = time.time()  # Zurücksetzen, um die Meldung nicht kontinuierlich zu wiederholen
         else:
             pir_no_power_start_time = None  # Reset if PIR has power
-            
+
             # Bewegungserkennung
             if GPIO.input(SENSOR_PIN):
-                log_message("Bewegung erkannt! Brief ist da.")
                 movement_count += 1
-                
-                # Überprüfen, ob mehr als 30 Bewegungen innerhalb von 1 Minute erkannt wurden
-                if time.time() - movement_window_start <= 60:
-                    if movement_count >= 30:
-                        log_message("Du hast Post")
-                        movement_count = 0  # Zurücksetzen nach der Benachrichtigung
-                        movement_window_start = time.time()  # Zeitfenster zurücksetzen
-                else:
-                    # Zurücksetzen des Zählers und des Zeitfensters, wenn mehr als 1 Minute vergangen ist
-                    movement_count = 1
-                    movement_window_start = time.time()
-            else:
-                log_message("Keine Bewegung.")
-                movement_count = 0  # Reset movement count if no movement detected
+
+            # Überprüfen, ob mehr als 2 Bewegungen innerhalb von 10 Sekunden erkannt wurden
+            if time.time() - movement_window_start > 10:
+                if movement_count > 2:
+                    log_message("Du hast Post")
+                movement_count = 0  # Zurücksetzen nach der Benachrichtigung oder Zeitfenster
+                movement_window_start = time.time()  # Zeitfenster zurücksetzen
 
         time.sleep(1)  # Sensor jede Sekunde überprüfen
 except KeyboardInterrupt:
