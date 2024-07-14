@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
+app.config['DEBUG'] = True  # Aktivieren Sie den Debug-Modus
 
 # GPIO Pins definieren
 SENSOR_PIN = 25  # Pin für den Bewegungssensor
@@ -67,4 +68,4 @@ if __name__ == '__main__':
     from threading import Thread
     sensor_thread = Thread(target=check_sensor)
     sensor_thread.start()
-    app.run(host='0.0.0.0', port=5555)
+    app.run(host='0.0.0.0', port=5000)
