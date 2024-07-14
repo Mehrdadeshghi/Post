@@ -1,284 +1,95 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Dashboard</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #333;
-        }
-        .card {
-            display: inline-block;
-            background-color: #f9f9f9;
-            padding: 20px;
-            margin: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            width: 30%;
-            vertical-align: top;
-            text-align: center;
-        }
-        .card h2 {
-            margin-top: 0;
-        }
-        .chart-container {
-            margin-top: 20px;
-        }
-        canvas {
-            width: 100% !important;
-            max-width: 1000px;
-            height: 400px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        let movementChart;
-        let hourlyChart;
+import RPi.GPIO as GPIO
+import time
+from datetime import datetime, timedelta
+from flask import Flask, jsonify, render_template
 
-        async function fetchStatus() {
-            try {
-                const response = await fetch('/status');
-                const data = await response.json();
-                document.getElementById('status').innerText = data.message;
-                document.getElementById('last_update').innerText = "Last Update: " + data.last_update;
-            } catch (error) {
-                console.error('Error fetching status:', error);
-            }
-        }
+app = Flask(__name__)
+app.config['DEBUG'] = True  # Activate debug mode
 
-        async function fetchMovements() {
-            try {
-                const response = await fetch('/movements');
-                const data = await response.json();
-                updateChart(data);
-                updateTable(data);
-            } catch (error) {
-                console.error('Error fetching movements:', error);
-            }
-        }
+# Define GPIO pins
+SENSOR_PIN = 25  # Pin for the motion sensor
 
-        async function fetchSummary() {
-            try {
-                const response = await fetch('/summary');
-                const data = await response.json();
-                document.getElementById('total_movements').innerText = data.total_movements;
-                document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
-            } catch (error) {
-                console.error('Error fetching summary:', error);
-            }
-        }
+# Set GPIO mode (BCM)
+GPIO.setmode(GPIO.BCM)
 
-        async function fetchHourlyMovements() {
-            try {
-                const response = await fetch('/hourly_movements');
-                const data = await response.json();
-                updateHourlyChart(data);
-            } catch (error) {
-                console.error('Error fetching hourly movements:', error);
-            }
-        }
+# Set GPIO pin as input
+GPIO.setup(SENSOR_PIN, GPIO.IN)
 
-        function updateChart(movements) {
-            const labels = movements.map((time, index) => index + 1);
-            const dataPoints = movements.map(time => new Date(`2024-01-01T${time}Z`).getTime());
+status = {
+    "message": "Waiting for motion...",
+    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "movements": []
+}
 
-            if (movementChart) {
-                movementChart.data.labels = labels;
-                movementChart.data.datasets[0].data = dataPoints;
-                movementChart.update();
-            } else {
-                const ctx = document.getElementById('movementChart').getContext('2d');
-                movementChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Movement Times',
-                            data: dataPoints,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                            fill: false,
-                            pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(tooltipItem) {
-                                        const date = new Date(tooltipItem.raw);
-                                        const movementNumber = tooltipItem.dataIndex + 1;
-                                        const formattedTime = date.toISOString().substr(11, 8);
-                                        const formattedDate = date.toISOString().substr(0, 10);
-                                        return `Movement #${movementNumber}: ${formattedDate} ${formattedTime}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Movement Number'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Time (ms since 1970-01-01)'
-                                },
-                                ticks: {
-                                    callback: function(value) {
-                                        const date = new Date(value);
-                                        return date.toISOString().substr(11, 8);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
+movement_detected_times = []
+last_motion_time = None
 
-        function updateHourlyChart(hourlyMovements) {
-            const labels = Object.keys(hourlyMovements);
-            const dataPoints = Object.values(hourlyMovements);
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-            if (hourlyChart) {
-                hourlyChart.data.labels = labels;
-                hourlyChart.data.datasets[0].data = dataPoints;
-                hourlyChart.update();
-            } else {
-                const ctx = document.getElementById('hourlyChart').getContext('2d');
-                hourlyChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Movements per Hour',
-                            data: dataPoints,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Hour of the Day'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Number of Movements'
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
+@app.route('/status')
+def get_status():
+    return jsonify(status)
 
-        function updateTable(movements) {
-            const tableBody = document.getElementById('movements-table-body');
-            tableBody.innerHTML = '';
-            movements.slice(-10).forEach((time, index) => {
-                const row = document.createElement('tr');
-                const cellIndex = document.createElement('td');
-                const cellTime = document.createElement('td');
-                cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = time;
-                row.appendChild(cellIndex);
-                row.appendChild(cellTime);
-                tableBody.appendChild(row);
-            });
-        }
+@app.route('/movements')
+def get_movements():
+    return jsonify(status["movements"])
 
-        function refreshDashboard() {
-            fetchStatus();
-            fetchMovements();
-            fetchSummary();
-            fetchHourlyMovements();
-        }
+@app.route('/summary')
+def get_summary():
+    now = datetime.now()
+    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=1)]
+    summary = {
+        "total_movements": len(status["movements"]),
+        "last_hour_movements": len(last_hour_movements)
+    }
+    return jsonify(summary)
 
-        setInterval(refreshDashboard, 1000);
-        window.onload = refreshDashboard;
-    </script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Mailbox Dashboard</h1>
-            <p id="status">Loading...</p>
-            <p id="last_update"></p>
-        </div>
-        <div class="card">
-            <h2>Total Movements</h2>
-            <p id="total_movements">0</p>
-        </div>
-        <div class="card">
-            <h2>Last Hour Movements</h2>
-            <p id="last_hour_movements">0</p>
-        </div>
-        <div class="chart-container">
-            <canvas id="movementChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="hourlyChart"></canvas>
-        </div>
-        <h2>Last 10 Movements</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="movements-table-body"></tbody>
-        </table>
-        <footer>
-            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
-        </footer>
-    </div>
-</body>
-</html>
+@app.route('/hourly_movements')
+def get_hourly_movements():
+    now = datetime.now()
+    hourly_movements = {str(hour): 0 for hour in range(24)}
+    for movement in status["movements"]:
+        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
+        if movement_time.date() == now.date():
+            hour = movement_time.hour
+            hourly_movements[str(hour)] += 1
+    return jsonify(hourly_movements)
+
+def log_message(message):
+    now = datetime.now()
+    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    status["message"] = message
+    status["last_update"] = current_time
+    if "mail" in message.lower() or "detected" in message.lower():
+        status["movements"].append(current_time)
+    print(f"{current_time} - {message}")
+
+def check_sensor():
+    global movement_detected_times, last_motion_time
+
+    while True:
+        sensor_input = GPIO.input(SENSOR_PIN)
+        current_time = time.time()
+        
+        if sensor_input:
+            movement_detected_times.append(current_time)
+            movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+            
+            if len(movement_detected_times) >= 2:
+                log_message("Motion detected! There is mail.")
+                movement_detected_times = []
+                last_motion_time = current_time
+        else:
+            if last_motion_time and current_time - last_motion_time > 10:
+                log_message("Mailbox is open.")
+                last_motion_time = None
+
+        time.sleep(1)
+
+if __name__ == '__main__':
+    from threading import Thread
+    sensor_thread = Thread(target=check_sensor)
+    sensor_thread.start()
+    app.run(host='0.0.0.0', port=5000)
