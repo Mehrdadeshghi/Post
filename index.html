@@ -3,38 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Status</title>
+    <title>Mailbox Dashboard</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
         }
         .container {
-            background-color: #fff;
+            max-width: 1200px;
+            margin: 20px auto;
             padding: 20px;
+            background-color: #fff;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
+        }
+        .header {
             text-align: center;
-            width: 600px;
+            margin-bottom: 20px;
         }
         h1 {
             color: #333;
-            margin-bottom: 20px;
         }
-        p {
-            font-size: 1.2em;
-            margin: 10px 0;
+        .card {
+            display: inline-block;
+            background-color: #f9f9f9;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: 30%;
+            vertical-align: top;
+            text-align: center;
+        }
+        .card h2 {
+            margin-top: 0;
         }
         .chart-container {
-            position: relative;
+            margin-top: 20px;
+        }
+        canvas {
+            width: 100% !important;
+            max-width: 1000px;
             height: 400px;
-            width: 100%;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -47,10 +59,29 @@
                 const data = await response.json();
                 document.getElementById('status').innerText = data.message;
                 document.getElementById('last_update').innerText = "Last Update: " + data.last_update;
-
-                updateChart(data.movements);
             } catch (error) {
                 console.error('Error fetching status:', error);
+            }
+        }
+
+        async function fetchMovements() {
+            try {
+                const response = await fetch('/movements');
+                const data = await response.json();
+                updateChart(data);
+            } catch (error) {
+                console.error('Error fetching movements:', error);
+            }
+        }
+
+        async function fetchSummary() {
+            try {
+                const response = await fetch('/summary');
+                const data = await response.json();
+                document.getElementById('total_movements').innerText = data.total_movements;
+                document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
+            } catch (error) {
+                console.error('Error fetching summary:', error);
             }
         }
 
@@ -103,15 +134,31 @@
             }
         }
 
-        setInterval(fetchStatus, 1000);
-        window.onload = fetchStatus;
+        function refreshDashboard() {
+            fetchStatus();
+            fetchMovements();
+            fetchSummary();
+        }
+
+        setInterval(refreshDashboard, 1000);
+        window.onload = refreshDashboard;
     </script>
 </head>
 <body>
     <div class="container">
-        <h1>Mailbox Status</h1>
-        <p id="status">Loading...</p>
-        <p id="last_update"></p>
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <p id="status">Loading...</p>
+            <p id="last_update"></p>
+        </div>
+        <div class="card">
+            <h2>Total Movements</h2>
+            <p id="total_movements">0</p>
+        </div>
+        <div class="card">
+            <h2>Last Hour Movements</h2>
+            <p id="last_hour_movements">0</p>
+        </div>
         <div class="chart-container">
             <canvas id="movementChart"></canvas>
         </div>
