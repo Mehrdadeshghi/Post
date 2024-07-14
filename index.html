@@ -61,6 +61,19 @@
         th {
             background-color: #f2f2f2;
         }
+        .download-buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .download-buttons button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+        }
         footer {
             text-align: center;
             margin-top: 20px;
@@ -276,6 +289,10 @@
             </thead>
             <tbody id="movements-table-body"></tbody>
         </table>
+        <div class="download-buttons">
+            <button onclick="window.location.href='/download/csv'">Download CSV</button>
+            <button onclick="window.location.href='/download/excel'">Download Excel</button>
+        </div>
         <footer>
             <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
         </footer>
