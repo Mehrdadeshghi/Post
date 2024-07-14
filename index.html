@@ -21,26 +21,41 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             text-align: center;
-            width: 300px;
+            width: 400px;
         }
         h1 {
             color: #333;
+            margin-bottom: 20px;
         }
         p {
             font-size: 1.2em;
+            margin: 10px 0;
         }
         .movements {
             margin-top: 20px;
+            text-align: left;
+        }
+        .movements h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            color: #555;
         }
         .movements ul {
             list-style-type: none;
             padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
         }
         .movements li {
             background-color: #eee;
-            margin: 5px 0;
+            margin: 5px 10px;
             padding: 10px;
             border-radius: 4px;
+            color: #333;
+            font-size: 1em;
         }
     </style>
     <script>
@@ -53,7 +68,7 @@
 
                 const movementsList = document.getElementById('movements-list');
                 movementsList.innerHTML = '';
-                data.movements.forEach(time => {
+                data.movements.slice(-10).forEach(time => { // Display only the last 10 movements
                     const li = document.createElement('li');
                     li.innerText = time;
                     movementsList.appendChild(li);
