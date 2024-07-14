@@ -1,7 +1,7 @@
 import RPi.GPIO as GPIO
 import time
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
 
@@ -22,6 +22,10 @@ status = {
 movement_count = 0
 movement_window_start = time.time()
 pir_no_power_start_time = None
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/status')
 def get_status():
