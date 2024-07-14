@@ -3,7 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Briefkasten Status</title>
+    <title>Mailbox Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            font-size: 1.2em;
+        }
+    </style>
     <script>
         async function fetchStatus() {
             try {
@@ -21,8 +46,10 @@
     </script>
 </head>
 <body>
-    <h1>Briefkasten Status</h1>
-    <p id="status">Lade...</p>
-    <p id="last_update"></p>
+    <div class="container">
+        <h1>Mailbox Status</h1>
+        <p id="status">Loading...</p>
+        <p id="last_update"></p>
+    </div>
 </body>
 </html>
