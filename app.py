@@ -58,12 +58,22 @@ power_check_status = []
 def get_system_info():
     try:
         cpu_temperature = float(os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", ""))
-    except:
+    except Exception as e:
+        print(f"Error fetching CPU temperature: {e}")
         cpu_temperature = 0  # Default value if the command fails
-    uptime = os.popen("uptime -p").readline().strip()
-    net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
-    upload = float(net_stats[0])
-    download = float(net_stats[1])
+    try:
+        uptime = os.popen("uptime -p").readline().strip()
+    except Exception as e:
+        print(f"Error fetching uptime: {e}")
+        uptime = "N/A"
+    try:
+        net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
+        upload = float(net_stats[0])
+        download = float(net_stats[1])
+    except Exception as e:
+        print(f"Error fetching network stats: {e}")
+        upload = 0
+        download = 0
     active_processes = len(psutil.pids())
     
     return cpu_temperature, uptime, upload, download, active_processes
@@ -74,7 +84,11 @@ def index():
 
 @app.route('/management')
 def management():
-    return render_template('management.html')
+    try:
+        return render_template('management.html')
+    except Exception as e:
+        print(f"Error loading management page: {e}")
+        return "Error loading management page"
 
 @app.route('/user')
 def user():
@@ -87,6 +101,7 @@ def system_info():
     memory_usage = memory.percent
     disk_usage = psutil.disk_usage('/').percent
     cpu_temperature, uptime, upload, download, active_processes = get_system_info()
+    print(f"Fetched system info - CPU Temp: {cpu_temperature}, Uptime: {uptime}, Upload: {upload}, Download: {download}, Active Processes: {active_processes}")
     status.update({
         "cpu_temperature": cpu_temperature,
         "system_uptime": uptime,
