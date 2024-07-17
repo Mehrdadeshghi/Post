@@ -183,7 +183,7 @@ def log_message(message):
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
-    if "mail" in message.lower() or "motion detected" in message.lower():
+    if "motion detected" in message.lower():
         status["movements"].append(current_time)
     print(f"{current_time} - {message}")
 
