@@ -2,7 +2,7 @@ from gpiozero import InputDevice
 import time
 
 # Der GPIO-Pin, an den der PIR-Sensor angeschlossen ist
-power_pin = 17
+power_pin = 25
 
 # Erstellen eines InputDevice, um den Stromstatus zu lesen
 sensor_power = InputDevice(power_pin)
