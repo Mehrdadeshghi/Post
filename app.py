@@ -183,7 +183,7 @@ def log_message(message):
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
-    if "mail" in message.lower() or "detected" in message.lower():
+    if "mail" in message.lower() or "motion detected" in message.lower():
         status["movements"].append(current_time)
     print(f"{current_time} - {message}")
 
@@ -223,11 +223,8 @@ def check_sensor():
                     machine.set_state("MOTION_DETECTED")
             else:
                 if last_motion_time and current_time - last_motion_time > no_motion_threshold:
-                    log_message("Mailbox is open.")
                     last_motion_time = None
                     machine.set_state("MAILBOX_OPEN")
-                elif not last_motion_time:
-                    log_message("Waiting for motion...")
 
         elif current_state == "MOTION_DETECTED":
             log_message("Processing motion...")
