@@ -5,34 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Selection</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .container {
-            text-align: center;
-        }
-        button {
-            padding: 15px 30px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-            font-size: 18px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Select Dashboard</h1>
-        <button onclick="window.location.href='/management'">Management</button>
-        <button onclick="window.location.href='/user'">User</button>
+        <div class="theme-switch-wrapper">
+            <span>Light Mode</span>
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox">
+                <div class="slider round"></div>
+            </label>
+            <span>Dark Mode</span>
+        </div>
+        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
+        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
     </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
