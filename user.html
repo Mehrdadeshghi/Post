@@ -5,46 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f4f4f4;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .card {
-            margin: 10px;
-        }
-        .chart-container {
-            margin-top: 20px;
-        }
-        canvas {
-            width: 100% !important;
-            height: 400px;
-        }
-        .download-buttons {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .download-buttons button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <div class="theme-switch-wrapper">
+                <span>Light Mode</span>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox">
+                    <div class="slider round"></div>
+                </label>
+                <span>Dark Mode</span>
+            </div>
+            <p id="status">Loading...</p>
+            <p id="last_update"></p>
+        </div>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Movements</h5>
+                    <p id="total_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Hour Movements</h5>
+                    <p id="last_hour_movements" class="card-text">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="movementChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+        <h2>Last 10 Movements</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body"></tbody>
+        </table>
+        <div class="download-buttons">
+            <button onclick="window.location.href='/download/csv'">Download CSV</button>
+            <button onclick="window.location.href='/download/excel'">Download Excel</button>
+        </div>
+        <footer class="text-center mt-4">
+            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
+        </footer>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         let movementChart;
@@ -222,51 +237,6 @@
         setInterval(refreshDashboard, 1000);
         window.onload = refreshDashboard;
     </script>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Mailbox Dashboard</h1>
-            <p id="status">Loading...</p>
-            <p id="last_update"></p>
-        </div>
-        <div class="card-deck">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Total Movements</h5>
-                    <p id="total_movements" class="card-text">0</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Last Hour Movements</h5>
-                    <p id="last_hour_movements" class="card-text">0</p>
-                </div>
-            </div>
-        </div>
-        <div class="chart-container">
-            <canvas id="movementChart"></canvas>
-        </div>
-        <div class="chart-container">
-            <canvas id="hourlyChart"></canvas>
-        </div>
-        <h2>Last 10 Movements</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="movements-table-body"></tbody>
-        </table>
-        <div class="download-buttons">
-            <button onclick="window.location.href='/download/csv'">Download CSV</button>
-            <button onclick="window.location.href='/download/excel'">Download Excel</button>
-        </div>
-        <footer class="text-center mt-4">
-            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
-        </footer>
-    </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
