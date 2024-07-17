@@ -6,6 +6,36 @@
     <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .card-deck {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .download-buttons {
+            margin-top: 20px;
+        }
+        footer {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -19,8 +49,6 @@
                 </label>
                 <span>Dark Mode</span>
             </div>
-            <p id="status">Loading...</p>
-            <p id="last_update"></p>
         </div>
         <div class="card-deck">
             <div class="card">
@@ -71,8 +99,8 @@
             <tbody id="movements-table-body"></tbody>
         </table>
         <div class="download-buttons">
-            <button onclick="window.location.href='/download/csv'">Download CSV</button>
-            <button onclick="window.location.href='/download/excel'">Download Excel</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/csv'">Download CSV</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/excel'">Download Excel</button>
         </div>
         <footer class="text-center mt-4">
             <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
@@ -130,7 +158,7 @@
         }
 
         function updateChart(movements) {
-            const labels = movements.map(time => new Date(`${time.replace(' ', 'T')}Z`).toISOString().substr(11, 8));
+            const labels = movements.map(time => new Date(time).toLocaleTimeString());
             const dataPoints = movements.map((time, index) => index + 1);
 
             if (movementChart) {
@@ -147,8 +175,9 @@
                             label: 'Movement Number',
                             data: dataPoints,
                             borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
+                            borderWidth: 2,
                             fill: false,
+                            tension: 0.1,
                             pointBackgroundColor: 'rgba(75, 192, 192, 1)',
                         }]
                     },
@@ -241,7 +270,7 @@
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = time;
+                cellTime.innerText = new Date(time).toLocaleString();
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
                 tableBody.appendChild(row);
@@ -255,9 +284,8 @@
             fetchHourlyMovements();
         }
 
-        setInterval(refreshDashboard, 1000);
+        setInterval(refreshDashboard, 10000);
         window.onload = refreshDashboard;
     </script>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
