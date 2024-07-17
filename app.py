@@ -157,10 +157,10 @@ def check_sensor():
                 log_message("Motion detected! There is mail.")
                 movement_detected_times = []
                 last_motion_time = current_time
-        else:
-            if last_motion_time and current_time - last_motion_time > 10:
-                log_message("Mailbox is open.")
-                last_motion_time = None
+     #   else:
+     #       if last_motion_time and current_time - last_motion_time > 10:
+     #           log_message("Mailbox is open.")
+     #           last_motion_time = None
 
         time.sleep(1)
 
