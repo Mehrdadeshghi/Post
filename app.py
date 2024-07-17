@@ -6,17 +6,21 @@ from datetime import datetime, timedelta
 from flask import Flask, jsonify, render_template, send_file
 import pandas as pd
 import io
+import threading
 
 class StateMachine:
     def __init__(self):
         self.state = "INIT"
+        self.lock = threading.Lock()
 
     def set_state(self, state):
-        print(f"Transitioning to {state} state.")
-        self.state = state
+        with self.lock:
+            print(f"Transitioning to {state} state.")
+            self.state = state
 
     def get_state(self):
-        return self.state
+        with self.lock:
+            return self.state
 
 # Initialize the state machine
 machine = StateMachine()
@@ -52,7 +56,10 @@ power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu ü
 power_check_status = []
 
 def get_system_info():
-    cpu_temperature = float(os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", ""))
+    try:
+        cpu_temperature = float(os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", ""))
+    except:
+        cpu_temperature = 0  # Default value if the command fails
     uptime = os.popen("uptime -p").readline().strip()
     net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
     upload = float(net_stats[0])
@@ -237,8 +244,17 @@ def check_sensor():
 
         time.sleep(1)
 
+def cleanup_gpio():
+    GPIO.cleanup()
+
 if __name__ == '__main__':
-    from threading import Thread
-    sensor_thread = Thread(target=check_sensor)
-    sensor_thread.start()
-    app.run(host='0.0.0.0', port=5000)
+    try:
+        from threading import Thread
+        sensor_thread = Thread(target=check_sensor)
+        sensor_thread.start()
+        app.run(host='0.0.0.0', port=5000)
+    except KeyboardInterrupt:
+        cleanup_gpio()
+    except Exception as e:
+        print(f"Error: {e}")
+        cleanup_gpio()
