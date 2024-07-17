@@ -212,7 +212,7 @@ def check_sensor():
                     log_message("Mailbox is open. (PIR has no power)")
                     machine.set_state("MAILBOX_OPEN")
 
-            if sensor_input:
+            if sensor_input == GPIO.HIGH:
                 movement_detected_times.append(current_time)
                 movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
 
@@ -235,7 +235,7 @@ def check_sensor():
             machine.set_state("WAITING_FOR_MOTION")
 
         elif current_state == "MAILBOX_OPEN":
-            log_message("Processing mailbox open state...")
+            log_message("Mailbox is open.")
             time.sleep(2)  # Simulate processing time
             machine.set_state("WAITING_FOR_MOTION")
 
