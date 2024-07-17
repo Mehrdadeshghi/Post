@@ -44,7 +44,6 @@ last_motion_time = None
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
-power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
 power_check_status = []
 
 @app.route('/')
