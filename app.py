@@ -31,7 +31,7 @@ SENSOR_PIN = 25  # Pin for the motion sensor
 GPIO.setmode(GPIO.BCM)
 
 # Set GPIO pin as input
-GPIO.setup(SENSOR_PIN, GPIO.IN)
+GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 status = {
     "message": "Waiting for motion...",
@@ -44,6 +44,7 @@ last_motion_time = None
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
+power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
 power_check_status = []
 
 @app.route('/')
@@ -177,11 +178,11 @@ def check_sensor():
             # Update power check status
             if current_time - last_power_check_time > power_check_interval:
                 last_power_check_time = current_time
-                power_check_status.append((current_time, sensor_input))
-                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
+                power_check_status.append(sensor_input)
+                power_check_status = power_check_status[-power_check_window:]  # Keep only the last power_check_window readings
 
                 # Check if PIR has no power
-                if len(power_check_status) > 0 and all(status[1] == 0 for status in power_check_status):
+                if len(power_check_status) > 0 and all(status == 0 for status in power_check_status):
                     log_message("Mailbox is open. (PIR has no power)")
                     machine.set_state("MAILBOX_OPEN")
 
