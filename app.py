@@ -39,7 +39,8 @@ status = {
     "movements": [],
     "cpu_temperature": 0,
     "system_uptime": 0,
-    "network_activity": {"upload": 0, "download": 0}
+    "network_activity": {"upload": 0, "download": 0},
+    "active_processes": 0
 }
 
 movement_detected_times = []
@@ -56,8 +57,9 @@ def get_system_info():
     net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
     upload = float(net_stats[0])
     download = float(net_stats[1])
+    active_processes = len(psutil.pids())
     
-    return cpu_temperature, uptime, upload, download
+    return cpu_temperature, uptime, upload, download, active_processes
 
 @app.route('/')
 def index():
@@ -76,18 +78,22 @@ def system_info():
     cpu_usage = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
     memory_usage = memory.percent
-    cpu_temperature, uptime, upload, download = get_system_info()
+    disk_usage = psutil.disk_usage('/').percent
+    cpu_temperature, uptime, upload, download, active_processes = get_system_info()
     status.update({
         "cpu_temperature": cpu_temperature,
         "system_uptime": uptime,
-        "network_activity": {"upload": upload, "download": download}
+        "network_activity": {"upload": upload, "download": download},
+        "active_processes": active_processes
     })
     return jsonify({
         "cpu_usage": cpu_usage,
         "memory_usage": memory_usage,
+        "disk_usage": disk_usage,
         "cpu_temperature": cpu_temperature,
         "system_uptime": uptime,
-        "network_activity": {"upload": upload, "download": download}
+        "network_activity": {"upload": upload, "download": download},
+        "active_processes": active_processes
     })
 
 @app.route('/status')
@@ -101,10 +107,15 @@ def get_movements():
 @app.route('/summary')
 def get_summary():
     now = datetime.now()
-    last_hour_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=1)]
+    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+    last_week_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+    last_month_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
     summary = {
         "total_movements": len(status["movements"]),
-        "last_hour_movements": len(last_hour_movements)
+        "last_24_hours_movements": len(last_24_hours_movements),
+        "last_week_movements": len(last_week_movements),
+        "last_month_movements": len(last_month_movements),
+        "last_motion_time": status["movements"][-1] if status["movements"] else "No movements detected"
     }
     return jsonify(summary)
 
@@ -142,7 +153,8 @@ def download_system_info_csv():
         "CPU Temperature": [status["cpu_temperature"]],
         "System Uptime": [status["system_uptime"]],
         "Upload": [status["network_activity"]["upload"]],
-        "Download": [status["network_activity"]["download"]]
+        "Download": [status["network_activity"]["download"]],
+        "Active Processes": [status["active_processes"]]
     }
     df = pd.DataFrame(system_info)
     output = io.BytesIO()
@@ -156,7 +168,8 @@ def download_system_info_excel():
         "CPU Temperature": [status["cpu_temperature"]],
         "System Uptime": [status["system_uptime"]],
         "Upload": [status["network_activity"]["upload"]],
-        "Download": [status["network_activity"]["download"]]
+        "Download": [status["network_activity"]["download"]],
+        "Active Processes": [status["active_processes"]]
     }
     df = pd.DataFrame(system_info)
     output = io.BytesIO()
