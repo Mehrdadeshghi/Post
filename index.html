@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Dashboard</title>
+    <title>Management Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
         }
         .container {
             max-width: 1200px;
@@ -19,47 +18,15 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        h1 {
-            color: #333;
-        }
         .card {
-            display: inline-block;
-            background-color: #f9f9f9;
-            padding: 20px;
             margin: 10px;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-            width: 30%;
-            vertical-align: top;
-            text-align: center;
-        }
-        .card h2 {
-            margin-top: 0;
         }
         .chart-container {
             margin-top: 20px;
         }
         canvas {
             width: 100% !important;
-            max-width: 1000px;
             height: 400px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background-color: #f2f2f2;
         }
         .download-buttons {
             text-align: center;
@@ -74,228 +41,130 @@
             background-color: #4CAF50;
             color: white;
         }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            color: #777;
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: 0.4s;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: 0.4s;
+            width: 26px;
+        }
+        input:checked + .slider {
+            background-color: #66bb6a;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let movementChart;
-        let hourlyChart;
-
-        async function fetchStatus() {
+        async function fetchSystemInfo() {
             try {
-                const response = await fetch('/status');
+                const response = await fetch('/system_info');
                 const data = await response.json();
-                document.getElementById('status').innerText = data.message;
-                document.getElementById('last_update').innerText = "Last Update: " + data.last_update;
+                updateSystemInfo(data);
             } catch (error) {
-                console.error('Error fetching status:', error);
+                console.error('Error fetching system info:', error);
             }
         }
 
-        async function fetchMovements() {
-            try {
-                const response = await fetch('/movements');
-                const data = await response.json();
-                updateChart(data);
-                updateTable(data);
-            } catch (error) {
-                console.error('Error fetching movements:', error);
-            }
-        }
+        function updateSystemInfo(data) {
+            document.getElementById('cpu_usage').innerText = data.cpu_usage + '%';
+            document.getElementById('memory_usage').innerText = data.memory_usage + '%';
 
-        async function fetchSummary() {
-            try {
-                const response = await fetch('/summary');
-                const data = await response.json();
-                document.getElementById('total_movements').innerText = data.total_movements;
-                document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
-            } catch (error) {
-                console.error('Error fetching summary:', error);
-            }
-        }
-
-        async function fetchHourlyMovements() {
-            try {
-                const response = await fetch('/hourly_movements');
-                const data = await response.json();
-                updateHourlyChart(data);
-            } catch (error) {
-                console.error('Error fetching hourly movements:', error);
-            }
-        }
-
-        function updateChart(movements) {
-            const labels = movements.map(time => new Date(`${time.replace(' ', 'T')}Z`).toISOString().substr(11, 8));
-            const dataPoints = movements.map((time, index) => index + 1);
-
-            if (movementChart) {
-                movementChart.data.labels = labels;
-                movementChart.data.datasets[0].data = dataPoints;
-                movementChart.update();
-            } else {
-                const ctx = document.getElementById('movementChart').getContext('2d');
-                movementChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Movement Number',
-                            data: dataPoints,
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                            fill: false,
-                            pointBackgroundColor: 'rgba(75, 192, 192, 1)',
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(tooltipItem) {
-                                        const movementNumber = tooltipItem.raw;
-                                        const formattedTime = tooltipItem.label;
-                                        return `Movement #${movementNumber}: ${formattedTime}`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Time'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Movement Number'
-                                },
-                                ticks: {
-                                    beginAtZero: true,
-                                    precision: 0
-                                }
-                            }
+            const ctx = document.getElementById('systemInfoChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['CPU Usage', 'Memory Usage'],
+                    datasets: [{
+                        label: 'Usage (%)',
+                        data: [data.cpu_usage, data.memory_usage],
+                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
                         }
                     }
-                });
-            }
-        }
-
-        function updateHourlyChart(hourlyMovements) {
-            const labels = Object.keys(hourlyMovements);
-            const dataPoints = Object.values(hourlyMovements);
-
-            if (hourlyChart) {
-                hourlyChart.data.labels = labels;
-                hourlyChart.data.datasets[0].data = dataPoints;
-                hourlyChart.update();
-            } else {
-                const ctx = document.getElementById('hourlyChart').getContext('2d');
-                hourlyChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Movements per Hour',
-                            data: dataPoints,
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderColor: 'rgba(75, 192, 192, 1)',
-                            borderWidth: 1,
-                        }]
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Hour of the Day'
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Number of Movements'
-                                },
-                                ticks: {
-                                    beginAtZero: true,
-                                    precision: 0
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function updateTable(movements) {
-            const tableBody = document.getElementById('movements-table-body');
-            tableBody.innerHTML = '';
-            movements.slice(-10).forEach((time, index) => {
-                const row = document.createElement('tr');
-                const cellIndex = document.createElement('td');
-                const cellTime = document.createElement('td');
-                cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = time;
-                row.appendChild(cellIndex);
-                row.appendChild(cellTime);
-                tableBody.appendChild(row);
+                }
             });
         }
 
-        function refreshDashboard() {
-            fetchStatus();
-            fetchMovements();
-            fetchSummary();
-            fetchHourlyMovements();
-        }
-
-        setInterval(refreshDashboard, 1000);
-        window.onload = refreshDashboard;
+        setInterval(fetchSystemInfo, 1000);
+        window.onload = fetchSystemInfo;
     </script>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Mailbox Dashboard</h1>
-            <p id="status">Loading...</p>
-            <p id="last_update"></p>
+        <h1>Management Dashboard</h1>
+        <div class="theme-switch-wrapper">
+            <span>Light Mode</span>
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox">
+                <div class="slider round"></div>
+            </label>
+            <span>Dark Mode</span>
         </div>
-        <div class="card">
-            <h2>Total Movements</h2>
-            <p id="total_movements">0</p>
-        </div>
-        <div class="card">
-            <h2>Last Hour Movements</h2>
-            <p id="last_hour_movements">0</p>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">CPU Usage</h5>
+                    <p id="cpu_usage" class="card-text">Loading...</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Memory Usage</h5>
+                    <p id="memory_usage" class="card-text">Loading...</p>
+                </div>
+            </div>
         </div>
         <div class="chart-container">
-            <canvas id="movementChart"></canvas>
+            <canvas id="systemInfoChart"></canvas>
         </div>
-        <div class="chart-container">
-            <canvas id="hourlyChart"></canvas>
-        </div>
-        <h2>Last 10 Movements</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="movements-table-body"></tbody>
-        </table>
         <div class="download-buttons">
-            <button onclick="window.location.href='/download/csv'">Download CSV</button>
-            <button onclick="window.location.href='/download/excel'">Download Excel</button>
+            <button onclick="window.location.href='/download/system_info/csv'">Download CSV</button>
+            <button onclick="window.location.href='/download/system_info/excel'">Download Excel</button>
         </div>
-        <footer>
-            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
-        </footer>
     </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
