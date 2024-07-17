@@ -7,20 +7,6 @@ from flask import Flask, jsonify, render_template, send_file
 import pandas as pd
 import io
 
-class StateMachine:
-    def __init__(self):
-        self.state = "INIT"
-
-    def set_state(self, state):
-        print(f"Transitioning to {state} state.")
-        self.state = state
-
-    def get_state(self):
-        return self.state
-
-# Initialize the state machine
-machine = StateMachine()
-
 app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
 
@@ -31,7 +17,7 @@ SENSOR_PIN = 25  # Pin for the motion sensor
 GPIO.setmode(GPIO.BCM)
 
 # Set GPIO pin as input
-GPIO.setup(SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 status = {
     "message": "Waiting for motion...",
@@ -41,11 +27,6 @@ status = {
 
 movement_detected_times = []
 last_motion_time = None
-no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
-power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
-last_power_check_time = time.time()
-power_check_status = []
-power_loss_detected = False
 
 @app.route('/')
 def index():
@@ -162,57 +143,24 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global movement_detected_times, last_motion_time, last_power_check_time, power_check_status, power_loss_detected
+    global movement_detected_times, last_motion_time
 
     while True:
-        current_state = machine.get_state()
+        sensor_input = GPIO.input(SENSOR_PIN)
         current_time = time.time()
-
-        if current_state == "INIT":
-            log_message("Initializing...")
-            machine.set_state("WAITING_FOR_MOTION")
-
-        elif current_state == "WAITING_FOR_MOTION":
-            sensor_input = GPIO.input(SENSOR_PIN)
-
-            # Check for power loss
-            if current_time - last_power_check_time > power_check_interval:
-                last_power_check_time = current_time
-                if sensor_input == 0 and len(movement_detected_times) == 0:
-                    power_loss_detected = True
-                else:
-                    power_loss_detected = False
-
-                if power_loss_detected:
-                    log_message("Mailbox is open. (PIR has no power)")
-                    machine.set_state("MAILBOX_OPEN")
-
-            if sensor_input:
-                movement_detected_times.append(current_time)
-                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
-
-                if len(movement_detected_times) >= 2:
-                    log_message("Motion detected! There is mail.")
-                    movement_detected_times = []
-                    last_motion_time = current_time
-                    machine.set_state("MOTION_DETECTED")
-            else:
-                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
-                    log_message("Mailbox is open.")
-                    last_motion_time = None
-                    machine.set_state("MAILBOX_OPEN")
-                elif not last_motion_time:
-                    log_message("Waiting for motion...")
-
-        elif current_state == "MOTION_DETECTED":
-            log_message("Processing motion...")
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
-
-        elif current_state == "MAILBOX_OPEN":
-            log_message("Processing mailbox open state...")
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
+        
+        if sensor_input:
+            movement_detected_times.append(current_time)
+            movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+            
+            if len(movement_detected_times) >= 2:
+                log_message("Motion detected! There is mail.")
+                movement_detected_times = []
+                last_motion_time = current_time
+        else:
+            if last_motion_time and current_time - last_motion_time > 10:
+                log_message("Mailbox is open.")
+                last_motion_time = None
 
         time.sleep(1)
 
