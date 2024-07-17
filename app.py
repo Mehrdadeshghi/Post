@@ -44,6 +44,7 @@ last_motion_time = None
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
+power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
 power_check_status = []
 
 @app.route('/')
@@ -174,48 +175,4 @@ def check_sensor():
         elif current_state == "WAITING_FOR_MOTION":
             sensor_input = GPIO.input(SENSOR_PIN)
 
-            # Update power check status
-            if current_time - last_power_check_time > power_check_interval:
-                last_power_check_time = current_time
-                power_check_status.append((current_time, sensor_input))
-                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
-
-                # Check if PIR has no power
-                if all(status[1] == 0 for status in power_check_status):
-                    log_message("Mailbox is open. (PIR has no power)")
-                    machine.set_state("MAILBOX_OPEN")
-
-            if sensor_input:
-                movement_detected_times.append(current_time)
-                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
-
-                if len(movement_detected_times) >= 2:
-                    log_message("Motion detected! There is mail.")
-                    movement_detected_times = []
-                    last_motion_time = current_time
-                    machine.set_state("MOTION_DETECTED")
-            else:
-                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
-                    log_message("Mailbox is open.")
-                    last_motion_time = None
-                    machine.set_state("MAILBOX_OPEN")
-                elif not last_motion_time:
-                    log_message("Waiting for motion...")
-
-        elif current_state == "MOTION_DETECTED":
-            log_message("Processing motion...")
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
-
-        elif current_state == "MAILBOX_OPEN":
-            log_message("Processing mailbox open state...")
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
-
-        time.sleep(1)
-
-if __name__ == '__main__':
-    from threading import Thread
-    sensor_thread = Thread(target=check_sensor)
-    sensor_thread.start()
-    app.run(host='0.0.0.0', port=5000)
+      
