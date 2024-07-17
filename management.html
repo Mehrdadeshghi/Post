@@ -33,6 +33,12 @@
             </div>
             <div class="card">
                 <div class="card-body">
+                    <h5 class="card-title">Disk Usage</h5>
+                    <p id="disk_usage" class="card-text">Loading...</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
                     <h5 class="card-title">CPU Temperature</h5>
                     <p id="cpu_temperature" class="card-text">Loading...</p>
                 </div>
@@ -41,6 +47,18 @@
                 <div class="card-body">
                     <h5 class="card-title">System Uptime</h5>
                     <p id="system_uptime" class="card-text">Loading...</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Network Activity</h5>
+                    <p id="network_activity" class="card-text">Loading...</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Active Processes</h5>
+                    <p id="active_processes" class="card-text">Loading...</p>
                 </div>
             </div>
         </div>
@@ -67,35 +85,7 @@
         function updateSystemInfo(data) {
             document.getElementById('cpu_usage').innerText = data.cpu_usage + '%';
             document.getElementById('memory_usage').innerText = data.memory_usage + '%';
+            document.getElementById('disk_usage').innerText = data.disk_usage + '%';
             document.getElementById('cpu_temperature').innerText = data.cpu_temperature + '°C';
             document.getElementById('system_uptime').innerText = data.system_uptime;
-
-            const ctx = document.getElementById('systemInfoChart').getContext('2d');
-            const chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['CPU Usage', 'Memory Usage', 'CPU Temperature'],
-                    datasets: [{
-                        label: 'Usage (%)',
-                        data: [data.cpu_usage, data.memory_usage, data.cpu_temperature],
-                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)'],
-                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        setInterval(fetchSystemInfo, 1000);
-        window.onload = fetchSystemInfo;
-    </script>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-</body>
-</html>
+            document.getElementById('network_activity').innerText = 'Upload: ' + data.network_activity.upload + ' KB/s, Download: '
