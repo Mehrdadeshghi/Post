@@ -31,8 +31,26 @@
             </div>
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Last Hour Movements</h5>
-                    <p id="last_hour_movements" class="card-text">0</p>
+                    <h5 class="card-title">Last 24 Hours Movements</h5>
+                    <p id="last_24_hours_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Week Movements</h5>
+                    <p id="last_week_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Month Movements</h5>
+                    <p id="last_month_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Motion Time</h5>
+                    <p id="last_motion_time" class="card-text">No movements detected</p>
                 </div>
             </div>
         </div>
@@ -92,7 +110,10 @@
                 const response = await fetch('/summary');
                 const data = await response.json();
                 document.getElementById('total_movements').innerText = data.total_movements;
-                document.getElementById('last_hour_movements').innerText = data.last_hour_movements;
+                document.getElementById('last_24_hours_movements').innerText = data.last_24_hours_movements;
+                document.getElementById('last_week_movements').innerText = data.last_week_movements;
+                document.getElementById('last_month_movements').innerText = data.last_month_movements;
+                document.getElementById('last_motion_time').innerText = data.last_motion_time;
             } catch (error) {
                 console.error('Error fetching summary:', error);
             }
