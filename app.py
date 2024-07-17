@@ -44,8 +44,8 @@ last_motion_time = None
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
-power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
 power_check_status = []
+power_loss_detected = False
 
 @app.route('/')
 def index():
@@ -162,7 +162,7 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global movement_detected_times, last_motion_time, last_power_check_time, power_check_status
+    global movement_detected_times, last_motion_time, last_power_check_time, power_check_status, power_loss_detected
 
     while True:
         current_state = machine.get_state()
@@ -175,14 +175,15 @@ def check_sensor():
         elif current_state == "WAITING_FOR_MOTION":
             sensor_input = GPIO.input(SENSOR_PIN)
 
-            # Update power check status
+            # Check for power loss
             if current_time - last_power_check_time > power_check_interval:
                 last_power_check_time = current_time
-                power_check_status.append(sensor_input)
-                power_check_status = power_check_status[-power_check_window:]  # Keep only the last power_check_window readings
+                if sensor_input == 0 and len(movement_detected_times) == 0:
+                    power_loss_detected = True
+                else:
+                    power_loss_detected = False
 
-                # Check if PIR has no power
-                if len(power_check_status) > 0 and all(status == 0 for status in power_check_status):
+                if power_loss_detected:
                     log_message("Mailbox is open. (PIR has no power)")
                     machine.set_state("MAILBOX_OPEN")
 
