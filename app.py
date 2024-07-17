@@ -223,16 +223,15 @@ def check_sensor():
                     machine.set_state("MOTION_DETECTED")
             else:
                 if last_motion_time and current_time - last_motion_time > no_motion_threshold:
+                    log_message("Mailbox is open. (No motion detected for threshold period)")
                     last_motion_time = None
                     machine.set_state("MAILBOX_OPEN")
 
         elif current_state == "MOTION_DETECTED":
-            log_message("Processing motion...")
             time.sleep(2)  # Simulate processing time
             machine.set_state("WAITING_FOR_MOTION")
 
         elif current_state == "MAILBOX_OPEN":
-            log_message("Mailbox is open.")
             time.sleep(2)  # Simulate processing time
             machine.set_state("WAITING_FOR_MOTION")
 
