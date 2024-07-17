@@ -88,4 +88,35 @@
             document.getElementById('disk_usage').innerText = data.disk_usage + '%';
             document.getElementById('cpu_temperature').innerText = data.cpu_temperature + '°C';
             document.getElementById('system_uptime').innerText = data.system_uptime;
-            document.getElementById('network_activity').innerText = 'Upload: ' + data.network_activity.upload + ' KB/s, Download: '
+            document.getElementById('network_activity').innerText = 'Upload: ' + data.network_activity.upload + ' KB/s, Download: ' + data.network_activity.download + ' KB/s';
+            document.getElementById('active_processes').innerText = data.active_processes;
+
+            const ctx = document.getElementById('systemInfoChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['CPU Usage', 'Memory Usage', 'Disk Usage', 'CPU Temperature'],
+                    datasets: [{
+                        label: 'Usage (%)',
+                        data: [data.cpu_usage, data.memory_usage, data.disk_usage, data.cpu_temperature],
+                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(153, 102, 255, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)', 'rgba(255, 159, 64, 1)', 'rgba(255, 99, 132, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        setInterval(fetchSystemInfo, 1000);
+        window.onload = fetchSystemInfo;
+    </script>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>
