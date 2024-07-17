@@ -41,6 +41,9 @@ status = {
 
 movement_detected_times = []
 last_motion_time = None
+no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
+power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
+last_power_check_time = time.time()
 
 @app.route('/')
 def index():
@@ -157,10 +160,11 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global movement_detected_times, last_motion_time
+    global movement_detected_times, last_motion_time, last_power_check_time
 
     while True:
         current_state = machine.get_state()
+        current_time = time.time()
 
         if current_state == "INIT":
             log_message("Initializing...")
@@ -168,23 +172,30 @@ def check_sensor():
 
         elif current_state == "WAITING_FOR_MOTION":
             sensor_input = GPIO.input(SENSOR_PIN)
-            current_time = time.time()
-            
+
+            if current_time - last_power_check_time > power_check_interval:
+                last_power_check_time = current_time
+                if sensor_input == 0:
+                    log_message("Mailbox is open. (PIR has no power)")
+                    machine.set_state("MAILBOX_OPEN")
+
             if sensor_input:
                 movement_detected_times.append(current_time)
                 movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
-                
+
                 if len(movement_detected_times) >= 2:
                     log_message("Motion detected! There is mail.")
                     movement_detected_times = []
                     last_motion_time = current_time
                     machine.set_state("MOTION_DETECTED")
             else:
-                if last_motion_time and current_time - last_motion_time > 10:
+                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
                     log_message("Mailbox is open.")
                     last_motion_time = None
                     machine.set_state("MAILBOX_OPEN")
-        
+                elif not last_motion_time:
+                    log_message("Waiting for motion...")
+
         elif current_state == "MOTION_DETECTED":
             log_message("Processing motion...")
             time.sleep(2)  # Simulate processing time
