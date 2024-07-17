@@ -1,9 +1,25 @@
 import RPi.GPIO as GPIO
 import time
+import os
+import psutil
 from datetime import datetime, timedelta
 from flask import Flask, jsonify, render_template, send_file
 import pandas as pd
 import io
+
+class StateMachine:
+    def __init__(self):
+        self.state = "INIT"
+
+    def set_state(self, state):
+        print(f"Transitioning to {state} state.")
+        self.state = state
+
+    def get_state(self):
+        return self.state
+
+# Initialize the state machine
+machine = StateMachine()
 
 app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
@@ -29,6 +45,24 @@ last_motion_time = None
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/management')
+def management():
+    return render_template('management.html')
+
+@app.route('/user')
+def user():
+    return render_template('user.html')
+
+@app.route('/system_info')
+def system_info():
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    return jsonify({
+        "cpu_usage": cpu_usage,
+        "memory_usage": memory_usage
+    })
 
 @app.route('/status')
 def get_status():
@@ -76,6 +110,43 @@ def download_excel():
     output.seek(0)
     return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='movements.xlsx', as_attachment=True)
 
+@app.route('/download/system_info/csv')
+def download_system_info_csv():
+    system_info = {
+        "CPU Temperature": [os.popen("vcgencmd measure_temp").readline().replace("temp=", "").strip()],
+        "Total Memory": [os.popen("free -h").readlines()[1].split()[1]],
+        "Used Memory": [os.popen("free -h").readlines()[1].split()[2]],
+        "Free Memory": [os.popen("free -h").readlines()[1].split()[3]],
+        "Disk Total": [os.popen("df -h /").readlines()[1].split()[1]],
+        "Disk Used": [os.popen("df -h /").readlines()[1].split()[2]],
+        "Disk Free": [os.popen("df -h /").readlines()[1].split()[3]],
+        "Disk Usage": [os.popen("df -h /").readlines()[1].split()[4]]
+    }
+    df = pd.DataFrame(system_info)
+    output = io.BytesIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    return send_file(output, mimetype='text/csv', download_name='system_info.csv', as_attachment=True)
+
+@app.route('/download/system_info/excel')
+def download_system_info_excel():
+    system_info = {
+        "CPU Temperature": [os.popen("vcgencmd measure_temp").readline().replace("temp=", "").strip()],
+        "Total Memory": [os.popen("free -h").readlines()[1].split()[1]],
+        "Used Memory": [os.popen("free -h").readlines()[1].split()[2]],
+        "Free Memory": [os.popen("free -h").readlines()[1].split()[3]],
+        "Disk Total": [os.popen("df -h /").readlines()[1].split()[1]],
+        "Disk Used": [os.popen("df -h /").readlines()[1].split()[2]],
+        "Disk Free": [os.popen("df -h /").readlines()[1].split()[3]],
+        "Disk Usage": [os.popen("df -h /").readlines()[1].split()[4]]
+    }
+    df = pd.DataFrame(system_info)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='system_info.xlsx', as_attachment=True)
+
 def log_message(message):
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -89,21 +160,40 @@ def check_sensor():
     global movement_detected_times, last_motion_time
 
     while True:
-        sensor_input = GPIO.input(SENSOR_PIN)
-        current_time = time.time()
-        
-        if sensor_input:
-            movement_detected_times.append(current_time)
-            movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+        current_state = machine.get_state()
+
+        if current_state == "INIT":
+            log_message("Initializing...")
+            machine.set_state("WAITING_FOR_MOTION")
+
+        elif current_state == "WAITING_FOR_MOTION":
+            sensor_input = GPIO.input(SENSOR_PIN)
+            current_time = time.time()
             
-            if len(movement_detected_times) >= 2:
-                log_message("Motion detected! There is mail.")
-                movement_detected_times = []
-                last_motion_time = current_time
-        else:
-            if last_motion_time and current_time - last_motion_time > 10:
-                log_message("Mailbox is open.")
-                last_motion_time = None
+            if sensor_input:
+                movement_detected_times.append(current_time)
+                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+                
+                if len(movement_detected_times) >= 2:
+                    log_message("Motion detected! There is mail.")
+                    movement_detected_times = []
+                    last_motion_time = current_time
+                    machine.set_state("MOTION_DETECTED")
+            else:
+                if last_motion_time and current_time - last_motion_time > 10:
+                    log_message("Mailbox is open.")
+                    last_motion_time = None
+                    machine.set_state("MAILBOX_OPEN")
+        
+        elif current_state == "MOTION_DETECTED":
+            log_message("Processing motion...")
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
+
+        elif current_state == "MAILBOX_OPEN":
+            log_message("Processing mailbox open state...")
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
 
         time.sleep(1)
 
