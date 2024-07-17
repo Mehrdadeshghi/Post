@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Selection</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             display: flex;
@@ -17,69 +16,23 @@
         .container {
             text-align: center;
         }
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .theme-switch {
-            display: inline-block;
-            height: 34px;
-            position: relative;
-            width: 60px;
-        }
-        .theme-switch input {
-            display: none;
-        }
-        .slider {
-            background-color: #ccc;
-            bottom: 0;
+        button {
+            padding: 15px 30px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: 0.4s;
-        }
-        .slider:before {
-            background-color: #fff;
-            bottom: 4px;
-            content: "";
-            height: 26px;
-            left: 4px;
-            position: absolute;
-            transition: 0.4s;
-            width: 26px;
-        }
-        input:checked + .slider {
-            background-color: #66bb6a;
-        }
-        input:checked + .slider:before {
-            transform: translateX(26px);
-        }
-        .slider.round {
-            border-radius: 34px;
-        }
-        .slider.round:before {
-            border-radius: 50%;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Select Dashboard</h1>
-        <div class="theme-switch-wrapper">
-            <span>Light Mode</span>
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox">
-                <div class="slider round"></div>
-            </label>
-            <span>Dark Mode</span>
-        </div>
-        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
-        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
+        <button onclick="window.location.href='/management'">Management</button>
+        <button onclick="window.location.href='/user'">User</button>
     </div>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
