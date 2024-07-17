@@ -25,6 +25,7 @@ status = {
     "movements": []
 }
 
+movement_detected_times = []
 last_motion_time = None
 
 @app.route('/')
@@ -142,20 +143,22 @@ def log_message(message):
     print(f"{current_time} - {message}")
 
 def check_sensor():
-    global last_motion_time
+    global movement_detected_times, last_motion_time
 
     while True:
         sensor_input = GPIO.input(SENSOR_PIN)
         current_time = time.time()
         
         if sensor_input:
-            if last_motion_time and current_time - last_motion_time <= 11:
-                log_message("Motion detected within 11 seconds; counting as one mail.")
-            else:
+            movement_detected_times.append(current_time)
+            movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+            
+            if len(movement_detected_times) >= 2:
                 log_message("Motion detected! There is mail.")
-            last_motion_time = current_time
+                movement_detected_times = []
+                last_motion_time = current_time
         else:
-            if last_motion_time and current_time - last_motion_time > 11:
+            if last_motion_time and current_time - last_motion_time > 10:
                 log_message("Mailbox is open.")
                 last_motion_time = None
 
