@@ -1,17 +1,14 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Dashboard</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Startseite</title>
 </head>
 <body>
-    <div class="container text-center">
-        <h1>Mailbox Dashboard</h1>
-        <a href="/management" class="btn btn-primary btn-lg">Management</a>
-        <a href="/user" class="btn btn-secondary btn-lg">User</a>
-    </div>
+    <h1>Willkommen zu unserer Flask Anwendung</h1>
+    <p><a href="/sensor/">Sensor Dashboard</a></p>
+    <p><a href="/management/">Management Dashboard</a></p>
 </body>
 </html>
