@@ -5,8 +5,8 @@ app = Flask(__name__)
 devices = []
 
 @app.route('/')
-def home():
-    return redirect(url_for('show_devices'))
+def index():
+    return render_template('index.html', devices=devices)
 
 @app.route('/add_device', methods=['GET', 'POST'])
 def add_device():
@@ -19,7 +19,7 @@ def add_device():
             "sensors": []
         }
         devices.append(new_device)
-        return redirect(url_for('show_devices'))
+        return redirect(url_for('index'))
     return render_template('add_device.html')
 
 @app.route('/devices')
@@ -51,14 +51,4 @@ def device_management(device_id):
     device = next((d for d in devices if d["id"] == device_id), None)
     if device is None:
         return "Device not found", 404
-    return render_template('management.html', device=device)
-
-@app.route('/device/<int:device_id>/user')
-def device_user(device_id):
-    device = next((d for d in devices if d["id"] == device_id), None)
-    if device is None:
-        return "Device not found", 404
-    return render_template('user.html', device=device)
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    return ren
