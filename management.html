@@ -4,43 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Management Dashboard</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1>Management Dashboard</h1>
-        <div id="system_info">
-            <p>CPU Usage: <span id="cpu_usage">Loading...</span></p>
-            <p>Memory Usage: <span id="memory_usage">Loading...</span></p>
-            <p>Disk Usage: <span id="disk_usage">Loading...</span></p>
-            <p>CPU Temperature: <span id="cpu_temperature">Loading...</span></p>
-            <p>System Uptime: <span id="system_uptime">Loading...</span></p>
-            <p>Network Upload: <span id="network_upload">Loading...</span></p>
-            <p>Network Download: <span id="network_download">Loading...</span></p>
-            <p>Active Processes: <span id="active_processes">Loading...</span></p>
-        </div>
+    <h1>Management Dashboard</h1>
+    <div>
+        <p>CPU-Auslastung: <span id="cpu_usage">Lädt...</span>%</p>
+        <p>Speichernutzung: <span id="memory_usage">Lädt...</span>%</p>
+        <p>Festplattennutzung: <span id="disk_usage">Lädt...</span>%</p>
     </div>
 
     <script>
         async function fetchSystemInfo() {
-            try {
-                const response = await fetch('/management/system_info');
-                const data = await response.json();
-                document.getElementById('cpu_usage').innerText = data.cpu_usage + '%';
-                document.getElementById('memory_usage').innerText = data.memory_usage + '%';
-                document.getElementById('disk_usage').innerText = data.disk_usage + '%';
-                document.getElementById('cpu_temperature').innerText = data.cpu_temperature + '°C';
-                document.getElementById('system_uptime').innerText = data.system_uptime;
-                document.getElementById('network_upload').innerText = data.network_activity.upload + ' KB/s';
-                document.getElementById('network_download').innerText = data.network_activity.download + ' KB/s';
-                document.getElementById('active_processes').innerText = data.active_processes;
-            } catch (error) {
-                console.error('Error fetching system info:', error);
-            }
+            const response = await fetch('/management/system_info');
+            const data = await response.json();
+            document.getElementById('cpu_usage').innerText = data.cpu_usage;
+            document.getElementById('memory_usage').innerText = data.memory_usage;
+            document.getElementById('disk_usage').innerText = data.disk_usage;
         }
 
         setInterval(fetchSystemInfo, 1000);
-        window.onload = fetchSystemInfo;
     </script>
 </body>
 </html>
