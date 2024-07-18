@@ -8,5 +8,17 @@
 <body>
     <h1>Sensor Dashboard</h1>
     <p>Status der Bewegungserkennung wird hier angezeigt.</p>
+    <div id="movement_data"></div>
+
+    <script>
+        async function fetchMovements() {
+            const response = await fetch('/sensor/movements');
+            const data = await response.json();
+            document.getElementById('movement_data').innerText = JSON.stringify(data);
+        }
+
+        setInterval(fetchMovements, 1000);
+        window.onload = fetchMovements;
+    </script>
 </body>
 </html>
