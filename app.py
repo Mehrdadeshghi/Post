@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
+import psutil
+import os
 
 app = Flask(__name__)
 
@@ -66,29 +68,40 @@ def get_status():
     status = {
         "message": "All systems operational",
         "last_update": "2024-07-18 12:00:00",
-        "cpu_usage": 23,
-        "memory_usage": 45,
-        "disk_usage": 67,
-        "cpu_temperature": 55,
-        "system_uptime": "5 days, 4:32:10",
-        "network_activity": {"upload": 10, "download": 20},
-        "active_processes": 123
+        "cpu_usage": psutil.cpu_percent(interval=1),
+        "memory_usage": psutil.virtual_memory().percent,
+        "disk_usage": psutil.disk_usage('/').percent,
+        "cpu_temperature": get_cpu_temperature(),
+        "system_uptime": get_system_uptime(),
+        "network_activity": get_network_activity(),
+        "active_processes": len(psutil.pids())
     }
     return jsonify(status)
 
 @app.route('/system_info')
 def system_info():
-    # Dummy system info data
     system_info = {
-        "cpu_usage": 23,
-        "memory_usage": 45,
-        "disk_usage": 67,
-        "cpu_temperature": 55,
-        "system_uptime": "5 days, 4:32:10",
-        "network_activity": {"upload": 10, "download": 20},
-        "active_processes": 123
+        "cpu_usage": psutil.cpu_percent(interval=1),
+        "memory_usage": psutil.virtual_memory().percent,
+        "disk_usage": psutil.disk_usage('/').percent,
+        "cpu_temperature": get_cpu_temperature(),
+        "system_uptime": get_system_uptime(),
+        "network_activity": get_network_activity(),
+        "active_processes": len(psutil.pids())
     }
     return jsonify(system_info)
+
+def get_cpu_temperature():
+    temp = os.popen("vcgencmd measure_temp").readline()
+    return float(temp.replace("temp=", "").replace("'C\n", ""))
+
+def get_system_uptime():
+    uptime = os.popen("uptime -p").readline().strip()
+    return uptime
+
+def get_network_activity():
+    net_io = psutil.net_io_counters()
+    return {"upload": net_io.bytes_sent / 1024, "download": net_io.bytes_recv / 1024}
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
