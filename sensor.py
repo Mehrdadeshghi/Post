@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 from flask import Blueprint, jsonify, render_template
 from datetime import datetime
+import atexit
 
 sensor_bp = Blueprint('sensor', __name__)
 
@@ -19,7 +20,10 @@ def detect_movement(channel):
     print(f"Bewegung erkannt um {movement_time}")
 
 # Bewegungsereignis konfigurieren
-GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=detect_movement)
+try:
+    GPIO.add_event_detect(SENSOR_PIN, GPIO.RISING, callback=detect_movement)
+except RuntimeError as e:
+    print(f"Error adding event detection: {e}")
 
 @sensor_bp.route('/')
 def sensor_dashboard():
@@ -49,3 +53,9 @@ def hourly():
         hour = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S").strftime('%H')
         hourly_counts[hour] += 1
     return jsonify(hourly_counts)
+
+# Freigeben der GPIO-Pins bei Beendigung des Skripts
+def cleanup():
+    GPIO.cleanup()
+
+atexit.register(cleanup)
