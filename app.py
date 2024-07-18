@@ -51,4 +51,14 @@ def device_management(device_id):
     device = next((d for d in devices if d["id"] == device_id), None)
     if device is None:
         return "Device not found", 404
-    return ren
+    return render_template('management.html', device=device)
+
+@app.route('/device/<int:device_id>/user')
+def device_user(device_id):
+    device = next((d for d in devices if d["id"] == device_id), None)
+    if device is None:
+        return "Device not found", 404
+    return render_template('user.html', device=device)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
