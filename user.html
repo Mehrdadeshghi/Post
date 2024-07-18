@@ -240,4 +240,24 @@
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
-                cellIndex.innerText = movements.length - 10 + index
+                cellIndex.innerText = movements.length - 10 + index + 1;
+                cellTime.innerText = time;
+                row.appendChild(cellIndex);
+                row.appendChild(cellTime);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function refreshDashboard() {
+            fetchStatus();
+            fetchMovements();
+            fetchSummary();
+            fetchHourlyMovements();
+        }
+
+        setInterval(refreshDashboard, 1000);
+        window.onload = refreshDashboard;
+    </script>
+    <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+</body>
+</html>
