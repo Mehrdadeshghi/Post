@@ -3,160 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Device Management</title>
+    <title>Device Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .container {
-            margin-top: 20px;
-        }
-        .card-deck {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        .card-body {
-            text-align: center;
-        }
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            margin-bottom: 40px;
-        }
-        .download-buttons {
-            margin-top: 20px;
-        }
-        footer {
-            margin-top: 20px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Device Management</h1>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Add Raspberry Pi</h5>
-                <form id="add-raspberry-form">
-                    <div class="form-group">
-                        <label for="raspberry-name">Name</label>
-                        <input type="text" class="form-control" id="raspberry-name" placeholder="Enter name">
-                    </div>
-                    <div class="form-group">
-                        <label for="raspberry-ip">IP Address</label>
-                        <input type="text" class="form-control" id="raspberry-ip" placeholder="Enter IP address">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Raspberry Pi</button>
-                </form>
-            </div>
-        </div>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">Add Sensor</h5>
-                <form id="add-sensor-form">
-                    <div class="form-group">
-                        <label for="sensor-name">Sensor Name</label>
-                        <input type="text" class="form-control" id="sensor-name" placeholder="Enter sensor name">
-                    </div>
-                    <div class="form-group">
-                        <label for="raspberry-select">Select Raspberry Pi</label>
-                        <select class="form-control" id="raspberry-select">
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Sensor</button>
-                </form>
-            </div>
-        </div>
+        <h1 class="mt-4">Device Dashboard</h1>
+        <a href="{{ url_for('add_device') }}" class="btn btn-primary mb-3">Add New Device</a>
+        <a href="{{ url_for('show_devices') }}" class="btn btn-secondary mb-3">View All Devices</a>
         <h2>Devices</h2>
-        <div id="device-list" class="card-deck">
-            <!-- Device cards will be populated dynamically -->
+        <div class="card-deck">
+            {% for device in devices %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ device.name }}</h5>
+                    <p class="card-text">IP: {{ device.ip }}</p>
+                    <a href="{{ url_for('device_detail', device_id=device.id) }}" class="btn btn-primary">View Device</a>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        <footer class="text-center mt-4">
-            <p>&copy; 2024 Device Management. All rights reserved.</p>
-        </footer>
     </div>
-    <script>
-        let devices = [];
-
-        document.getElementById('add-raspberry-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const name = document.getElementById('raspberry-name').value;
-            const ip = document.getElementById('raspberry-ip').value;
-            if (name && ip) {
-                const response = await fetch('/add_device', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name, ip }),
-                });
-                const newDevice = await response.json();
-                devices.push(newDevice);
-                document.getElementById('raspberry-name').value = '';
-                document.getElementById('raspberry-ip').value = '';
-                updateDeviceList();
-                updateRaspberrySelect();
-            }
-        });
-
-        document.getElementById('add-sensor-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const sensorName = document.getElementById('sensor-name').value;
-            const raspberryId = document.getElementById('raspberry-select').value;
-            if (sensorName && raspberryId) {
-                const response = await fetch('/add_sensor', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name: sensorName, device_id: parseInt(raspberryId) }),
-                });
-                const newSensor = await response.json();
-                const device = devices.find(d => d.id == raspberryId);
-                if (device) {
-                    device.sensors.push(newSensor);
-                    document.getElementById('sensor-name').value = '';
-                    updateDeviceList();
-                }
-            }
-        });
-
-        function updateDeviceList() {
-            const deviceList = document.getElementById('device-list');
-            deviceList.innerHTML = '';
-            devices.forEach(device => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${device.name}</h5>
-                        <p class="card-text">IP: ${device.ip}</p>
-                        <h6>Sensors</h6>
-                        <ul>
-                            ${device.sensors.map(sensor => `<li>${sensor.name}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-                deviceList.appendChild(card);
-            });
-        }
-
-        function updateRaspberrySelect() {
-            const raspberrySelect = document.getElementById('raspberry-select');
-            raspberrySelect.innerHTML = devices.map(device => `<option value="${device.id}">${device.name}</option>`).join('');
-        }
-
-        window.onload = function() {
-            fetch('/devices')
-                .then(response => response.json())
-                .then(data => {
-                    devices = data;
-                    updateDeviceList();
-                    updateRaspberrySelect();
-                });
-        };
-    </script>
 </body>
 </html>
