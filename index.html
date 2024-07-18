@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Device Dashboard</title>
+    <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1 class="mt-4">Device Dashboard</h1>
+        <h1 class="mt-4">Mailbox Dashboard</h1>
         <a href="{{ url_for('add_device') }}" class="btn btn-primary mb-3">Add New Device</a>
         <a href="{{ url_for('show_devices') }}" class="btn btn-secondary mb-3">View All Devices</a>
         <h2>Devices</h2>
