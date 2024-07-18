@@ -1,19 +1,29 @@
-import psutil
-from flask import Blueprint, jsonify, render_template
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard</title>
+</head>
+<body>
+    <h1>Management Dashboard</h1>
+    <div>
+        <p>CPU-Auslastung: <span id="cpu_usage">Lädt...</span>%</p>
+        <p>Speichernutzung: <span id="memory_usage">Lädt...</span>%</p>
+        <p>Festplattennutzung: <span id="disk_usage">Lädt...</span>%</p>
+    </div>
 
-management_bp = Blueprint('management', __name__)
+    <script>
+        async function fetchSystemInfo() {
+            const response = await fetch('/management/system_info');
+            const data = await response.json();
+            document.getElementById('cpu_usage').innerText = data.cpu_usage;
+            document.getElementById('memory_usage').innerText = data.memory_usage;
+            document.getElementById('disk_usage').innerText = data.disk_usage;
+        }
 
-@management_bp.route('/')
-def management_dashboard():
-    return render_template('management.html')
-
-@management_bp.route('/system_info')
-def system_info():
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory().percent
-    disk_usage = psutil.disk_usage('/').percent
-    return jsonify({
-        "cpu_usage": cpu_usage,
-        "memory_usage": memory,
-        "disk_usage": disk_usage
-    })
+        setInterval(fetchSystemInfo, 1000);
+        window.onload = fetchSystemInfo;
+    </script>
+</body>
+</html>
