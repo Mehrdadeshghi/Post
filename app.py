@@ -60,5 +60,35 @@ def device_user(device_id):
         return "Device not found", 404
     return render_template('user.html', device=device)
 
+@app.route('/status')
+def get_status():
+    # Dummy status data
+    status = {
+        "message": "All systems operational",
+        "last_update": "2024-07-18 12:00:00",
+        "cpu_usage": 23,
+        "memory_usage": 45,
+        "disk_usage": 67,
+        "cpu_temperature": 55,
+        "system_uptime": "5 days, 4:32:10",
+        "network_activity": {"upload": 10, "download": 20},
+        "active_processes": 123
+    }
+    return jsonify(status)
+
+@app.route('/system_info')
+def system_info():
+    # Dummy system info data
+    system_info = {
+        "cpu_usage": 23,
+        "memory_usage": 45,
+        "disk_usage": 67,
+        "cpu_temperature": 55,
+        "system_uptime": "5 days, 4:32:10",
+        "network_activity": {"upload": 10, "download": 20},
+        "active_processes": 123
+    }
+    return jsonify(system_info)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
