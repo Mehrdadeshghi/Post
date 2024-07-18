@@ -1,106 +1,244 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
-import psutil
+import RPi.GPIO as GPIO
+import time
 import os
+import psutil
+from datetime import datetime, timedelta
+from flask import Flask, jsonify, render_template, send_file
+import pandas as pd
+import io
+
+class StateMachine:
+    def __init__(self):
+        self.state = "INIT"
+
+    def set_state(self, state):
+        print(f"Transitioning to {state} state.")
+        self.state = state
+
+    def get_state(self):
+        return self.state
+
+# Initialize the state machine
+machine = StateMachine()
 
 app = Flask(__name__)
+app.config['DEBUG'] = True  # Activate debug mode
 
-devices = []
+# Define GPIO pins
+SENSOR_PIN = 25  # Pin for the motion sensor
+
+# Set GPIO mode (BCM)
+GPIO.setmode(GPIO.BCM)
+
+# Set GPIO pin as input
+GPIO.setup(SENSOR_PIN, GPIO.IN)
+
+status = {
+    "message": "Waiting for motion...",
+    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "movements": [],
+    "cpu_temperature": 0,
+    "system_uptime": 0,
+    "network_activity": {"upload": 0, "download": 0},
+    "active_processes": 0
+}
+
+movement_detected_times = []
+last_motion_time = None
+no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
+power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
+last_power_check_time = time.time()
+power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
+power_check_status = []
+
+def get_system_info():
+    cpu_temperature = float(os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", ""))
+    uptime = os.popen("uptime -p").readline().strip()
+    net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
+    upload = float(net_stats[0])
+    download = float(net_stats[1])
+    active_processes = len(psutil.pids())
+    
+    return cpu_temperature, uptime, upload, download, active_processes
 
 @app.route('/')
 def index():
-    return render_template('index.html', devices=devices)
+    return render_template('index.html')
 
-@app.route('/add_device', methods=['GET', 'POST'])
-def add_device():
-    if request.method == 'POST':
-        data = request.form
-        new_device = {
-            "id": len(devices) + 1,
-            "name": data['name'],
-            "ip": data['ip'],
-            "sensors": []
-        }
-        devices.append(new_device)
-        return redirect(url_for('index'))
-    return render_template('add_device.html')
+@app.route('/management')
+def management():
+    return render_template('management.html')
 
-@app.route('/devices')
-def show_devices():
-    return render_template('devices.html', devices=devices)
-
-@app.route('/device/<int:device_id>')
-def device_detail(device_id):
-    device = next((d for d in devices if d["id"] == device_id), None)
-    if device is None:
-        return "Device not found", 404
-    return render_template('device_detail.html', device=device)
-
-@app.route('/device/<int:device_id>/add_sensor', methods=['POST'])
-def add_sensor(device_id):
-    device = next((d for d in devices if d["id"] == device_id), None)
-    if device:
-        data = request.json
-        new_sensor = {
-            "id": len(device['sensors']) + 1,
-            "name": data['name']
-        }
-        device['sensors'].append(new_sensor)
-        return jsonify(new_sensor)
-    return jsonify({"error": "Device not found"}), 404
-
-@app.route('/device/<int:device_id>/management')
-def device_management(device_id):
-    device = next((d for d in devices if d["id"] == device_id), None)
-    if device is None:
-        return "Device not found", 404
-    return render_template('management.html', device=device)
-
-@app.route('/device/<int:device_id>/user')
-def device_user(device_id):
-    device = next((d for d in devices if d["id"] == device_id), None)
-    if device is None:
-        return "Device not found", 404
-    return render_template('user.html', device=device)
-
-@app.route('/status')
-def get_status():
-    status = {
-        "message": "All systems operational",
-        "last_update": "2024-07-18 12:00:00",
-        "cpu_usage": psutil.cpu_percent(interval=1),
-        "memory_usage": psutil.virtual_memory().percent,
-        "disk_usage": psutil.disk_usage('/').percent,
-        "cpu_temperature": get_cpu_temperature(),
-        "system_uptime": get_system_uptime(),
-        "network_activity": get_network_activity(),
-        "active_processes": len(psutil.pids())
-    }
-    return jsonify(status)
+@app.route('/user')
+def user():
+    return render_template('user.html')
 
 @app.route('/system_info')
 def system_info():
-    system_info = {
-        "cpu_usage": psutil.cpu_percent(interval=1),
-        "memory_usage": psutil.virtual_memory().percent,
-        "disk_usage": psutil.disk_usage('/').percent,
-        "cpu_temperature": get_cpu_temperature(),
-        "system_uptime": get_system_uptime(),
-        "network_activity": get_network_activity(),
-        "active_processes": len(psutil.pids())
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    disk_usage = psutil.disk_usage('/').percent
+    cpu_temperature, uptime, upload, download, active_processes = get_system_info()
+    status.update({
+        "cpu_temperature": cpu_temperature,
+        "system_uptime": uptime,
+        "network_activity": {"upload": upload, "download": download},
+        "active_processes": active_processes
+    })
+    return jsonify({
+        "cpu_usage": cpu_usage,
+        "memory_usage": memory_usage,
+        "disk_usage": disk_usage,
+        "cpu_temperature": cpu_temperature,
+        "system_uptime": uptime,
+        "network_activity": {"upload": upload, "download": download},
+        "active_processes": active_processes
+    })
+
+@app.route('/status')
+def get_status():
+    return jsonify(status)
+
+@app.route('/movements')
+def get_movements():
+    return jsonify(status["movements"])
+
+@app.route('/summary')
+def get_summary():
+    now = datetime.now()
+    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+    last_week_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+    last_month_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+    summary = {
+        "total_movements": len(status["movements"]),
+        "last_24_hours_movements": len(last_24_hours_movements),
+        "last_week_movements": len(last_week_movements),
+        "last_month_movements": len(last_month_movements),
+        "last_motion_time": status["movements"][-1] if status["movements"] else "No movements detected"
     }
-    return jsonify(system_info)
+    return jsonify(summary)
 
-def get_cpu_temperature():
-    temp = os.popen("vcgencmd measure_temp").readline()
-    return float(temp.replace("temp=", "").replace("'C\n", ""))
+@app.route('/hourly_movements')
+def get_hourly_movements():
+    now = datetime.now()
+    hourly_movements = {str(hour): 0 for hour in range(24)}
+    for movement in status["movements"]:
+        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
+        if movement_time.date() == now.date():
+            hour = movement_time.hour
+            hourly_movements[str(hour)] += 1
+    return jsonify(hourly_movements)
 
-def get_system_uptime():
-    uptime = os.popen("uptime -p").readline().strip()
-    return uptime
+@app.route('/download/csv')
+def download_csv():
+    df = pd.DataFrame(status["movements"], columns=["Time"])
+    output = io.BytesIO()
+    df.to_csv(output, index_label="Index")
+    output.seek(0)
+    return send_file(output, mimetype='text/csv', download_name='movements.csv', as_attachment=True)
 
-def get_network_activity():
-    net_io = psutil.net_io_counters()
-    return {"upload": net_io.bytes_sent / 1024, "download": net_io.bytes_recv / 1024}
+@app.route('/download/excel')
+def download_excel():
+    df = pd.DataFrame(status["movements"], columns=["Time"])
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index_label="Index")
+    output.seek(0)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='movements.xlsx', as_attachment=True)
+
+@app.route('/download/system_info/csv')
+def download_system_info_csv():
+    system_info = {
+        "CPU Temperature": [status["cpu_temperature"]],
+        "System Uptime": [status["system_uptime"]],
+        "Upload": [status["network_activity"]["upload"]],
+        "Download": [status["network_activity"]["download"]],
+        "Active Processes": [status["active_processes"]]
+    }
+    df = pd.DataFrame(system_info)
+    output = io.BytesIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+    return send_file(output, mimetype='text/csv', download_name='system_info.csv', as_attachment=True)
+
+@app.route('/download/system_info/excel')
+def download_system_info_excel():
+    system_info = {
+        "CPU Temperature": [status["cpu_temperature"]],
+        "System Uptime": [status["system_uptime"]],
+        "Upload": [status["network_activity"]["upload"]],
+        "Download": [status["network_activity"]["download"]],
+        "Active Processes": [status["active_processes"]]
+    }
+    df = pd.DataFrame(system_info)
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False)
+    output.seek(0)
+    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='system_info.xlsx', as_attachment=True)
+
+def log_message(message):
+    now = datetime.now()
+    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    status["message"] = message
+    status["last_update"] = current_time
+    if "motion detected" in message.lower():
+        status["movements"].append(current_time)
+    print(f"{current_time} - {message}")
+
+def check_sensor():
+    global movement_detected_times, last_motion_time, last_power_check_time, power_check_status
+
+    while True:
+        current_state = machine.get_state()
+        current_time = time.time()
+
+        if current_state == "INIT":
+            log_message("Initializing...")
+            machine.set_state("WAITING_FOR_MOTION")
+
+        elif current_state == "WAITING_FOR_MOTION":
+            sensor_input = GPIO.input(SENSOR_PIN)
+
+            # Update power check status
+            if current_time - last_power_check_time > power_check_interval:
+                last_power_check_time = current_time
+                power_check_status.append((current_time, sensor_input))
+                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
+
+                # Check if PIR has no power
+                if len(power_check_status) > 0 and all(status[1] == 0 for status in power_check_status):
+                    log_message("Mailbox is open. (PIR has no power)")
+                    machine.set_state("MAILBOX_OPEN")
+
+            if sensor_input == GPIO.HIGH:
+                movement_detected_times.append(current_time)
+                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+
+                if len(movement_detected_times) >= 2:
+                    log_message("Motion detected! There is mail.")
+                    movement_detected_times = []
+                    last_motion_time = current_time
+                    machine.set_state("MOTION_DETECTED")
+            else:
+                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
+                    log_message("Mailbox is open. (No motion detected for threshold period)")
+                    last_motion_time = None
+                    machine.set_state("MAILBOX_OPEN")
+
+        elif current_state == "MOTION_DETECTED":
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
+
+        elif current_state == "MAILBOX_OPEN":
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
+
+        time.sleep(1)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    from threading import Thread
+    sensor_thread = Thread(target=check_sensor)
+    sensor_thread.start()
+    app.run(host='0.0.0.0', port=5000)
