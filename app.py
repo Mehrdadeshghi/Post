@@ -3,7 +3,7 @@ import time
 import os
 import psutil
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_file, url_for
+from flask import Flask, jsonify, render_template, send_file
 import pandas as pd
 import io
 
