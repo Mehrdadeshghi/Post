@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -71,8 +71,8 @@
             <tbody id="movements-table-body"></tbody>
         </table>
         <div class="download-buttons">
-            <button onclick="window.location.href='/download/csv'">Download CSV</button>
-            <button onclick="window.location.href='/download/excel'">Download Excel</button>
+            <button onclick="window.location.href='{{ url_for('download_csv') }}'">Download CSV</button>
+            <button onclick="window.location.href='{{ url_for('download_excel') }}'">Download Excel</button>
         </div>
         <footer class="text-center mt-4">
             <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
@@ -240,24 +240,4 @@
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
-                cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = time;
-                row.appendChild(cellIndex);
-                row.appendChild(cellTime);
-                tableBody.appendChild(row);
-            });
-        }
-
-        function refreshDashboard() {
-            fetchStatus();
-            fetchMovements();
-            fetchSummary();
-            fetchHourlyMovements();
-        }
-
-        setInterval(refreshDashboard, 1000);
-        window.onload = refreshDashboard;
-    </script>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-</body>
-</html>
+                cellIndex.innerText = movements.length - 10 + index
