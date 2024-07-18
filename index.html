@@ -5,25 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-4">Mailbox Dashboard</h1>
-        <a href="{{ url_for('add_device') }}" class="btn btn-primary mb-3">Add New Device</a>
-        <a href="{{ url_for('show_devices') }}" class="btn btn-secondary mb-3">View All Devices</a>
-        <h2>Devices</h2>
-        <div class="card-deck">
-            {% for device in devices %}
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">{{ device.name }}</h5>
-                    <p class="card-text">IP: {{ device.ip }}</p>
-                    <a href="{{ url_for('device_detail', device_id=device.id) }}" class="btn btn-primary">View Device</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <div class="container text-center">
+        <h1>Mailbox Dashboard</h1>
+        <a href="/management" class="btn btn-primary btn-lg">Management</a>
+        <a href="/user" class="btn btn-secondary btn-lg">User</a>
     </div>
 </body>
 </html>
