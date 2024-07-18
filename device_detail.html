@@ -28,4 +28,21 @@
         <a href="{{ url_for('device_user', device_id=device.id) }}" class="btn btn-info mt-3">User</a>
     </div>
     <script>
-        document.getElement
+        document.getElementById('add-sensor-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const sensorName = document.getElementById('sensor-name').value;
+            if (sensorName) {
+                const response = await fetch('{{ url_for("add_sensor", device_id=device.id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: sensorName }),
+                });
+                const newSensor = await response.json();
+                location.reload();  // Reload the page to reflect the new sensor
+            }
+        });
+    </script>
+</body>
+</html>
