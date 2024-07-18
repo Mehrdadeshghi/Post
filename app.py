@@ -64,7 +64,6 @@ def device_user(device_id):
 
 @app.route('/status')
 def get_status():
-    # Dummy status data
     status = {
         "message": "All systems operational",
         "last_update": "2024-07-18 12:00:00",
