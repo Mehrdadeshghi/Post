@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Detail</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">{{ device.name }}</h1>
+        <p>IP Address: {{ device.ip }}</p>
+        <h2>Sensors</h2>
+        <ul>
+            {% for sensor in device.sensors %}
+            <li>{{ sensor.name }}</li>
+            {% endfor %}
+        </ul>
+        <form id="add-sensor-form" class="mt-3">
+            <div class="form-group">
+                <label for="sensor-name">Sensor Name</label>
+                <input type="text" class="form-control" id="sensor-name" placeholder="Enter sensor name">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Sensor</button>
+        </form>
+        <a href="{{ url_for('show_devices') }}" class="btn btn-secondary mt-3">Back to Devices</a>
+        <a href="{{ url_for('device_management', device_id=device.id) }}" class="btn btn-warning mt-3">Management</a>
+        <a href="{{ url_for('device_user', device_id=device.id) }}" class="btn btn-info mt-3">User</a>
+    </div>
+    <script>
+        document.getElementById('add-sensor-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const sensorName = document.getElementById('sensor-name').value;
+            if (sensorName) {
+                const response = await fetch('{{ url_for("add_sensor", device_id=device.id) }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: sensorName }),
+                });
+                const newSensor = await response.json();
+                location.reload();  // Reload the page to reflect the new sensor
+            }
+        });
+    </script>
+</body>
+</html>
