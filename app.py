@@ -1,10 +1,9 @@
-from flask import Flask
+from flask import Flask, render_template
 from sensor import sensor_bp
 from management import management_bp
 
 app = Flask(__name__)
 
-# Registrierung der Blueprints mit ihren URL-Präfixen
 app.register_blueprint(sensor_bp, url_prefix='/sensor')
 app.register_blueprint(management_bp, url_prefix='/management')
 
