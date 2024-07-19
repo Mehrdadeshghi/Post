@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>GPIO Pin Status</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            text-align: center;
+        body {
+            padding-top: 20px;
         }
         .free {
             background-color: lightgreen;
@@ -20,10 +19,10 @@
         }
     </style>
 </head>
-<body>
+<body class="container">
     <h1>GPIO Pin Status</h1>
-    <table>
-        <thead>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
             <tr>
                 <th>Pin Nummer</th>
                 <th>Status</th>
@@ -35,54 +34,7 @@
     </table>
 
     <script>
-        async function fetchPinStates() {
-            const response = await fetch('/api/get_pin_states');
-            const states = await response.json();
-            const devicesResp = await fetch('/api/get_devices');
-            const devices = await devicesResp.json();
-
-            const table = document.getElementById('pinStatusTable');
-            table.innerHTML = '';
-            Object.keys(states).forEach(pin => {
-                const row = table.insertRow();
-                const pinCell = row.insertCell();
-                const statusCell = row.insertCell();
-                const actionCell = row.insertCell();
-
-                pinCell.innerHTML = pin;
-                statusCell.innerHTML = states[pin];
-                statusCell.className = states[pin] === 'Kein Gerät' ? 'free' : 'occupied';
-
-                let buttonHTML = devices[pin] ? devices[pin] : (states[pin] === 'Gerät angeschlossen' ? `<input type="text" id="name${pin}" placeholder="Device Name">
-                <button onclick="addDevice(${pin})">Add Device</button>` : 'N/A');
-                actionCell.innerHTML = buttonHTML;
-            });
-        }
-
-        async function addDevice(pin) {
-            const name = document.getElementById('name' + pin).value;
-            if (!name) {
-                alert('Please enter a name.');
-                return;
-            }
-
-            const response = await fetch('/api/add_device', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ pin: pin, name: name })
-            });
-
-            if (response.ok) {
-                fetchPinStates();
-            } else {
-                alert('Failed to add device. It might already exist.');
-            }
-        }
-
-        fetchPinStates();
-        setInterval(fetchPinStates, 10000);
+        // JavaScript-Code hier
     </script>
 </body>
 </html>
