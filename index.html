@@ -1,23 +1,61 @@
-<script>
-function fetchPinStates() {
-    fetch('http://<IP Ihres Raspberry Pi>:5001/api/get_pin_states')
-    .then(response => response.json())
-    .then(data => {
-        const table = document.getElementById('pinStatusTable');
-        table.innerHTML = ''; // Clear previous entries
-        Object.keys(data).forEach(pin => {
-            const row = table.insertRow();
-            const pinCell = row.insertCell();
-            const statusCell = row.insertCell();
-            pinCell.innerHTML = pin;
-            statusCell.innerHTML = data[pin] === 1 ? 'Free' : 'Occupied';
-            statusCell.className = data[pin] === 1 ? 'free' : 'occupied';
-        });
-    })
-    .catch(error => console.error('Error fetching pin states:', error));
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GPIO Pin Status</title>
+    <style>
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .free {
+            background-color: lightgreen;
+        }
+        .occupied {
+            background-color: lightcoral;
+        }
+    </style>
+</head>
+<body>
+    <h1>GPIO Pin Status</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Pin Number</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="pinStatusTable">
+            <!-- Die Daten werden hier durch JavaScript eingefügt -->
+        </tbody>
+    </table>
 
-// Fetch states every 5 seconds
-setInterval(fetchPinStates, 5000);
-fetchPinStates(); // Initial fetch
-</script>
+    <script>
+        function fetchPinStates() {
+            fetch('/api/get_pin_states')
+            .then(response => response.json())
+            .then(data => {
+                const table = document.getElementById('pinStatusTable');
+                table.innerHTML = ''; // Lösche vorherige Einträge
+                Object.keys(data).forEach(pin => {
+                    const row = table.insertRow();
+                    const pinCell = row.insertCell();
+                    const statusCell = row.insertCell();
+                    pinCell.innerHTML = pin;
+                    statusCell.innerHTML = data[pin] === 1 ? 'Free' : 'Occupied';
+                    statusCell.className = data[pin] === 1 ? 'free' : 'occupied';
+                });
+            })
+            .catch(error => console.error('Error fetching pin states:', error));
+        }
+
+        // Lade Zustände alle 5 Sekunden
+        setInterval(fetchPinStates, 5000);
+        fetchPinStates(); // Erste Abfrage sofort ausführen
+    </script>
+</body>
+</html>
