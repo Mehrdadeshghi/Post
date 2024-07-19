@@ -10,7 +10,7 @@ pins = list(range(2, 28))
 for pin in pins:
     GPIO.setup(pin, GPIO.IN)
 
-@app.route('/get_pin_states')
+@app.route('/api/get_pin_states')
 def get_pin_states():
     states = {}
     for pin in pins:
