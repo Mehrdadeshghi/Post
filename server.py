@@ -1,25 +1,35 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify
 import RPi.GPIO as GPIO
+import time
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__)
 
-# Setup GPIO
+# Setup der GPIO Pins
+pins = list(range(2, 28))  # Typische GPIO Pins auf einem Raspberry Pi
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-pins = list(range(2, 28))
-for pin in pins:
+
+def check_pin(pin):
+    # Pin als Ausgang setzen und auf HIGH setzen
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, GPIO.HIGH)
+    time.sleep(0.1)  # Warte kurz, um den Pin zu stabilisieren
+
+    # Pin als Eingang setzen und den Status lesen
     GPIO.setup(pin, GPIO.IN)
+    return GPIO.input(pin) == GPIO.HIGH  # Gibt True zurück, wenn HIGH (kein Gerät angeschlossen)
 
 @app.route('/api/get_pin_states')
 def get_pin_states():
-    states = {}
-    for pin in pins:
-        states[pin] = GPIO.input(pin)
+    states = {pin: 'Kein Gerät' if check_pin(pin) else 'Gerät angeschlossen' for pin in pins}
     return jsonify(states)
 
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return app.send_static_file('index.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+    try:
+        app.run(host='0.0.0.0', port=5001, debug=True)
+    finally:
+        GPIO.cleanup()
