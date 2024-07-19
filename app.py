@@ -1,6 +1,6 @@
 import sqlite3
 import nmap
-from flask import Flask, request, render_template, redirect, g
+from flask import Flask, request, render_template, redirect, g, jsonify
 import os
 
 app = Flask(__name__)
@@ -28,14 +28,22 @@ def init_db():
 
 def scan_ports(hostname):
     nm = nmap.PortScanner()
-    nm.scan(hostname, '1-1024')  # Scan Ports 1-1024
-    ports = []
-    for proto in nm[hostname].all_protocols():
-        lport = nm[hostname][proto].keys()
-        for port in lport:
-            state = nm[hostname][proto][port]['state']
-            ports.append((hostname, port, state))
-    return ports
+    try:
+        nm.scan(hostname, '1-1024')  # Scan Ports 1-1024
+        if hostname not in nm.all_hosts():
+            print(f"Host {hostname} not found in scan results.")
+            return []
+        
+        ports = []
+        for proto in nm[hostname].all_protocols():
+            lport = nm[hostname][proto].keys()
+            for port in lport:
+                state = nm[hostname][proto][port]['state']
+                ports.append((hostname, port, state))
+        return ports
+    except Exception as e:
+        print(f"An error occurred while scanning {hostname}: {e}")
+        return []
 
 @app.route('/')
 def index():
@@ -69,6 +77,10 @@ def add_building():
 
 @app.route('/add_pir_sensor', methods=('GET', 'POST'))
 def add_pir_sensor():
+    conn = get_db()
+    rps = conn.execute('SELECT hostname FROM Buildings').fetchall()
+    conn.close()
+
     if request.method == 'POST':
         rp_hostname = request.form['rp_hostname']
         sensor_number = request.form['sensor_number']
@@ -80,7 +92,14 @@ def add_pir_sensor():
         conn.commit()
         conn.close()
         return redirect('/')
-    return render_template('add_pir_sensor.html')
+    return render_template('add_pir_sensor.html', rps=rps)
+
+@app.route('/get_ports/<hostname>', methods=['GET'])
+def get_ports(hostname):
+    conn = get_db()
+    ports = conn.execute('SELECT port FROM Ports WHERE hostname = ?', (hostname,)).fetchall()
+    conn.close()
+    return jsonify([port['port'] for port in ports])
 
 if __name__ == '__main__':
     if not os.path.exists(DATABASE):
