@@ -1,17 +1,32 @@
-from gpiozero import MotionSensor
-from time import sleep
+import RPi.GPIO as GPIO
+import time
 
-# Liste der GPIO-Pins, an die deine PIR-Sensoren angeschlossen sind
-pir_pins = [4, 17, 27]  # Beispiel-Pins
+# Verwendete GPIO Pins des Raspberry Pi
+pins = list(range(2, 28))  # Typische GPIO Pins auf einem Raspberry Pi
 
-# Erstelle eine Liste von MotionSensor-Objekten
-pir_sensors = [MotionSensor(pin) for pin in pir_pins]
+# Initialisiere das GPIO
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
 
-try:
-    while True:
-        for index, sensor in enumerate(pir_sensors):
-            if sensor.motion_detected:
-                print(f"Bewegung erkannt an Sensor {index + 1} (Pin {pir_pins[index]})")
-        sleep(1)  # Überprüfe jede Sekunde
-except KeyboardInterrupt:
-    print("Programm durch Benutzer gestoppt.")
+def check_pin(pin):
+    # Pin als Ausgang setzen und auf HIGH setzen
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, GPIO.HIGH)
+    time.sleep(0.1)  # Warte kurz, um den Pin zu stabilisieren
+
+    # Pin als Eingang setzen und den Status lesen
+    GPIO.setup(pin, GPIO.IN)
+    if GPIO.input(pin) == GPIO.HIGH:
+        print(f"Pin {pin}: Möglicherweise ist ein Gerät angeschlossen.")
+    else:
+        print(f"Pin {pin}: Kein Gerät angeschlossen oder es hält den Zustand nicht.")
+
+# Überprüfe jeden Pin
+for pin in pins:
+    try:
+        check_pin(pin)
+    except Exception as e:
+        print(f"Error checking pin {pin}: {str(e)}")
+
+# Aufräumen
+GPIO.cleanup()
