@@ -3,38 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>GPIO Pin Status</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <style>
-        body {
-            padding-top: 20px;
-        }
-        .free {
-            background-color: lightgreen;
-        }
-        .occupied {
-            background-color: lightcoral;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </head>
-<body class="container">
+<body>
     <h1>GPIO Pin Status</h1>
-    <table class="table table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>Pin Nummer</th>
-                <th>Status</th>
-                <th>Aktion</th>
-            </tr>
-        </thead>
-        <tbody id="pinStatusTable">
-        </tbody>
-    </table>
-
-    <script>
-        // JavaScript-Code hier
-    </script>
+    <div id="pinStatus"></div>
 </body>
 </html>
