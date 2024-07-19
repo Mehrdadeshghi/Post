@@ -1,21 +1,27 @@
 import RPi.GPIO as GPIO
 import time
 
-# Pin-Nummer des PIR-Sensors
-pir_pin = 25
+# Liste der Pins, die auf den meisten Raspberry Pi Modellen verfügbar sind
+pins = list(range(2, 28))
 
-# GPIO Initialisierung
+# Initialisiere das GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(pir_pin, GPIO.IN)
+GPIO.setwarnings(False)
+
+def scan_pins():
+    for pin in pins:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # Setze den internen Pull-Down-Widerstand
+        time.sleep(0.1)  # Kurze Verzögerung zum Stabilisieren des Eingangs
+        if GPIO.input(pin) == GPIO.HIGH:
+            print(f"Pin {pin}: Möglicherweise ist ein Gerät angeschlossen.")
+        else:
+            print(f"Pin {pin}: Kein Gerät angeschlossen.")
 
 try:
-    print("Warte auf Bewegung...")
-    while True:
-        if GPIO.input(pir_pin):
-            print("Bewegung erkannt!")
-            time.sleep(1)  # Einfache Entprellung / Wartezeit
-        time.sleep(0.1)  # Kurze Verzögerung zwischen den Messungen
+    print("Scanne alle verfügbaren Pins...")
+    scan_pins()
 except KeyboardInterrupt:
-    print("Programm gestoppt durch Benutzer")
+    print("Scannen durch Benutzer abgebrochen.")
 finally:
     GPIO.cleanup()
+
