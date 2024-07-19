@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 import RPi.GPIO as GPIO
 import time
 
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, template_folder='templates', static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///devices.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -15,9 +15,9 @@ class Device(db.Model):
 db.create_all()
 
 # Setup der GPIO Pins
-pins = list(range(2, 28))  # Typische GPIO Pins auf einem Raspberry Pi
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+pins = list(range(2, 28))
 
 def check_pin(pin):
     GPIO.setup(pin, GPIO.OUT)
@@ -25,6 +25,10 @@ def check_pin(pin):
     time.sleep(0.1)
     GPIO.setup(pin, GPIO.IN)
     return GPIO.input(pin) == GPIO.HIGH
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/api/get_pin_states')
 def get_pin_states():
@@ -52,10 +56,6 @@ def add_device():
     db.session.add(new_device)
     db.session.commit()
     return jsonify({'success': 'Device added'}), 201
-
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == '__main__':
     try:
