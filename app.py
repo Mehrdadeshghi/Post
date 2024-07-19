@@ -27,7 +27,6 @@ def close_connection(exception):
     if db is not None:
         db.close()
 
-@app.before_first_request
 def create_tables():
     with app.app_context():
         db = get_db()
@@ -137,4 +136,6 @@ def get_ports(hostname):
     return jsonify([port['port'] for port in ports])
 
 if __name__ == '__main__':
+    if not os.path.exists(DATABASE):
+        create_tables()
     app.run(host='0.0.0.0', port=5001, debug=True)
