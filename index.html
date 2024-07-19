@@ -1,41 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>GPIO Pin Status</title>
-<style>
-table, th, td {
-    border: 1px solid black;
-    border-collapse: collapse;
-}
-th, td {
-    padding: 10px;
-    text-align: center;
-}
-.free {
-    background-color: green;
-}
-.occupied {
-    background-color: red;
-}
-</style>
-</head>
-<body>
-<h1>GPIO Pin Status</h1>
-<table>
-<thead>
-<tr>
-<th>Pin Number</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody id="pinStatusTable">
-</tbody>
-</table>
-
 <script>
 function fetchPinStates() {
-    fetch('/get_pin_states')
+    fetch('http://<IP Ihres Raspberry Pi>:5001/api/get_pin_states')
     .then(response => response.json())
     .then(data => {
         const table = document.getElementById('pinStatusTable');
@@ -53,8 +18,6 @@ function fetchPinStates() {
 }
 
 // Fetch states every 5 seconds
-setInterval(fetchPinStates, 5001);
+setInterval(fetchPinStates, 5000);
 fetchPinStates(); // Initial fetch
 </script>
-</body>
-</html>
