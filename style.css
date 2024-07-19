@@ -1,10 +1,15 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f4f4;
-    color: #333;
+    background-color: #f8f9fa;
 }
 
-#pinStatus {
-    margin-top: 20px;
+#pinStatus .card {
+    margin: 10px;
+}
+
+.status-high {
+    color: #198754;  /* Bootstrap green */
+}
+
+.status-low {
+    color: #dc3545;  /* Bootstrap red */
 }
