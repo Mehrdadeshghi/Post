@@ -69,7 +69,7 @@ def add_building():
 
 @app.route('/add_pir_sensor', methods=('GET', 'POST'))
 def add_pir_sensor():
-    if request.method == 'POST':
+    if request.method == 'POST'):
         rp_hostname = request.form['rp_hostname']
         sensor_number = request.form['sensor_number']
         postbox_number = request.form['postbox_number']
@@ -85,4 +85,4 @@ def add_pir_sensor():
 if __name__ == '__main__':
     if not os.path.exists(DATABASE):
         init_db()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
