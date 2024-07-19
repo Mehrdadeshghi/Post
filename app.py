@@ -85,24 +85,4 @@ def add_pir_sensor():
     if request.method == 'POST':
         rp_hostname = request.form['rp_hostname']
         sensor_number = request.form['sensor_number']
-        postbox_number = request.form['postbox_number']
-        
-        conn = get_db()
-        conn.execute('INSERT INTO PIR_Sensors (rp_hostname, sensor_number, postbox_number) VALUES (?, ?, ?)',
-                     (rp_hostname, sensor_number, postbox_number))
-        conn.commit()
-        conn.close()
-        return redirect('/')
-    return render_template('add_pir_sensor.html', rps=rps)
-
-@app.route('/get_ports/<hostname>', methods=['GET'])
-def get_ports(hostname):
-    conn = get_db()
-    ports = conn.execute('SELECT port FROM Ports WHERE hostname = ?', (hostname,)).fetchall()
-    conn.close()
-    return jsonify([port['port'] for port in ports])
-
-if __name__ == '__main__':
-    if not os.path.exists(DATABASE):
-        init_db()
-    app.run(host='0.0.0.0', port=5001, debug=True)
+        postbox_number = request
