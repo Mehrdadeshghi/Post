@@ -23,3 +23,8 @@ CREATE TABLE IF NOT EXISTS Ports (
     state VARCHAR(10),
     FOREIGN KEY (hostname) REFERENCES Buildings(hostname)
 );
+
+CREATE TABLE IF NOT EXISTS Devices (
+    pin INTEGER PRIMARY KEY,
+    name VARCHAR(80) UNIQUE NOT NULL
+);
