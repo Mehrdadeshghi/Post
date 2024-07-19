@@ -14,7 +14,7 @@ def check_pin(pin):
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(0.1)
     GPIO.setup(pin, GPIO.IN)
-    return GPIO.input(pin) == GPIO.HIGH
+    return GPIO.input(pin) == GPIO.LOW
 
 @app.route('/')
 def index():
