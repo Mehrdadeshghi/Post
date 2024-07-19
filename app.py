@@ -34,14 +34,14 @@ def index():
 
 @app.route('/api/pin_states')
 def pin_states():
-    states = [check_pin(pin) for pin in pins]
+    states = {pin: check_pin(pin) for pin in pins}
     return jsonify(states)
 
 @app.route('/api/add_device', methods=['POST'])
 def add_device():
     data = request.json
-    pin = data.get('pin')
-    name = data.get('name')
+    pin = data['pin']
+    name = data['name']
     if not pin or not name:
         return jsonify({'error': 'Missing data'}), 400
     existing_device = Device.query.filter_by(pin=pin).first()
