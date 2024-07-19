@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <title>GPIO Pin Status</title>
@@ -25,12 +25,12 @@
     <table>
         <thead>
             <tr>
-                <th>Pin Number</th>
+                <th>Pin Nummer</th>
                 <th>Status</th>
             </tr>
         </thead>
         <tbody id="pinStatusTable">
-            <!-- Die Daten werden hier durch JavaScript eingefügt -->
+            <!-- Daten werden hier per JavaScript eingefügt -->
         </tbody>
     </table>
 
@@ -46,15 +46,15 @@
                     const pinCell = row.insertCell();
                     const statusCell = row.insertCell();
                     pinCell.innerHTML = pin;
-                    statusCell.innerHTML = data[pin] === 1 ? 'Free' : 'Occupied';
-                    statusCell.className = data[pin] === 1 ? 'free' : 'occupied';
+                    statusCell.innerHTML = data[pin];
+                    statusCell.className = data[pin] === 'Kein Gerät' ? 'free' : 'occupied';
                 });
             })
-            .catch(error => console.error('Error fetching pin states:', error));
+            .catch(error => console.error('Fehler beim Abrufen der Pin-Zustände:', error));
         }
 
-        // Lade Zustände alle 5 Sekunden
-        setInterval(fetchPinStates, 5000);
+        // Lade Zustände alle 10 Sekunden
+        setInterval(fetchPinStates, 10000);
         fetchPinStates(); // Erste Abfrage sofort ausführen
     </script>
 </body>
