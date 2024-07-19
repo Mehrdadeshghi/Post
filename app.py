@@ -7,7 +7,14 @@ app = Flask(__name__, template_folder='templates', static_folder='static')
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-pins = list(range(2, 28))  # Die GPIO-Pins, die überprüft werden
+pins = list(range(2, 28))
+
+def check_pin(pin):
+    GPIO.setup(pin, GPIO.OUT)
+    GPIO.output(pin, GPIO.HIGH)
+    time.sleep(0.1)
+    GPIO.setup(pin, GPIO.IN)
+    return GPIO.input(pin) == GPIO.HIGH
 
 @app.route('/')
 def index():
@@ -17,13 +24,6 @@ def index():
 def pin_states():
     states = {pin: check_pin(pin) for pin in pins}
     return jsonify(states)
-
-def check_pin(pin):
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(0.1)
-    GPIO.setup(pin, GPIO.IN)
-    return GPIO.input(pin) == GPIO.HIGH
 
 if __name__ == '__main__':
     try:
