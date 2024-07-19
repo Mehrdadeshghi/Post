@@ -1,59 +1,88 @@
-from flask import Flask, request, jsonify, render_template
-from flask_sqlalchemy import SQLAlchemy
-import RPi.GPIO as GPIO
-import time
+import sqlite3
+import nmap
+from flask import Flask, request, render_template, redirect, g
+import os
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///devices.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+app = Flask(__name__)
 
-class Device(db.Model):
-    pin = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), unique=True, nullable=False)
+DATABASE = 'database.db'
 
-@app.before_first_request
-def create_tables():
-    db.create_all()
+def get_db():
+    db = getattr(g, '_database', None)
+    if db is None:
+        db = g._database = sqlite3.connect(DATABASE)
+    return db
 
-# GPIO setup
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-pins = list(range(2, 28))
+@app.teardown_appcontext
+def close_connection(exception):
+    db = getattr(g, '_database', None)
+    if db is not None:
+        db.close()
 
-def check_pin(pin):
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, GPIO.HIGH)
-    time.sleep(0.1)
-    GPIO.setup(pin, GPIO.IN)
-    return GPIO.input(pin) == GPIO.HIGH
+def init_db():
+    with app.app_context():
+        db = get_db()
+        with app.open_resource('schema.sql', mode='r') as f:
+            db.cursor().executescript(f.read())
+        db.commit()
+
+def scan_ports(hostname):
+    nm = nmap.PortScanner()
+    nm.scan(hostname, '1-1024')  # Scan Ports 1-1024
+    ports = []
+    for proto in nm[hostname].all_protocols():
+        lport = nm[hostname][proto].keys()
+        for port in lport:
+            state = nm[hostname][proto][port]['state']
+            ports.append((hostname, port, state))
+    return ports
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    conn = get_db()
+    buildings = conn.execute('SELECT * FROM Buildings').fetchall()
+    conn.close()
+    return render_template('index.html', buildings=buildings)
 
-@app.route('/api/pin_states')
-def pin_states():
-    states = {pin: check_pin(pin) for pin in pins}
-    return jsonify(states)
+@app.route('/add_building', methods=('GET', 'POST'))
+def add_building():
+    if request.method == 'POST':
+        city = request.form['city']
+        postal_code = request.form['postal_code']
+        street = request.form['street']
+        house_number = request.form['house_number']
+        hostname = request.form['hostname']
+        
+        conn = get_db()
+        conn.execute('INSERT INTO Buildings (city, postal_code, street, house_number, hostname) VALUES (?, ?, ?, ?, ?)',
+                     (city, postal_code, street, house_number, hostname))
+        conn.commit()
+        
+        ports = scan_ports(hostname)
+        for hostname, port, state in ports:
+            conn.execute('INSERT INTO Ports (hostname, port, state) VALUES (?, ?, ?)', (hostname, port, state))
+        
+        conn.commit()
+        conn.close()
+        return redirect('/')
+    return render_template('add_building.html')
 
-@app.route('/api/add_device', methods=['POST'])
-def add_device():
-    data = request.json
-    pin = data['pin']
-    name = data['name']
-    if not pin or not name:
-        return jsonify({'error': 'Missing data'}), 400
-    existing_device = Device.query.filter_by(pin=pin).first()
-    if existing_device:
-        return jsonify({'error': 'Device already exists on this pin'}), 409
-    new_device = Device(pin=pin, name=name)
-    db.session.add(new_device)
-    db.session.commit()
-    return jsonify({'success': 'Device added', 'pin': pin, 'name': name}), 201
+@app.route('/add_pir_sensor', methods=('GET', 'POST'))
+def add_pir_sensor():
+    if request.method == 'POST':
+        rp_hostname = request.form['rp_hostname']
+        sensor_number = request.form['sensor_number']
+        postbox_number = request.form['postbox_number']
+        
+        conn = get_db()
+        conn.execute('INSERT INTO PIR_Sensors (rp_hostname, sensor_number, postbox_number) VALUES (?, ?, ?)',
+                     (rp_hostname, sensor_number, postbox_number))
+        conn.commit()
+        conn.close()
+        return redirect('/')
+    return render_template('add_pir_sensor.html')
 
 if __name__ == '__main__':
-    try:
-        app.run(host='0.0.0.0', port=5001, debug=True)
-    finally:
-        GPIO.cleanup()
+    if not os.path.exists(DATABASE):
+        init_db()
+    app.run(debug=True)
