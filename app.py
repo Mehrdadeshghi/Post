@@ -26,11 +26,7 @@ def check_pin(pin):
     GPIO.output(pin, GPIO.HIGH)
     time.sleep(0.1)
     GPIO.setup(pin, GPIO.IN)
-    pin_status = GPIO.input(pin) == GPIO.HIGH
-    device = Device.query.filter_by(pin=pin).first()
-    if device:
-        return {'pin': pin, 'status': pin_status, 'name': device.name}
-    return {'pin': pin, 'status': pin_status, 'name': None}
+    return GPIO.input(pin) == GPIO.HIGH
 
 @app.route('/')
 def index():
@@ -43,8 +39,9 @@ def pin_states():
 
 @app.route('/api/add_device', methods=['POST'])
 def add_device():
-    pin = request.json.get('pin')
-    name = request.json.get('name')
+    data = request.json
+    pin = data.get('pin')
+    name = data.get('name')
     if not pin or not name:
         return jsonify({'error': 'Missing data'}), 400
     existing_device = Device.query.filter_by(pin=pin).first()
