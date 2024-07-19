@@ -3,17 +3,40 @@
 <head>
   <meta charset="utf-8">
   <title>Add PIR Sensor</title>
+  <script>
+    function fetchPorts() {
+      const hostname = document.getElementById('rp_hostname').value;
+      fetch(`/get_ports/${hostname}`)
+        .then(response => response.json())
+        .then(data => {
+          const portsList = document.getElementById('ports_list');
+          portsList.innerHTML = '';
+          data.forEach(port => {
+            const li = document.createElement('li');
+            li.textContent = port;
+            portsList.appendChild(li);
+          });
+        });
+    }
+  </script>
 </head>
 <body>
   <h1>Add PIR Sensor</h1>
   <form method="post">
     <label for="rp_hostname">RP Hostname</label>
-    <input type="text" id="rp_hostname" name="rp_hostname"><br>
+    <select id="rp_hostname" name="rp_hostname" onchange="fetchPorts()">
+      <option value="">Select RP Hostname</option>
+      {% for rp in rps %}
+        <option value="{{ rp.hostname }}">{{ rp.hostname }}</option>
+      {% endfor %}
+    </select><br>
     <label for="sensor_number">Sensor Number</label>
     <input type="text" id="sensor_number" name="sensor_number"><br>
     <label for="postbox_number">Postbox Number</label>
     <input type="text" id="postbox_number" name="postbox_number"><br>
     <input type="submit" value="Add PIR Sensor">
   </form>
+  <h2>Available Ports</h2>
+  <ul id="ports_list"></ul>
 </body>
 </html>
