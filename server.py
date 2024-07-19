@@ -12,7 +12,8 @@ class Device(db.Model):
     pin = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), nullable=False)
 
-db.create_all()
+with app.app_context():
+    db.create_all()
 
 # Setup der GPIO Pins
 GPIO.setmode(GPIO.BCM)
