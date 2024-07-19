@@ -9,12 +9,13 @@
       fetch(`/get_ports/${hostname}`)
         .then(response => response.json())
         .then(data => {
-          const portsList = document.getElementById('ports_list');
-          portsList.innerHTML = '';
+          const portsDropdown = document.getElementById('port');
+          portsDropdown.innerHTML = '<option value="">Select Port</option>';
           data.forEach(port => {
-            const li = document.createElement('li');
-            li.textContent = port;
-            portsList.appendChild(li);
+            const option = document.createElement('option');
+            option.value = port;
+            option.textContent = port;
+            portsDropdown.appendChild(option);
           });
         });
     }
@@ -34,9 +35,11 @@
     <input type="text" id="sensor_number" name="sensor_number"><br>
     <label for="postbox_number">Postbox Number</label>
     <input type="text" id="postbox_number" name="postbox_number"><br>
+    <label for="port">Port</label>
+    <select id="port" name="port">
+      <option value="">Select Port</option>
+    </select><br>
     <input type="submit" value="Add PIR Sensor">
   </form>
-  <h2>Available Ports</h2>
-  <ul id="ports_list"></ul>
 </body>
 </html>
