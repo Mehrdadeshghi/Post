@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS PIR_Sensors (
     rp_hostname VARCHAR(50),
     sensor_number INT,
     postbox_number VARCHAR(50),
+    port INT,
     FOREIGN KEY (rp_hostname) REFERENCES Buildings(hostname)
 );
 
