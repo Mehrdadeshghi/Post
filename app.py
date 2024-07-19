@@ -69,7 +69,7 @@ def add_building():
 
 @app.route('/add_pir_sensor', methods=('GET', 'POST'))
 def add_pir_sensor():
-    if request.method == 'POST'):
+    if request.method == 'POST':
         rp_hostname = request.form['rp_hostname']
         sensor_number = request.form['sensor_number']
         postbox_number = request.form['postbox_number']
