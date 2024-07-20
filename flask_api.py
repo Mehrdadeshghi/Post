@@ -11,6 +11,8 @@ def erfassen_bewegung():
     if 'sensor' in daten and 'zeit' in daten:
         bewegungen.append(daten)
         print(f"Erfasste Bewegung: {daten}")  # Debug-Ausgabe
+    else:
+        print("Unvollständige Daten erhalten:", daten)  # Debug-Ausgabe bei unvollständigen Daten
     return jsonify({"status": "erfasst"}), 200
 
 @app.route('/bewegungen', methods=['GET'])
