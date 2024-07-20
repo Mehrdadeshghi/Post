@@ -1,45 +1,9 @@
-body {
-    font-family: Arial, sans-serif;
-}
-
-.theme-switch-wrapper {
-    display: flex;
-    align-items: center;
-}
-
-.theme-switch-wrapper .slider {
-    cursor: pointer;
-}
-
-.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
-}
-
-.container {
-    margin-top: 20px;
-}
-
-.card-deck {
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.chart-container {
-    position: relative;
-    height: 400px;
+table {
     width: 100%;
-    margin-bottom: 40px;
+    border-collapse: collapse;
 }
-
-.download-buttons {
-    margin-top: 20px;
-}
-
-footer {
-    margin-top: 20px;
-}
-
-.table-responsive {
-    margin-top: 20px;
+th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
 }
