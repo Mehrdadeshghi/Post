@@ -1,51 +1,18 @@
-from flask import Flask, render_template, jsonify
-import threading
-import time
-from datetime import datetime
-import RPi.GPIO as GPIO
+from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Define sensor pins
-MEHRDAD_PIN = 25
-REZVANEH_PIN = 24
+motion_data = []
 
-# Initialize GPIO
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(MEHRDAD_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(REZVANEH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+@app.route('/motion', methods=['POST'])
+def log_motion():
+    data = request.json
+    motion_data.append(data)
+    return 'Bewegung erfasst', 200
 
-# Movements data structure
-movements_mehrdad = []
-movements_rezvaneh = []
-
-def monitor_sensor(pin, movements_list, name):
-    last_state = GPIO.input(pin)
-    while True:
-        try:
-            current_state = GPIO.input(pin)
-            if current_state == GPIO.HIGH and last_state == GPIO.LOW:
-                movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                movements_list.append(movement_time)
-                print(f"Motion detected on {name} at {movement_time}")
-            last_state = current_state
-        except Exception as e:
-            print(f"Error monitoring {name}: {e}")
-        time.sleep(0.1)
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/movements/mehrdad')
-def get_movements_mehrdad():
-    return jsonify(movements_mehrdad)
-
-@app.route('/movements/rezvaneh')
-def get_movements_rezvaneh():
-    return jsonify(movements_rezvaneh)
+@app.route('/motion', methods=['GET'])
+def get_motion():
+    return jsonify(motion_data), 200
 
 if __name__ == '__main__':
-    threading.Thread(target=monitor_sensor, args=(MEHRDAD_PIN, movements_mehrdad, "Mehrdad"), daemon=True).start()
-    threading.Thread(target=monitor_sensor, args=(REZVANEH_PIN, movements_rezvaneh, "Rezvaneh"), daemon=True).start()
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
