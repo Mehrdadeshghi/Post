@@ -12,20 +12,23 @@ REZVANEH_PIN = 24
 
 # Initialize GPIO
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(MEHRDAD_PIN, GPIO.IN)
-GPIO.setup(REZVANEH_PIN, GPIO.IN)
+GPIO.setup(MEHRDAD_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(REZVANEH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Movements data structure
 movements_mehrdad = []
 movements_rezvaneh = []
 
 def monitor_sensor(pin, movements_list, name):
+    last_state = GPIO.input(pin)
     while True:
-        if GPIO.input(pin) == GPIO.HIGH:
+        current_state = GPIO.input(pin)
+        if current_state == GPIO.HIGH and last_state == GPIO.LOW:
             movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             movements_list.append(movement_time)
             print(f"Motion detected on {name} at {movement_time}")
-        time.sleep(1)
+        last_state = current_state
+        time.sleep(0.1)  # Reduced sleep time for better responsiveness
 
 @app.route('/')
 def index():
