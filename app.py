@@ -21,7 +21,6 @@ movements_rezvaneh = []
 
 def monitor_sensor(pin, movements_list, name):
     last_state = GPIO.input(pin)
-    print(f"Starting monitoring for {name} on pin {pin}")
     while True:
         try:
             current_state = GPIO.input(pin)
@@ -29,10 +28,6 @@ def monitor_sensor(pin, movements_list, name):
                 movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 movements_list.append(movement_time)
                 print(f"Motion detected on {name} at {movement_time}")
-            elif current_state == GPIO.LOW:
-                print(f"{name} sensor is LOW")
-            else:
-                print(f"{name} sensor is fluctuating")
             last_state = current_state
         except Exception as e:
             print(f"Error monitoring {name}: {e}")
@@ -44,12 +39,10 @@ def index():
 
 @app.route('/movements/mehrdad')
 def get_movements_mehrdad():
-    print("Fetching Mehrdad movements:", movements_mehrdad)
     return jsonify(movements_mehrdad)
 
 @app.route('/movements/rezvaneh')
 def get_movements_rezvaneh():
-    print("Fetching Rezvaneh movements:", movements_rezvaneh)
     return jsonify(movements_rezvaneh)
 
 if __name__ == '__main__':
