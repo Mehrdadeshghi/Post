@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 import time
 import requests
 
-API_ENDPOINT = "http://<deine_api_ip>:5000/motion"
+API_ENDPOINT = "http://192.168.178.82:5000/motion"
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
