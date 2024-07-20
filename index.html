@@ -49,9 +49,9 @@
     <script>
         async function ladeBewegungen() {
             try {
-                const response = await fetch('http://192.168.178.82:5000/bewegungen');
+                const response = await fetch('http://localhost:5000/bewegungen');
                 const daten = await response.json();
-                console.log(daten); // Debugging: Logge die abgerufenen Daten
+                console.log('Abgerufene Daten:', daten); // Debugging: Logge die abgerufenen Daten
 
                 const tbody = document.getElementById('bewegungen-tbody');
                 tbody.innerHTML = '';
