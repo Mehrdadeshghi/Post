@@ -19,8 +19,9 @@
             <span>Dark Mode</span>
         </div>
         <div class="list-group">
-            <a href="/sensor/Mehrdad" class="list-group-item list-group-item-action">GPIO 25 = Mehrdad</a>
-            <a href="/sensor/Rezvaneh" class="list-group-item list-group-item-action">GPIO 24 = Rezvaneh</a>
+            {% for sensor in sensors %}
+            <a href="/sensor/{{ sensor.name }}" class="list-group-item list-group-item-action">GPIO {{ sensor.gpio }} = {{ sensor.name }}</a>
+            {% endfor %}
         </div>
     </div>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
