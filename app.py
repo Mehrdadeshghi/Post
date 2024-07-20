@@ -3,7 +3,7 @@ import time
 import os
 import psutil
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_file
+from flask import Flask, jsonify, render_template, send_file, request
 import pandas as pd
 import io
 import threading
@@ -140,15 +140,15 @@ def get_summary():
     summaries = {}
     now = datetime.now()
     for pin, movements in status["movements"].items():
-        last_24_hours_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-        last_week_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-        last_month_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+        last_24_hours_movements = [m for m in movements if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+        last_week_movements = [m for m in movements if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+        last_month_movements = [m for m in movements if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
         summaries[pin] = {
             "total_movements": len(movements),
             "last_24_hours_movements": len(last_24_hours_movements),
             "last_week_movements": len(last_week_movements),
             "last_month_movements": len(last_month_movements),
-            "last_motion_time": movements[-1][0] if movements else "No movements detected"
+            "last_motion_time": movements[-1] if movements else "No movements detected"
         }
     return jsonify(summaries)
 
@@ -159,7 +159,7 @@ def get_hourly_movements():
         now = datetime.now()
         hourly_movements = {str(hour): 0 for hour in range(24)}
         for movement in status["movements"][sensor_pin]:
-            movement_time = datetime.strptime(movement[0], "%Y-%m-%d %H:%M:%S")
+            movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
             if movement_time.date() == now.date():
                 hour = movement_time.hour
                 hourly_movements[str(hour)] += 1
@@ -170,7 +170,7 @@ def get_hourly_movements():
 def download_csv():
     sensor_pin = request.args.get('sensor_pin', type=int)
     if sensor_pin in status["movements"]:
-        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time", "Sensor"])
+        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time"])
         output = io.BytesIO()
         df.to_csv(output, index_label="Index")
         output.seek(0)
@@ -181,7 +181,7 @@ def download_csv():
 def download_excel():
     sensor_pin = request.args.get('sensor_pin', type=int)
     if sensor_pin in status["movements"]:
-        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time", "Sensor"])
+        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time"])
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine='openpyxl') as writer:
             df.to_excel(writer, index_label="Index")
@@ -226,7 +226,7 @@ def log_message(message, sensor=None):
     status["message"] = message
     status["last_update"] = current_time
     if "motion detected" in message.lower() and sensor is not None:
-        status["movements"][sensor].append((current_time, sensor))
+        status["movements"][sensor].append(current_time)
     print(f"{current_time} - {message}")
 
 def check_sensor():
