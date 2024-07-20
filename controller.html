@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>PIR Sensor Controller</h1>
+        <h1>PIR Sensor Controller: {{ controller_name }}</h1>
         <div class="theme-switch-wrapper">
             <span>Light Mode</span>
             <label class="theme-switch" for="checkbox">
@@ -18,36 +18,11 @@
             </label>
             <span>Dark Mode</span>
         </div>
-        <div class="card-deck">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Sensor 1 (GPIO 25)</h5>
-                    <p id="sensor_1_status" class="card-text">Loading...</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Sensor 2 (GPIO 24)</h5>
-                    <p id="sensor_2_status" class="card-text">Loading...</p>
-                </div>
-            </div>
+        <div class="list-group">
+            <a href="/sensor/Mehrdad" class="list-group-item list-group-item-action">GPIO 25 = Mehrdad</a>
+            <a href="/sensor/Rezvaneh" class="list-group-item list-group-item-action">GPIO 24 = Rezvaneh</a>
         </div>
     </div>
-    <script>
-        async function fetchSensorStatus() {
-            try {
-                const response = await fetch('/sensor_status');
-                const data = await response.json();
-                document.getElementById('sensor_1_status').innerText = data.sensor_1 ? 'Motion detected' : 'No motion';
-                document.getElementById('sensor_2_status').innerText = data.sensor_2 ? 'Motion detected' : 'No motion';
-            } catch (error) {
-                console.error('Error fetching sensor status:', error);
-            }
-        }
-
-        setInterval(fetchSensorStatus, 1000);
-        window.onload = fetchSensorStatus;
-    </script>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
