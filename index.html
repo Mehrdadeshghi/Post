@@ -1,22 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bewegungserkennung</title>
-    <script>
-        async function fetchData() {
-            const response = await fetch('http://192.168.178.82:5000/bewegungen');
-            const data = await response.json();
-            document.getElementById('rezvaneh').innerText = data.Rezvaneh ? 'Bewegung erkannt' : 'Keine Bewegung';
-            document.getElementById('mehrdad').innerText = data.Mehrdad ? 'Bewegung erkannt' : 'Keine Bewegung';
-        }
-        setInterval(fetchData, 1000); // Aktualisierung jede Sekunde
-    </script>
+    <title>Motion Detection</title>
+    <meta http-equiv="refresh" content="2">
 </head>
-<body onload="fetchData()">
-    <h1>Bewegungserkennung</h1>
-    <p>Rezvaneh: <span id="rezvaneh">Wird geladen...</span></p>
-    <p>Mehrdad: <span id="mehrdad">Wird geladen...</span></p>
+<body>
+    <h1>Motion Detection Status</h1>
+    <p>Sensor Mehrdad (GPIO25): {{ sensor_1 }}</p>
+    <p>Sensor Rezvaneh (GPIO24): {{ sensor_2 }}</p>
 </body>
 </html>
