@@ -15,17 +15,15 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(MEHRDAD_PIN, GPIO.IN)
 GPIO.setup(REZVANEH_PIN, GPIO.IN)
 
-# Dictionary to store movements
-movements = {
-    MEHRDAD_PIN: [],
-    REZVANEH_PIN: []
-}
+# Movements data structure
+movements_mehrdad = []
+movements_rezvaneh = []
 
-def monitor_sensor(pin, name):
+def monitor_sensor(pin, movements_list, name):
     while True:
         if GPIO.input(pin) == GPIO.HIGH:
             movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            movements[pin].append(movement_time)
+            movements_list.append(movement_time)
             print(f"Motion detected on {name} at {movement_time}")
         time.sleep(1)
 
@@ -33,17 +31,18 @@ def monitor_sensor(pin, name):
 def index():
     return render_template('index.html')
 
-@app.route('/movements/<int:pin>')
-def get_movements(pin):
-    if pin in movements:
-        return jsonify(movements[pin])
-    else:
-        return "Invalid sensor pin", 400
+@app.route('/movements/mehrdad')
+def get_movements_mehrdad():
+    return jsonify(movements_mehrdad)
+
+@app.route('/movements/rezvaneh')
+def get_movements_rezvaneh():
+    return jsonify(movements_rezvaneh)
 
 if __name__ == '__main__':
     # Start sensor monitoring threads
-    threading.Thread(target=monitor_sensor, args=(MEHRDAD_PIN, "Mehrdad"), daemon=True).start()
-    threading.Thread(target=monitor_sensor, args=(REZVANEH_PIN, "Rezvaneh"), daemon=True).start()
+    threading.Thread(target=monitor_sensor, args=(MEHRDAD_PIN, movements_mehrdad, "Mehrdad"), daemon=True).start()
+    threading.Thread(target=monitor_sensor, args=(REZVANEH_PIN, movements_rezvaneh, "Rezvaneh"), daemon=True).start()
     
     # Start Flask app
     app.run(host='0.0.0.0', port=5000, debug=True)
