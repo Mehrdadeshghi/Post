@@ -21,8 +21,8 @@
         </div>
     </div>
     <script>
-        async function fetchMovements(pin, elementId) {
-            const response = await fetch(`/movements/${pin}`);
+        async function fetchMovements(endpoint, elementId) {
+            const response = await fetch(endpoint);
             const data = await response.json();
             const list = document.getElementById(elementId);
             list.innerHTML = '';
@@ -35,8 +35,8 @@
         }
 
         function refreshDashboard() {
-            fetchMovements(25, 'mehrdad-movements');
-            fetchMovements(24, 'rezvaneh-movements');
+            fetchMovements('/movements/mehrdad', 'mehrdad-movements');
+            fetchMovements('/movements/rezvaneh', 'rezvaneh-movements');
         }
 
         setInterval(refreshDashboard, 5000);
