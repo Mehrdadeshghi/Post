@@ -29,13 +29,14 @@ app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
 
 # Define GPIO pins
-SENSOR_PIN = 25  # Pin for the motion sensor
+SENSOR_PINS = [25, 24]  # Pins for the motion sensors
 
 # Set GPIO mode (BCM)
 GPIO.setmode(GPIO.BCM)
 
-# Set GPIO pin as input
-GPIO.setup(SENSOR_PIN, GPIO.IN)
+# Set GPIO pins as input
+for pin in SENSOR_PINS:
+    GPIO.setup(pin, GPIO.IN)
 
 status = {
     "message": "Waiting for motion...",
@@ -47,13 +48,13 @@ status = {
     "active_processes": 0
 }
 
-movement_detected_times = []
+movement_detected_times = {pin: [] for pin in SENSOR_PINS}
 last_motion_time = None
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
 power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
-power_check_status = []
+power_check_status = {pin: [] for pin in SENSOR_PINS}
 
 def get_system_info():
     try:
@@ -154,7 +155,7 @@ def get_hourly_movements():
 
 @app.route('/download/csv')
 def download_csv():
-    df = pd.DataFrame(status["movements"], columns=["Time"])
+    df = pd.DataFrame(status["movements"], columns=["Time", "Sensor"])
     output = io.BytesIO()
     df.to_csv(output, index_label="Index")
     output.seek(0)
@@ -162,7 +163,7 @@ def download_csv():
 
 @app.route('/download/excel')
 def download_excel():
-    df = pd.DataFrame(status["movements"], columns=["Time"])
+    df = pd.DataFrame(status["movements"], columns=["Time", "Sensor"])
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index_label="Index")
@@ -200,13 +201,13 @@ def download_system_info_excel():
     output.seek(0)
     return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='system_info.xlsx', as_attachment=True)
 
-def log_message(message):
+def log_message(message, sensor=None):
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
     if "motion detected" in message.lower():
-        status["movements"].append(current_time)
+        status["movements"].append((current_time, sensor))
     print(f"{current_time} - {message}")
 
 def check_sensor():
@@ -221,33 +222,34 @@ def check_sensor():
             machine.set_state("WAITING_FOR_MOTION")
 
         elif current_state == "WAITING_FOR_MOTION":
-            sensor_input = GPIO.input(SENSOR_PIN)
+            for pin in SENSOR_PINS:
+                sensor_input = GPIO.input(pin)
 
-            # Update power check status
-            if current_time - last_power_check_time > power_check_interval:
-                last_power_check_time = current_time
-                power_check_status.append((current_time, sensor_input))
-                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
+                # Update power check status
+                if current_time - last_power_check_time > power_check_interval:
+                    last_power_check_time = current_time
+                    power_check_status[pin].append((current_time, sensor_input))
+                    power_check_status[pin] = [status for status in power_check_status[pin] if current_time - status[0] <= power_check_window]
 
-                # Check if PIR has no power
-                if len(power_check_status) > 0 and all(status[1] == 0 for status in power_check_status):
-                    log_message("Mailbox is open. (PIR has no power)")
-                    machine.set_state("MAILBOX_OPEN")
+                    # Check if PIR has no power
+                    if len(power_check_status[pin]) > 0 and all(status[1] == 0 for status in power_check_status[pin]):
+                        log_message(f"Mailbox is open. (PIR on GPIO {pin} has no power)")
+                        machine.set_state("MAILBOX_OPEN")
 
-            if sensor_input == GPIO.HIGH:
-                movement_detected_times.append(current_time)
-                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+                if sensor_input == GPIO.HIGH:
+                    movement_detected_times[pin].append(current_time)
+                    movement_detected_times[pin] = [t for t in movement_detected_times[pin] if current_time - t <= 10]
 
-                if len(movement_detected_times) >= 2:
-                    log_message("Motion detected! There is mail.")
-                    movement_detected_times = []
-                    last_motion_time = current_time
-                    machine.set_state("MOTION_DETECTED")
-            else:
-                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
-                    log_message("Mailbox is open. (No motion detected for threshold period)")
-                    last_motion_time = None
-                    machine.set_state("MAILBOX_OPEN")
+                    if len(movement_detected_times[pin]) >= 2:
+                        log_message(f"Motion detected on GPIO {pin}! There is mail.", sensor=pin)
+                        movement_detected_times[pin] = []
+                        last_motion_time = current_time
+                        machine.set_state("MOTION_DETECTED")
+                else:
+                    if last_motion_time and current_time - last_motion_time > no_motion_threshold:
+                        log_message(f"Mailbox is open. (No motion detected for threshold period on GPIO {pin})")
+                        last_motion_time = None
+                        machine.set_state("MAILBOX_OPEN")
 
         elif current_state == "MOTION_DETECTED":
             time.sleep(2)  # Simulate processing time
