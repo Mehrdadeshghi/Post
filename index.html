@@ -1,13 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bewegungsdaten</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Bewegungserfassung</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bewegungsdaten</h1>
+    <h1>Bewegungserfassung der PIR-Sensoren</h1>
     <table>
         <thead>
             <tr>
@@ -15,29 +41,42 @@
                 <th>Zeit</th>
             </tr>
         </thead>
-        <tbody id="motionData">
+        <tbody id="bewegungen-tbody">
+            <!-- Bewegungsdaten werden hier eingefügt -->
         </tbody>
     </table>
+
     <script>
-        async function fetchMotionData() {
-            const response = await fetch('/motion');
-            const data = await response.json();
-            const tableBody = document.getElementById('motionData');
-            tableBody.innerHTML = '';
-            data.forEach(entry => {
-                const row = document.createElement('tr');
-                const sensorCell = document.createElement('td');
-                const timeCell = document.createElement('td');
-                sensorCell.textContent = entry.sensor;
-                timeCell.textContent = new Date(entry.time * 1000).toLocaleString();
-                row.appendChild(sensorCell);
-                row.appendChild(timeCell);
-                tableBody.appendChild(row);
-            });
+        async function ladeBewegungen() {
+            try {
+                const response = await fetch('http://localhost:5000/bewegungen');
+                const daten = await response.json();
+
+                const tbody = document.getElementById('bewegungen-tbody');
+                tbody.innerHTML = '';
+
+                daten.forEach(eintrag => {
+                    const tr = document.createElement('tr');
+                    const sensorTd = document.createElement('td');
+                    const zeitTd = document.createElement('td');
+
+                    sensorTd.textContent = eintrag.sensor;
+                    zeitTd.textContent = eintrag.zeit;
+
+                    tr.appendChild(sensorTd);
+                    tr.appendChild(zeitTd);
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error('Fehler beim Laden der Bewegungsdaten:', error);
+            }
         }
 
-        setInterval(fetchMotionData, 5000);
-        fetchMotionData();
+        // Lade Bewegungen bei Seitenaufruf
+        ladeBewegungen();
+
+        // Aktualisiere die Bewegungsdaten alle 5 Sekunden
+        setInterval(ladeBewegungen, 5000);
     </script>
 </body>
 </html>
