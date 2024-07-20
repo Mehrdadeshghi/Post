@@ -1,8 +1,7 @@
 import time
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from gpio_handling import GPIOHandler
-import RPi.GPIO as GPIO  # Import the GPIO library
 
 class StateMachine:
     def __init__(self):
@@ -39,37 +38,19 @@ class SensorHandler:
     def log_message(self, message, sensor=None):
         now = datetime.now()
         current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-        self.status["message"] = message
         self.status["last_update"] = current_time
-        if "motion detected" in message.lower() and sensor is not None:
+        if sensor:
             self.status["movements"][sensor].append(current_time)
         print(f"{current_time} - {message}")
 
-    def check_sensor(self):
+    def monitor_sensors(self):
         while True:
             current_state = self.state_machine.get_state()
             current_time = time.time()
-            print(f"Current state: {current_state}, Time: {datetime.now()}")
 
-            if current_state == "INIT":
-                self.log_message("Initializing...")
-                self.state_machine.set_state("WAITING_FOR_MOTION")
-
-            elif current_state == "WAITING_FOR_MOTION":
+            if current_state == "WAITING_FOR_MOTION":
                 for pin in self.gpio_handler.SENSOR_PINS:
                     sensor_input = self.gpio_handler.get_sensor_input(pin)
-                    print(f"Sensor input on GPIO {pin}: {sensor_input}")
-
-                    # Update power check status
-                    if current_time - self.last_power_check_time > self.power_check_interval:
-                        self.last_power_check_time = current_time
-                        self.gpio_handler.power_check_status[pin].append((current_time, sensor_input))
-                        self.gpio_handler.power_check_status[pin] = [status for status in self.gpio_handler.power_check_status[pin] if current_time - status[0] <= self.power_check_window]
-
-                        # Check if PIR has no power
-                        if len(self.gpio_handler.power_check_status[pin]) > 0 and all(status[1] == 0 for status in self.gpio_handler.power_check_status[pin]):
-                            self.log_message(f"Mailbox is open. (PIR on GPIO {pin} has no power)")
-                            self.state_machine.set_state("MAILBOX_OPEN")
 
                     if sensor_input == GPIO.HIGH:
                         self.gpio_handler.movement_detected_times[pin].append(current_time)
@@ -80,6 +61,7 @@ class SensorHandler:
                             self.gpio_handler.movement_detected_times[pin] = []
                             self.gpio_handler.last_motion_time[pin] = current_time
                             self.state_machine.set_state("MOTION_DETECTED")
+                            self.update_display(pin)
                     else:
                         if self.gpio_handler.last_motion_time[pin] and current_time - self.gpio_handler.last_motion_time[pin] > self.no_motion_threshold:
                             self.log_message(f"Mailbox is open. (No motion detected for threshold period on GPIO {pin})")
@@ -95,3 +77,11 @@ class SensorHandler:
                 self.state_machine.set_state("WAITING_FOR_MOTION")
 
             time.sleep(1)
+
+    def update_display(self, pin):
+        if pin == 25:
+            # Code to update Mehrdad's display
+            print("Updating display for Mehrdad")
+        elif pin == 24:
+            # Code to update Rezvaneh's display
+            print("Updating display for Rezvaneh")
