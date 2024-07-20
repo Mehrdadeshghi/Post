@@ -3,7 +3,7 @@ import time
 import os
 import psutil
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_file, request
+from flask import Flask, jsonify, render_template, send_file
 import pandas as pd
 import io
 import threading
@@ -29,15 +29,13 @@ app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
 
 # Define GPIO pins
-SENSOR_PIN_Mehrdad = 25  # Pin for the motion sensor Mehrdad
-SENSOR_PIN_Rezvaneh = 24  # Pin for the motion sensor Rezvaneh
+SENSOR_PIN = 25  # Pin for the motion sensor
 
 # Set GPIO mode (BCM)
 GPIO.setmode(GPIO.BCM)
 
 # Set GPIO pin as input
-GPIO.setup(SENSOR_PIN_Mehrdad, GPIO.IN)
-GPIO.setup(SENSOR_PIN_Rezvaneh, GPIO.IN)
+GPIO.setup(SENSOR_PIN, GPIO.IN)
 
 status = {
     "message": "Waiting for motion...",
@@ -124,16 +122,6 @@ def system_info():
 def get_status():
     return jsonify(status)
 
-@app.route('/bewegung', methods=['POST'])
-def erfassen_bewegung():
-    daten = request.get_json()
-    if 'sensor' in daten and 'zeit' in daten:
-        status['movements'].append(daten)
-        print(f"Erfasste Bewegung: {daten}")
-    else:
-        print("Unvollständige Daten erhalten:", daten)
-    return jsonify({"status": "erfasst"}), 200
-
 @app.route('/movements')
 def get_movements():
     return jsonify(status["movements"])
@@ -141,15 +129,15 @@ def get_movements():
 @app.route('/summary')
 def get_summary():
     now = datetime.now()
-    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m['zeit'], "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-    last_week_movements = [m for m in status["movements"] if datetime.strptime(m['zeit'], "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-    last_month_movements = [m for m in status["movements"] if datetime.strptime(m['zeit'], "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+    last_week_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+    last_month_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
     summary = {
         "total_movements": len(status["movements"]),
         "last_24_hours_movements": len(last_24_hours_movements),
         "last_week_movements": len(last_week_movements),
         "last_month_movements": len(last_month_movements),
-        "last_motion_time": status["movements"][-1]['zeit'] if status["movements"] else "No movements detected"
+        "last_motion_time": status["movements"][-1] if status["movements"] else "No movements detected"
     }
     return jsonify(summary)
 
@@ -158,7 +146,7 @@ def get_hourly_movements():
     now = datetime.now()
     hourly_movements = {str(hour): 0 for hour in range(24)}
     for movement in status["movements"]:
-        movement_time = datetime.strptime(movement['zeit'], "%Y-%m-%d %H:%M:%S")
+        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
         if movement_time.date() == now.date():
             hour = movement_time.hour
             hourly_movements[str(hour)] += 1
@@ -166,7 +154,7 @@ def get_hourly_movements():
 
 @app.route('/download/csv')
 def download_csv():
-    df = pd.DataFrame(status["movements"])
+    df = pd.DataFrame(status["movements"], columns=["Time"])
     output = io.BytesIO()
     df.to_csv(output, index_label="Index")
     output.seek(0)
@@ -174,7 +162,7 @@ def download_csv():
 
 @app.route('/download/excel')
 def download_excel():
-    df = pd.DataFrame(status["movements"])
+    df = pd.DataFrame(status["movements"], columns=["Time"])
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index_label="Index")
@@ -217,6 +205,8 @@ def log_message(message):
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
+    if "motion detected" in message.lower():
+        status["movements"].append(current_time)
     print(f"{current_time} - {message}")
 
 def check_sensor():
@@ -231,29 +221,43 @@ def check_sensor():
             machine.set_state("WAITING_FOR_MOTION")
 
         elif current_state == "WAITING_FOR_MOTION":
-            sensor_input_Mehrdad = GPIO.input(SENSOR_PIN_Mehrdad)
-            sensor_input_Rezvaneh = GPIO.input(SENSOR_PIN_Rezvaneh)
+            sensor_input = GPIO.input(SENSOR_PIN)
 
-            if sensor_input_Mehrdad == GPIO.HIGH:
-                log_message("Motion detected: Mehrdad")
-                sende_daten("Mehrdad")
+            # Update power check status
+            if current_time - last_power_check_time > power_check_interval:
+                last_power_check_time = current_time
+                power_check_status.append((current_time, sensor_input))
+                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
 
-            if sensor_input_Rezvaneh == GPIO.HIGH:
-                log_message("Motion detected: Rezvaneh")
-                sende_daten("Rezvaneh")
+                # Check if PIR has no power
+                if len(power_check_status) > 0 and all(status[1] == 0 for status in power_check_status):
+                    log_message("Mailbox is open. (PIR has no power)")
+                    machine.set_state("MAILBOX_OPEN")
+
+            if sensor_input == GPIO.HIGH:
+                movement_detected_times.append(current_time)
+                movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
+
+                if len(movement_detected_times) >= 2:
+                    log_message("Motion detected! There is mail.")
+                    movement_detected_times = []
+                    last_motion_time = current_time
+                    machine.set_state("MOTION_DETECTED")
+            else:
+                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
+                    log_message("Mailbox is open. (No motion detected for threshold period)")
+                    last_motion_time = None
+                    machine.set_state("MAILBOX_OPEN")
+
+        elif current_state == "MOTION_DETECTED":
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
+
+        elif current_state == "MAILBOX_OPEN":
+            time.sleep(2)  # Simulate processing time
+            machine.set_state("WAITING_FOR_MOTION")
 
         time.sleep(1)
-
-def sende_daten(sensor_name):
-    daten = {'sensor': sensor_name, 'zeit': datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-    try:
-        response = requests.post('http://localhost:5000/bewegung', json=daten)
-        if response.status_code == 200:
-            print(f"Bewegung von {sensor_name} erfasst und gesendet")
-        else:
-            print(f"Fehler beim Senden der Daten von {sensor_name}: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"HTTP Request failed: {e}")
 
 def cleanup_gpio():
     GPIO.cleanup()
