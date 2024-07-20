@@ -95,6 +95,19 @@ def management():
 def user():
     return render_template('user.html')
 
+@app.route('/controller')
+def controller():
+    return render_template('controller.html')
+
+@app.route('/sensor_status')
+def sensor_status():
+    sensor_1_status = GPIO.input(25)
+    sensor_2_status = GPIO.input(24)
+    return jsonify({
+        'sensor_1': sensor_1_status,
+        'sensor_2': sensor_2_status
+    })
+
 @app.route('/system_info')
 def system_info():
     cpu_usage = psutil.cpu_percent(interval=1)
@@ -130,15 +143,15 @@ def get_movements():
 @app.route('/summary')
 def get_summary():
     now = datetime.now()
-    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-    last_week_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-    last_month_movements = [m for m in status["movements"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+    last_week_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+    last_month_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
     summary = {
         "total_movements": len(status["movements"]),
         "last_24_hours_movements": len(last_24_hours_movements),
         "last_week_movements": len(last_week_movements),
         "last_month_movements": len(last_month_movements),
-        "last_motion_time": status["movements"][-1] if status["movements"] else "No movements detected"
+        "last_motion_time": status["movements"][-1][0] if status["movements"] else "No movements detected"
     }
     return jsonify(summary)
 
@@ -147,7 +160,7 @@ def get_hourly_movements():
     now = datetime.now()
     hourly_movements = {str(hour): 0 for hour in range(24)}
     for movement in status["movements"]:
-        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
+        movement_time = datetime.strptime(movement[0], "%Y-%m-%d %H:%M:%S")
         if movement_time.date() == now.date():
             hour = movement_time.hour
             hourly_movements[str(hour)] += 1
