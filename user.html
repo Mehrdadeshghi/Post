@@ -199,7 +199,7 @@
 
         function updateChart(movements) {
             const labels = movements.map((movement, index) => index + 1);
-            const dataPoints = movements.map(movement => new Date(movement[0]).getTime());
+            const dataPoints = movements.map(movement => new Date(movement).getTime());
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -313,7 +313,7 @@
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = new Date(movement[0]).toLocaleString();
+                cellTime.innerText = new Date(movement).toLocaleString();
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
                 tableBody.appendChild(row);
