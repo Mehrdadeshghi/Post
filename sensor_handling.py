@@ -1,5 +1,7 @@
 import time
+import threading
 from datetime import datetime, timedelta
+from gpio_handling import GPIOHandler
 
 class StateMachine:
     def __init__(self):
