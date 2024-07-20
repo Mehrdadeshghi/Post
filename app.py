@@ -29,7 +29,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True  # Activate debug mode
 
 # Define GPIO pins
-SENSOR_PINS = [25, 24]  # Pins for the motion sensors
+SENSOR_PINS = {25: "Mehrdad", 24: "Rezvaneh"}  # Pins for the motion sensors
 
 # Set GPIO mode (BCM)
 GPIO.setmode(GPIO.BCM)
@@ -41,7 +41,7 @@ for pin in SENSOR_PINS:
 status = {
     "message": "Waiting for motion...",
     "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "movements": [],
+    "movements": {pin: [] for pin in SENSOR_PINS},
     "cpu_temperature": 0,
     "system_uptime": 0,
     "network_activity": {"upload": 0, "download": 0},
@@ -49,7 +49,7 @@ status = {
 }
 
 movement_detected_times = {pin: [] for pin in SENSOR_PINS}
-last_motion_time = None
+last_motion_time = {pin: None for pin in SENSOR_PINS}
 no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
 power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
 last_power_check_time = time.time()
@@ -85,29 +85,20 @@ def index():
 
 @app.route('/controller/<controller_name>')
 def controller(controller_name):
-    sensors = [
-        {"gpio": 25, "name": "Mehrdad"},
-        {"gpio": 24, "name": "Rezvaneh"}
-    ]
+    sensors = [{"gpio": pin, "name": name} for pin, name in SENSOR_PINS.items()]
     return render_template('controller.html', controller_name=controller_name, sensors=sensors)
 
 @app.route('/sensor/<sensor_name>')
 def sensor(sensor_name):
-    if sensor_name.lower() == "mehrdad":
-        return render_template('user.html', sensor_name=sensor_name)
-    elif sensor_name.lower() == "rezvaneh":
-        return render_template('user.html', sensor_name=sensor_name)
-    else:
-        return "Sensor not found", 404
+    for pin, name in SENSOR_PINS.items():
+        if sensor_name.lower() == name.lower():
+            return render_template('user.html', sensor_name=sensor_name, sensor_pin=pin)
+    return "Sensor not found", 404
 
 @app.route('/sensor_status')
 def sensor_status():
-    sensor_1_status = GPIO.input(25)
-    sensor_2_status = GPIO.input(24)
-    return jsonify({
-        'sensor_1': sensor_1_status,
-        'sensor_2': sensor_2_status
-    })
+    sensor_statuses = {name: GPIO.input(pin) for pin, name in SENSOR_PINS.items()}
+    return jsonify(sensor_statuses)
 
 @app.route('/system_info')
 def system_info():
@@ -139,50 +130,64 @@ def get_status():
 
 @app.route('/movements')
 def get_movements():
-    return jsonify(status["movements"])
+    sensor_pin = request.args.get('sensor_pin', type=int)
+    if sensor_pin in status["movements"]:
+        return jsonify(status["movements"][sensor_pin])
+    return jsonify([])
 
 @app.route('/summary')
 def get_summary():
+    summaries = {}
     now = datetime.now()
-    last_24_hours_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-    last_week_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-    last_month_movements = [m for m in status["movements"] if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
-    summary = {
-        "total_movements": len(status["movements"]),
-        "last_24_hours_movements": len(last_24_hours_movements),
-        "last_week_movements": len(last_week_movements),
-        "last_month_movements": len(last_month_movements),
-        "last_motion_time": status["movements"][-1][0] if status["movements"] else "No movements detected"
-    }
-    return jsonify(summary)
+    for pin, movements in status["movements"].items():
+        last_24_hours_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
+        last_week_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
+        last_month_movements = [m for m in movements if datetime.strptime(m[0], "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+        summaries[pin] = {
+            "total_movements": len(movements),
+            "last_24_hours_movements": len(last_24_hours_movements),
+            "last_week_movements": len(last_week_movements),
+            "last_month_movements": len(last_month_movements),
+            "last_motion_time": movements[-1][0] if movements else "No movements detected"
+        }
+    return jsonify(summaries)
 
 @app.route('/hourly_movements')
 def get_hourly_movements():
-    now = datetime.now()
-    hourly_movements = {str(hour): 0 for hour in range(24)}
-    for movement in status["movements"]:
-        movement_time = datetime.strptime(movement[0], "%Y-%m-%d %H:%M:%S")
-        if movement_time.date() == now.date():
-            hour = movement_time.hour
-            hourly_movements[str(hour)] += 1
-    return jsonify(hourly_movements)
+    sensor_pin = request.args.get('sensor_pin', type=int)
+    if sensor_pin in status["movements"]:
+        now = datetime.now()
+        hourly_movements = {str(hour): 0 for hour in range(24)}
+        for movement in status["movements"][sensor_pin]:
+            movement_time = datetime.strptime(movement[0], "%Y-%m-%d %H:%M:%S")
+            if movement_time.date() == now.date():
+                hour = movement_time.hour
+                hourly_movements[str(hour)] += 1
+        return jsonify(hourly_movements)
+    return jsonify({})
 
 @app.route('/download/csv')
 def download_csv():
-    df = pd.DataFrame(status["movements"], columns=["Time", "Sensor"])
-    output = io.BytesIO()
-    df.to_csv(output, index_label="Index")
-    output.seek(0)
-    return send_file(output, mimetype='text/csv', download_name='movements.csv', as_attachment=True)
+    sensor_pin = request.args.get('sensor_pin', type=int)
+    if sensor_pin in status["movements"]:
+        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time", "Sensor"])
+        output = io.BytesIO()
+        df.to_csv(output, index_label="Index")
+        output.seek(0)
+        return send_file(output, mimetype='text/csv', download_name='movements.csv', as_attachment=True)
+    return "No data", 404
 
 @app.route('/download/excel')
 def download_excel():
-    df = pd.DataFrame(status["movements"], columns=["Time", "Sensor"])
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index_label="Index")
-    output.seek(0)
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='movements.xlsx', as_attachment=True)
+    sensor_pin = request.args.get('sensor_pin', type=int)
+    if sensor_pin in status["movements"]:
+        df = pd.DataFrame(status["movements"][sensor_pin], columns=["Time", "Sensor"])
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index_label="Index")
+        output.seek(0)
+        return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name='movements.xlsx', as_attachment=True)
+    return "No data", 404
 
 @app.route('/download/system_info/csv')
 def download_system_info_csv():
@@ -220,8 +225,8 @@ def log_message(message, sensor=None):
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
     status["last_update"] = current_time
-    if "motion detected" in message.lower():
-        status["movements"].append((current_time, sensor))
+    if "motion detected" in message.lower() and sensor is not None:
+        status["movements"][sensor].append((current_time, sensor))
     print(f"{current_time} - {message}")
 
 def check_sensor():
@@ -257,12 +262,12 @@ def check_sensor():
                     if len(movement_detected_times[pin]) >= 2:
                         log_message(f"Motion detected on GPIO {pin}! There is mail.", sensor=pin)
                         movement_detected_times[pin] = []
-                        last_motion_time = current_time
+                        last_motion_time[pin] = current_time
                         machine.set_state("MOTION_DETECTED")
                 else:
-                    if last_motion_time and current_time - last_motion_time > no_motion_threshold:
+                    if last_motion_time[pin] and current_time - last_motion_time[pin] > no_motion_threshold:
                         log_message(f"Mailbox is open. (No motion detected for threshold period on GPIO {pin})")
-                        last_motion_time = None
+                        last_motion_time[pin] = None
                         machine.set_state("MAILBOX_OPEN")
 
         elif current_state == "MOTION_DETECTED":
