@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
+import os
 
 app = Flask(__name__)
 
@@ -13,6 +14,10 @@ def erfassen_bewegung():
 @app.route('/bewegungen', methods=['GET'])
 def anzeigen_bewegungen():
     return jsonify(bewegungen), 200
+
+@app.route('/')
+def index():
+    return send_from_directory(os.path.abspath(os.path.dirname(__file__)), 'index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
