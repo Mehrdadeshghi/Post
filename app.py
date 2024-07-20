@@ -83,21 +83,13 @@ def get_system_info():
 def index():
     return render_template('index.html')
 
-@app.route('/management')
-def management():
-    try:
-        return render_template('management.html')
-    except Exception as e:
-        print(f"Error loading management page: {e}")
-        return "Error loading management page"
+@app.route('/controller/<controller_name>')
+def controller(controller_name):
+    return render_template('controller.html', controller_name=controller_name)
 
-@app.route('/user')
-def user():
-    return render_template('user.html')
-
-@app.route('/controller')
-def controller():
-    return render_template('controller.html')
+@app.route('/sensor/<sensor_name>')
+def sensor(sensor_name):
+    return render_template('sensor.html', sensor_name=sensor_name)
 
 @app.route('/sensor_status')
 def sensor_status():
