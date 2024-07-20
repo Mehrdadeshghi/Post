@@ -22,7 +22,7 @@ def sende_daten(sensor_name):
         if response.status_code == 200:
             print(f"Bewegung von {sensor_name} erfasst und gesendet")
         else:
-            print(f"Fehler beim Senden der Daten von {sensor_name}")
+            print(f"Fehler beim Senden der Daten von {sensor_name}: {response.status_code}")
     except requests.exceptions.RequestException as e:
         print(f"HTTP Request failed: {e}")
 
