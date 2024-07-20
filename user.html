@@ -101,6 +101,7 @@
                 <tr>
                     <th>#</th>
                     <th>Time</th>
+                    <th>Sensor</th>
                 </tr>
             </thead>
             <tbody id="movements-table-body"></tbody>
@@ -190,8 +191,8 @@
         }
 
         function updateChart(movements) {
-            const labels = movements.map((time, index) => index + 1);
-            const dataPoints = movements.map(time => new Date(time).toLocaleTimeString());
+            const labels = movements.map((movement, index) => index + 1);
+            const dataPoints = movements.map(movement => new Date(movement.zeit).toLocaleTimeString());
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -300,14 +301,17 @@
         function updateTable(movements) {
             const tableBody = document.getElementById('movements-table-body');
             tableBody.innerHTML = '';
-            movements.slice(-10).forEach((time, index) => {
+            movements.slice(-10).forEach((movement, index) => {
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
+                const cellSensor = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = new Date(time).toLocaleString();
+                cellTime.innerText = new Date(movement.zeit).toLocaleString();
+                cellSensor.innerText = movement.sensor;
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
+                row.appendChild(cellSensor);
                 tableBody.appendChild(row);
             });
         }
