@@ -3,23 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controller Selection</title>
+    <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .theme-switch-wrapper .slider {
+            cursor: pointer;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .card-deck {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .download-buttons {
+            margin-top: 20px;
+        }
+        footer {
+            margin-top: 20px;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Controller Selection</h1>
-        <div class="theme-switch-wrapper">
-            <span>Light Mode</span>
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox">
-                <div class="slider round"></div>
-            </label>
-            <span>Dark Mode</span>
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <div class="theme-switch-wrapper">
+                <span>Light Mode</span>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox">
+                    <div class="slider round"></div>
+                </label>
+                <span>Dark Mode</span>
+            </div>
         </div>
-        <button onclick="window.location.href='/controller/Bad_Schwalbach'" class="btn btn-primary">Bad Schwalbach (Raspberry) Controller</button>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Movements (Mehrdad)</h5>
+                    <p id="total_movements_mehrdad" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last 24 Hours Movements (Mehrdad)</h5>
+                    <p id="last_24_hours_movements_mehrdad" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Week Movements (Mehrdad)</h5>
+                    <p id="last_week_movements_mehrdad" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Month Movements (Mehrdad)</h5>
+                    <p id="last_month_movements_mehrdad" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Movements (Rezvaneh)</h5>
+                    <p id="total_movements_rezvaneh" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last 24 Hours Movements (Rezvaneh)</h5>
+                    <p id="last_24_hours_movements_rezvaneh" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Week Movements (Rezvaneh)</h5>
+                    <p id="last_week_movements_rezvaneh" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Month Movements (Rezvaneh)</h5>
+                    <p id="last_month_movements_rezvaneh" class="card-text">0</p>
+                </div>
+            </div>
+        </div>
+        <footer class="text-center mt-4">
+            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
+        </footer>
     </div>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchSummary(pin, prefix) {
+            try {
+                const response = await fetch(`/summary/${pin}`);
+                const data = await response.json();
+                document.getElementById(`${prefix}_total_movements`).innerText = data.total_movements;
+                document.getElementById(`${prefix}_last_24_hours_movements`).innerText = data.last_24_hours_movements;
+                document.getElementById(`${prefix}_last_week_movements`).innerText = data.last_week_movements;
+                document.getElementById(`${prefix}_last_month_movements`).innerText = data.last_month_movements;
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+            }
+        }
+
+        function refreshDashboard() {
+            fetchSummary(25, 'mehrdad');
+            fetchSummary(24, 'rezvaneh');
+        }
+
+        setInterval(refreshDashboard, 10000);
+        window.onload = refreshDashboard;
+    </script>
 </body>
 </html>
