@@ -85,11 +85,20 @@ def index():
 
 @app.route('/controller/<controller_name>')
 def controller(controller_name):
-    return render_template('controller.html', controller_name=controller_name)
+    sensors = [
+        {"gpio": 25, "name": "Mehrdad"},
+        {"gpio": 24, "name": "Rezvaneh"}
+    ]
+    return render_template('controller.html', controller_name=controller_name, sensors=sensors)
 
 @app.route('/sensor/<sensor_name>')
 def sensor(sensor_name):
-    return render_template('sensor.html', sensor_name=sensor_name)
+    if sensor_name.lower() == "mehrdad":
+        return render_template('sensor.html', sensor_name=sensor_name, sensor_info="Details about Mehrdad's sensor.")
+    elif sensor_name.lower() == "rezvaneh":
+        return render_template('sensor.html', sensor_name=sensor_name, sensor_info="Details about Rezvaneh's sensor.")
+    else:
+        return "Sensor not found", 404
 
 @app.route('/sensor_status')
 def sensor_status():
