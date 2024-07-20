@@ -42,9 +42,6 @@
         footer {
             margin-top: 20px;
         }
-        .table-responsive {
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -99,20 +96,19 @@
             <canvas id="hourlyChart"></canvas>
         </div>
         <h2>Last 10 Movements</h2>
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody id="movements-table-body"></tbody>
-            </table>
-        </div>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                    <th>Sensor</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body"></tbody>
+        </table>
         <div class="download-buttons">
-            <button class="btn btn-primary" onclick="window.location.href='/download/csv?sensor_pin={{ sensor_pin }}'">Download CSV</button>
-            <button class="btn btn-primary" onclick="window.location.href='/download/excel?sensor_pin={{ sensor_pin }}'">Download Excel</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/csv'">Download CSV</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/excel'">Download Excel</button>
         </div>
         <footer class="text-center mt-4">
             <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
@@ -120,8 +116,6 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const sensorPin = {{ sensor_pin }};
-        
         // Dark Mode Umschaltung
         const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
         const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
@@ -163,7 +157,7 @@
 
         async function fetchMovements() {
             try {
-                const response = await fetch(`/movements?sensor_pin=${sensorPin}`);
+                const response = await fetch('/movements');
                 const data = await response.json();
                 updateChart(data);
                 updateTable(data);
@@ -176,12 +170,11 @@
             try {
                 const response = await fetch('/summary');
                 const data = await response.json();
-                const summary = data[sensorPin];
-                document.getElementById('total_movements').innerText = summary.total_movements;
-                document.getElementById('last_24_hours_movements').innerText = summary.last_24_hours_movements;
-                document.getElementById('last_week_movements').innerText = summary.last_week_movements;
-                document.getElementById('last_month_movements').innerText = summary.last_month_movements;
-                document.getElementById('last_motion_time').innerText = summary.last_motion_time;
+                document.getElementById('total_movements').innerText = data.total_movements;
+                document.getElementById('last_24_hours_movements').innerText = data.last_24_hours_movements;
+                document.getElementById('last_week_movements').innerText = data.last_week_movements;
+                document.getElementById('last_month_movements').innerText = data.last_month_movements;
+                document.getElementById('last_motion_time').innerText = data.last_motion_time;
             } catch (error) {
                 console.error('Error fetching summary:', error);
             }
@@ -189,7 +182,7 @@
 
         async function fetchHourlyMovements() {
             try {
-                const response = await fetch(`/hourly_movements?sensor_pin=${sensorPin}`);
+                const response = await fetch('/hourly_movements');
                 const data = await response.json();
                 updateHourlyChart(data);
             } catch (error) {
@@ -199,7 +192,7 @@
 
         function updateChart(movements) {
             const labels = movements.map((movement, index) => index + 1);
-            const dataPoints = movements.map(movement => new Date(movement).getTime());
+            const dataPoints = movements.map(movement => new Date(movement.zeit).toLocaleTimeString());
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -226,7 +219,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(tooltipItem) {
-                                        const formattedTime = new Date(tooltipItem.raw).toLocaleString();
+                                        const formattedTime = tooltipItem.raw;
                                         const movementNumber = tooltipItem.label;
                                         return `Movement #${movementNumber}: ${formattedTime}`;
                                     }
@@ -248,7 +241,7 @@
                                 ticks: {
                                     beginAtZero: false,
                                     callback: function(value) {
-                                        return new Date(value).toLocaleString();
+                                        return new Date(value).toLocaleTimeString();
                                     }
                                 }
                             }
@@ -312,10 +305,13 @@
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
+                const cellSensor = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = new Date(movement).toLocaleString();
+                cellTime.innerText = new Date(movement.zeit).toLocaleString();
+                cellSensor.innerText = movement.sensor;
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
+                row.appendChild(cellSensor);
                 tableBody.appendChild(row);
             });
         }
