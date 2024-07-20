@@ -2,6 +2,7 @@ import time
 import threading
 from datetime import datetime, timedelta
 from gpio_handling import GPIOHandler
+import RPi.GPIO as GPIO  # Import the GPIO library
 
 class StateMachine:
     def __init__(self):
@@ -48,6 +49,7 @@ class SensorHandler:
         while True:
             current_state = self.state_machine.get_state()
             current_time = time.time()
+            print(f"Current state: {current_state}, Time: {datetime.now()}")
 
             if current_state == "INIT":
                 self.log_message("Initializing...")
@@ -56,6 +58,7 @@ class SensorHandler:
             elif current_state == "WAITING_FOR_MOTION":
                 for pin in self.gpio_handler.SENSOR_PINS:
                     sensor_input = self.gpio_handler.get_sensor_input(pin)
+                    print(f"Sensor input on GPIO {pin}: {sensor_input}")
 
                     # Update power check status
                     if current_time - self.last_power_check_time > self.power_check_interval:
