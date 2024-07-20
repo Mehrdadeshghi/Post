@@ -1,37 +1,22 @@
-import RPi.GPIO as GPIO
+from gpiozero import MotionSensor
 import time
 import requests
 
 API_ENDPOINT = "http://<deine_api_ip>:5000/motion"
 
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(24, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(25, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+pir_24 = MotionSensor(24)
+pir_25 = MotionSensor(25)
 
-def motion_detected(sensor):
-    if sensor == 24:
-        data = {"sensor": "Rezvaneh", "time": time.time()}
-        print("Bewegung erkannt: Rezvaneh")
-    elif sensor == 25:
-        data = {"sensor": "Mehrdad", "time": time.time()}
-        print("Bewegung erkannt: Mehrdad")
-    
-    # Senden der Daten an die API
+def send_motion_data(sensor_name):
+    data = {"sensor": sensor_name, "time": time.time()}
+    print(f"Bewegung erkannt: {sensor_name}")
     requests.post(API_ENDPOINT, json=data)
 
-try:
-    print("Einrichten der Bewegungserkennung für Sensor 24...")
-    GPIO.add_event_detect(24, GPIO.RISING, callback=motion_detected, bouncetime=300)
-    print("Bewegungserkennung für Sensor 24 erfolgreich eingerichtet.")
-    
-    print("Einrichten der Bewegungserkennung für Sensor 25...")
-    GPIO.add_event_detect(25, GPIO.RISING, callback=motion_detected, bouncetime=300)
-    print("Bewegungserkennung für Sensor 25 erfolgreich eingerichtet.")
+pir_24.when_motion = lambda: send_motion_data("Rezvaneh")
+pir_25.when_motion = lambda: send_motion_data("Mehrdad")
 
+try:
     while True:
         time.sleep(1)
 except KeyboardInterrupt:
-    GPIO.cleanup()
-except RuntimeError as e:
-    print(f"RuntimeError: {e}")
-    GPIO.cleanup()
+    print("Programm beendet")
