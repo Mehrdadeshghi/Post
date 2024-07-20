@@ -94,9 +94,9 @@ def controller(controller_name):
 @app.route('/sensor/<sensor_name>')
 def sensor(sensor_name):
     if sensor_name.lower() == "mehrdad":
-        return render_template('sensor.html', sensor_name=sensor_name, sensor_info="Details about Mehrdad's sensor.")
+        return render_template('user.html', sensor_name=sensor_name)
     elif sensor_name.lower() == "rezvaneh":
-        return render_template('sensor.html', sensor_name=sensor_name, sensor_info="Details about Rezvaneh's sensor.")
+        return render_template('user.html', sensor_name=sensor_name)
     else:
         return "Sensor not found", 404
 
