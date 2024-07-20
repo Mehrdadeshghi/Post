@@ -39,4 +39,8 @@ def ueberwache_sensoren():
                 sende_daten("Rezvaneh")
                 time.sleep(1)  # Kurze Pause, um Mehrfacherkennungen zu vermeiden
     except KeyboardInterrupt:
-        print("Bewegun
+        print("Bewegungsüberwachung beendet")
+        GPIO.cleanup()
+
+if __name__ == "__main__":
+    ueberwache_sensoren()
