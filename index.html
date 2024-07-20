@@ -3,70 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Dashboard</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Bewegungsdaten</title>
     <style>
-        .error { color: red; }
-        .loading { color: blue; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mt-5">Mailbox Dashboard</h1>
-        <div class="row mt-3">
-            <div class="col-md-6">
-                <h2>Mehrdad's Movements</h2>
-                <ul id="mehrdad-movements" class="list-group"></ul>
-                <div id="mehrdad-error" class="error"></div>
-            </div>
-            <div class="col-md-6">
-                <h2>Rezvaneh's Movements</h2>
-                <ul id="rezvaneh-movements" class="list-group"></ul>
-                <div id="rezvaneh-error" class="error"></div>
-            </div>
-        </div>
-        <div id="loading-message" class="loading">Loading data...</div>
-    </div>
-
+    <h1>Bewegungsdaten</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Sensor</th>
+                <th>Zeit</th>
+            </tr>
+        </thead>
+        <tbody id="motionData">
+        </tbody>
+    </table>
     <script>
-        async function fetchMovements(endpoint, elementId, errorElementId) {
-            const loadingMessage = document.getElementById('loading-message');
-            const errorElement = document.getElementById(errorElementId);
-            try {
-                const response = await fetch(endpoint);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log(`Data from ${endpoint}:`, data);
-                const list = document.getElementById(elementId);
-                list.innerHTML = '';
-                data.forEach(movement => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'list-group-item';
-                    listItem.textContent = movement;
-                    list.appendChild(listItem);
-                });
-                errorElement.textContent = ''; // Clear any previous errors
-            } catch (error) {
-                console.error('Error fetching movements:', error);
-                errorElement.textContent = `Error fetching data: ${error.message}`;
-                const list = document.getElementById(elementId);
-                list.innerHTML = ''; // Clear the list on error
-            } finally {
-                loadingMessage.style.display = 'none'; // Hide the loading message when done
-            }
+        async function fetchMotionData() {
+            const response = await fetch('http://<deine_api_ip>:5000/motion');
+            const data = await response.json();
+            const tableBody = document.getElementById('motionData');
+            tableBody.innerHTML = '';
+            data.forEach(entry => {
+                const row = document.createElement('tr');
+                const sensorCell = document.createElement('td');
+                const timeCell = document.createElement('td');
+                sensorCell.textContent = entry.sensor;
+                timeCell.textContent = new Date(entry.time * 1000).toLocaleString();
+                row.appendChild(sensorCell);
+                row.appendChild(timeCell);
+                tableBody.appendChild(row);
+            });
         }
 
-        function refreshDashboard() {
-            fetchMovements('/movements/mehrdad', 'mehrdad-movements', 'mehrdad-error');
-            fetchMovements('/movements/rezvaneh', 'rezvaneh-movements', 'rezvaneh-error');
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            refreshDashboard(); // Initial load
-            setInterval(refreshDashboard, 5000); // Refresh every 5 seconds
-        });
+        setInterval(fetchMotionData, 5000);
     </script>
 </body>
 </html>
