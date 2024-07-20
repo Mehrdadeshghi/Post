@@ -3,6 +3,7 @@ import pandas as pd
 import io
 from datetime import datetime, timedelta
 from threading import Thread
+import psutil
 from gpio_handling import GPIOHandler
 from system_info import get_system_info
 from sensor_handling import StateMachine, SensorHandler
