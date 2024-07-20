@@ -21,14 +21,20 @@ movements_rezvaneh = []
 
 def monitor_sensor(pin, movements_list, name):
     last_state = GPIO.input(pin)
+    print(f"Starting monitoring for {name} on pin {pin}")
     while True:
         current_state = GPIO.input(pin)
         if current_state == GPIO.HIGH and last_state == GPIO.LOW:
             movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             movements_list.append(movement_time)
             print(f"Motion detected on {name} at {movement_time}")
+        elif current_state == GPIO.LOW:
+            print(f"{name} sensor is LOW")
+        else:
+            print(f"{name} sensor is fluctuating")
         last_state = current_state
-        time.sleep(0.1)  # Reduced sleep time for better responsiveness
+        time.sleep(0.1)
+
 
 @app.route('/')
 def index():
