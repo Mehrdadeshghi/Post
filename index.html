@@ -22,16 +22,25 @@
     </div>
     <script>
         async function fetchMovements(endpoint, elementId) {
-            const response = await fetch(endpoint);
-            const data = await response.json();
-            const list = document.getElementById(elementId);
-            list.innerHTML = '';
-            data.forEach(movement => {
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item';
-                listItem.textContent = movement;
-                list.appendChild(listItem);
-            });
+            try {
+                const response = await fetch(endpoint);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                const list = document.getElementById(elementId);
+                list.innerHTML = '';
+                data.forEach(movement => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    listItem.textContent = movement;
+                    list.appendChild(listItem);
+                });
+            } catch (error) {
+                console.error('Error fetching movements:', error);
+                const list = document.getElementById(elementId);
+                list.innerHTML = '<li class="list-group-item text-danger">Error fetching data</li>';
+            }
         }
 
         function refreshDashboard() {
