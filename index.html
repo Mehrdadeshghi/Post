@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Selection</title>
+    <title>Controller Selection</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Dashboard Selection</h1>
+        <h1>Controller Selection</h1>
         <div class="theme-switch-wrapper">
             <span>Light Mode</span>
             <label class="theme-switch" for="checkbox">
@@ -18,9 +18,7 @@
             </label>
             <span>Dark Mode</span>
         </div>
-        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
-        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
-        <button onclick="window.location.href='/controller'" class="btn btn-primary">Klicke auf Controller</button>
+        <button onclick="window.location.href='/controller/Bad_Schwalbach'" class="btn btn-primary">Bad Schwalbach (Raspberry) Controller</button>
     </div>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
