@@ -33,13 +33,10 @@ def ueberwache_sensoren():
             if GPIO.input(GPIO_PIR_Mehrdad):
                 print("Bewegung erkannt: Mehrdad")
                 sende_daten("Mehrdad")
+                time.sleep(1)  # Kurze Pause, um Mehrfacherkennungen zu vermeiden
             if GPIO.input(GPIO_PIR_Rezvaneh):
                 print("Bewegung erkannt: Rezvaneh")
                 sende_daten("Rezvaneh")
-            time.sleep(1)
+                time.sleep(1)  # Kurze Pause, um Mehrfacherkennungen zu vermeiden
     except KeyboardInterrupt:
-        print("Bewegungsüberwachung beendet")
-        GPIO.cleanup()
-
-if __name__ == "__main__":
-    ueberwache_sensoren()
+        print("Bewegun
