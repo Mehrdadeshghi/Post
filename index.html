@@ -6,7 +6,7 @@
     <title>Bewegungserkennung</title>
     <script>
         async function fetchData() {
-            const response = await fetch('http://<raspberry_pi_ip>:5000/bewegungen');
+            const response = await fetch('http://192.168.178.82:5000/bewegungen');
             const data = await response.json();
             document.getElementById('rezvaneh').innerText = data.Rezvaneh ? 'Bewegung erkannt' : 'Keine Bewegung';
             document.getElementById('mehrdad').innerText = data.Mehrdad ? 'Bewegung erkannt' : 'Keine Bewegung';
