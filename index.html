@@ -3,24 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Selection</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Bewegungserkennung</title>
+    <script>
+        async function fetchData() {
+            const response = await fetch('http://<raspberry_pi_ip>:5000/bewegungen');
+            const data = await response.json();
+            document.getElementById('rezvaneh').innerText = data.Rezvaneh ? 'Bewegung erkannt' : 'Keine Bewegung';
+            document.getElementById('mehrdad').innerText = data.Mehrdad ? 'Bewegung erkannt' : 'Keine Bewegung';
+        }
+        setInterval(fetchData, 1000); // Aktualisierung jede Sekunde
+    </script>
 </head>
-<body>
-    <div class="container">
-        <h1>Select Dashboard</h1>
-        <div class="theme-switch-wrapper">
-            <span>Light Mode</span>
-            <label class="theme-switch" for="checkbox">
-                <input type="checkbox" id="checkbox">
-                <div class="slider round"></div>
-            </label>
-            <span>Dark Mode</span>
-        </div>
-        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
-        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
-    </div>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+<body onload="fetchData()">
+    <h1>Bewegungserkennung</h1>
+    <p>Rezvaneh: <span id="rezvaneh">Wird geladen...</span></p>
+    <p>Mehrdad: <span id="mehrdad">Wird geladen...</span></p>
 </body>
 </html>
