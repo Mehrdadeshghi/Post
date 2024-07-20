@@ -1,83 +1,26 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bewegungserfassung</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
+    <title>Dashboard Selection</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <h1>Bewegungserfassung der PIR-Sensoren</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Sensor</th>
-                <th>Zeit</th>
-            </tr>
-        </thead>
-        <tbody id="bewegungen-tbody">
-            <!-- Bewegungsdaten werden hier eingefügt -->
-        </tbody>
-    </table>
-
-    <script>
-        async function ladeBewegungen() {
-            try {
-                const response = await fetch('http://localhost:5000/bewegungen');
-                const daten = await response.json();
-                console.log('Abgerufene Daten:', daten); // Debugging: Logge die abgerufenen Daten
-
-                const tbody = document.getElementById('bewegungen-tbody');
-                tbody.innerHTML = '';
-
-                daten.forEach(eintrag => {
-                    const tr = document.createElement('tr');
-                    const sensorTd = document.createElement('td');
-                    const zeitTd = document.createElement('td');
-
-                    sensorTd.textContent = eintrag.sensor;
-                    zeitTd.textContent = eintrag.zeit;
-
-                    tr.appendChild(sensorTd);
-                    tr.appendChild(zeitTd);
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {
-                console.error('Fehler beim Laden der Bewegungsdaten:', error);
-            }
-        }
-
-        // Lade Bewegungen bei Seitenaufruf
-        ladeBewegungen();
-
-        // Aktualisiere die Bewegungsdaten alle 5 Sekunden
-        setInterval(ladeBewegungen, 5000);
-    </script>
+    <div class="container">
+        <h1>Select Dashboard</h1>
+        <div class="theme-switch-wrapper">
+            <span>Light Mode</span>
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox">
+                <div class="slider round"></div>
+            </label>
+            <span>Dark Mode</span>
+        </div>
+        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
+        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
+    </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 </body>
 </html>
