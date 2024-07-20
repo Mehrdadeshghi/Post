@@ -24,8 +24,9 @@ movements = {
 def monitor_sensor(pin, name):
     while True:
         if GPIO.input(pin) == GPIO.HIGH:
-            movements[pin].append(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-            print(f"Motion detected on {name}")
+            movement_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            movements[pin].append(movement_time)
+            print(f"Motion detected on {name} at {movement_time}")
         time.sleep(1)
 
 @app.route('/')
