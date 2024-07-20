@@ -85,3 +85,11 @@ class SensorHandler:
         elif pin == 24:
             # Code to update Rezvaneh's display
             print("Updating display for Rezvaneh")
+
+    def check_sensor(self, pin):
+        sensor_input = self.gpio_handler.get_sensor_input(pin)
+        if sensor_input == GPIO.HIGH:
+            self.log_message(f"Motion detected on GPIO {pin}! There is mail.", sensor=pin)
+            self.update_display(pin)
+        else:
+            self.log_message(f"No motion detected on GPIO {pin}.")
