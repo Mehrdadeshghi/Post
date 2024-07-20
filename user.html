@@ -42,6 +42,9 @@
         footer {
             margin-top: 20px;
         }
+        .table-responsive {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -96,15 +99,17 @@
             <canvas id="hourlyChart"></canvas>
         </div>
         <h2>Last 10 Movements</h2>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody id="movements-table-body"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="movements-table-body"></tbody>
+            </table>
+        </div>
         <div class="download-buttons">
             <button class="btn btn-primary" onclick="window.location.href='/download/csv'">Download CSV</button>
             <button class="btn btn-primary" onclick="window.location.href='/download/excel'">Download Excel</button>
@@ -190,8 +195,8 @@
         }
 
         function updateChart(movements) {
-            const labels = movements.map((time, index) => index + 1);
-            const dataPoints = movements.map(time => new Date(time).toLocaleTimeString());
+            const labels = movements.map((movement, index) => index + 1);
+            const dataPoints = movements.map(movement => movement[0]);
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -218,7 +223,7 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(tooltipItem) {
-                                        const formattedTime = tooltipItem.raw;
+                                        const formattedTime = new Date(tooltipItem.raw).toLocaleString();
                                         const movementNumber = tooltipItem.label;
                                         return `Movement #${movementNumber}: ${formattedTime}`;
                                     }
@@ -240,7 +245,7 @@
                                 ticks: {
                                     beginAtZero: false,
                                     callback: function(value) {
-                                        return new Date(value).toLocaleTimeString();
+                                        return new Date(value).toLocaleString();
                                     }
                                 }
                             }
@@ -300,12 +305,12 @@
         function updateTable(movements) {
             const tableBody = document.getElementById('movements-table-body');
             tableBody.innerHTML = '';
-            movements.slice(-10).forEach((time, index) => {
+            movements.slice(-10).forEach((movement, index) => {
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = new Date(time).toLocaleString();
+                cellTime.innerText = new Date(movement[0]).toLocaleString();
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
                 tableBody.appendChild(row);
