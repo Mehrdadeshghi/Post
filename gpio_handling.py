@@ -1,5 +1,4 @@
 import RPi.GPIO as GPIO
-import time
 
 class GPIOHandler:
     def __init__(self, sensor_pins):
