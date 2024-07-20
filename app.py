@@ -44,16 +44,15 @@ def index():
 
 @app.route('/movements/mehrdad')
 def get_movements_mehrdad():
+    print("Fetching Mehrdad movements:", movements_mehrdad)
     return jsonify(movements_mehrdad)
 
 @app.route('/movements/rezvaneh')
 def get_movements_rezvaneh():
+    print("Fetching Rezvaneh movements:", movements_rezvaneh)
     return jsonify(movements_rezvaneh)
 
 if __name__ == '__main__':
-    # Start sensor monitoring threads
     threading.Thread(target=monitor_sensor, args=(MEHRDAD_PIN, movements_mehrdad, "Mehrdad"), daemon=True).start()
     threading.Thread(target=monitor_sensor, args=(REZVANEH_PIN, movements_rezvaneh, "Rezvaneh"), daemon=True).start()
-    
-    # Start Flask app
     app.run(host='0.0.0.0', port=5000, debug=True)
