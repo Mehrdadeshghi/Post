@@ -1,59 +1,45 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
+    font-family: Arial, sans-serif;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch-wrapper .slider {
+    cursor: pointer;
 }
 
 .dark-mode {
     background-color: #121212;
-    color: #f4f4f4;
+    color: #ffffff;
 }
 
-.dark-mode .container {
-    background-color: #1e1e1e;
-    color: #f4f4f4;
+.container {
+    margin-top: 20px;
 }
 
-button {
-    padding: 10px 20px;
-    margin: 5px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    background-color: #4CAF50;
-    color: white;
+.card-deck {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
-.dark-mode button {
-    background-color: #333;
-    color: #fff;
+.chart-container {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    margin-bottom: 40px;
 }
 
-.card {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 8px;
+.download-buttons {
+    margin-top: 20px;
 }
 
-.dark-mode .card {
-    background-color: #333;
-    border: 1px solid #444;
+footer {
+    margin-top: 20px;
 }
 
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(0,0,0,.05);
-}
-
-.dark-mode .table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(255,255,255,.05);
+.table-responsive {
+    margin-top: 20px;
 }
