@@ -4,17 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bewegungsdaten</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Bewegungsdaten</h1>
@@ -30,7 +20,7 @@
     </table>
     <script>
         async function fetchMotionData() {
-            const response = await fetch('http://<deine_api_ip>:5000/motion');
+            const response = await fetch('/motion');
             const data = await response.json();
             const tableBody = document.getElementById('motionData');
             tableBody.innerHTML = '';
@@ -47,6 +37,7 @@
         }
 
         setInterval(fetchMotionData, 5000);
+        fetchMotionData();
     </script>
 </body>
 </html>
