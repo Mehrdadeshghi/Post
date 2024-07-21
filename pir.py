@@ -9,9 +9,9 @@ SENSOR_PIN_2 = 25  # Pin für den zweiten Bewegungssensor
 # GPIO-Modus festlegen (BCM)
 GPIO.setmode(GPIO.BCM)
 
-# GPIO-Pins als Eingang definieren
-GPIO.setup(SENSOR_PIN_1, GPIO.IN)
-GPIO.setup(SENSOR_PIN_2, GPIO.IN)
+# GPIO-Pins als Eingang definieren mit Pull-Down-Widerständen
+GPIO.setup(SENSOR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(SENSOR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Logdatei öffnen
 log_file_path = "/home/mehrdad/git/Post/logfile.log"
@@ -34,7 +34,6 @@ try:
         if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             sensor_1_state = GPIO.input(SENSOR_PIN_1)
             sensor_2_state = GPIO.input(SENSOR_PIN_2)
-            log_message(f"Sensor 1 State (GPIO24): {sensor_1_state}, Sensor 2 State (GPIO25): {sensor_2_state}")
             if sensor_1_state == GPIO.HIGH:
                 log_message("Bewegung erkannt! Brief ist da. (GPIO24)")
             if sensor_2_state == GPIO.HIGH:
