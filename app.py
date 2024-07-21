@@ -14,7 +14,7 @@ socketio = SocketIO(app)
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
 PIR_PIN_1 = 25
-PIR_PIN_2 = 24
+PIR_PIN_2 = 23
 GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
