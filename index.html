@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Motion Detection</title>
-    <meta http-equiv="refresh" content="2">
+    <title>Controllers</title>
 </head>
 <body>
-    <h1>Motion Detection Status</h1>
-    <p>Sensor Mehrdad (GPIO25): {{ sensor_1 }}</p>
-    <p>Sensor Rezvaneh (GPIO24): {{ sensor_2 }}</p>
+    <h1>Controllers</h1>
+    <ul>
+    {% for controller in controllers %}
+        <li><a href="{{ url_for('controller', ip=controller.ip) }}">{{ controller.name }}</a></li>
+    {% endfor %}
+    </ul>
 </body>
 </html>
