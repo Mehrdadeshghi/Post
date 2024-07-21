@@ -34,11 +34,12 @@ try:
         if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
             sensor_1_state = GPIO.input(SENSOR_PIN_1)
             sensor_2_state = GPIO.input(SENSOR_PIN_2)
-            if sensor_1_state:
+            log_message(f"Sensor 1 State (GPIO24): {sensor_1_state}, Sensor 2 State (GPIO25): {sensor_2_state}")
+            if sensor_1_state == GPIO.HIGH:
                 log_message("Bewegung erkannt! Brief ist da. (GPIO24)")
-            if sensor_2_state:
+            if sensor_2_state == GPIO.HIGH:
                 log_message("Bewegung erkannt! Brief ist da. (GPIO25)")
-            if not sensor_1_state and not sensor_2_state:
+            if sensor_1_state == GPIO.LOW and sensor_2_state == GPIO.LOW:
                 log_message("Keine Bewegung. Kein Brief.")
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
 except KeyboardInterrupt:
