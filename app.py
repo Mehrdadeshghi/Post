@@ -5,7 +5,6 @@ import threading
 import sqlite3
 import datetime
 from datetime import timedelta
-import matplotlib.pyplot as plt
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -120,5 +119,5 @@ def api_movements(sensor_name):
     return jsonify(data)
 
 # Start socketio statt app
-if __name__ == '__='__main__':
+if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
