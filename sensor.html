@@ -4,6 +4,7 @@
     <title>Sensor Details</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -25,6 +26,15 @@
     <a href="{{ url_for('controller', ip='192.168.178.82') }}" class="btn btn-secondary">Back to Sensors</a>
 </div>
 <script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+    socket.on('movement', function(data) {
+        if(data.sensor === '{{ sensor_name }}') {
+            // Update the chart or any other UI element
+            console.log('Movement detected: ', data);
+        }
+    });
+
     fetch('/api/movements/{{ sensor_name }}')
         .then(response => response.json())
         .then(data => {
