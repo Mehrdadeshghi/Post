@@ -68,12 +68,12 @@
                 document.getElementById('system-name').textContent = data.system_name;
                 document.getElementById('system-ip').textContent = data.system_ip;
                 document.getElementById('system-uptime').textContent = data.system_uptime;
-                document.getElementById('cpu-temp').textContent = data.cpu_temp + ' °C';
+                document.getElementById('cpu-temp').textContent = data.cpu_temp !== null ? data.cpu_temp + ' °C' : 'N/A';
                 document.getElementById('cpu-usage').textContent = data.cpu_usage + ' %';
                 document.getElementById('memory-usage').textContent = data.memory_usage + ' %';
                 document.getElementById('disk-usage').textContent = data.disk_usage + ' %';
-                document.getElementById('network-upload').textContent = (data.network_upload / 1024).toFixed(2) + ' KB/s';
-                document.getElementById('network-download').textContent = (data.network_download / 1024).toFixed(2) + ' KB/s';
+                document.getElementById('network-upload').textContent = data.network_upload.toFixed(2) + ' KB/s';
+                document.getElementById('network-download').textContent = data.network_download.toFixed(2) + ' KB/s';
                 document.getElementById('active-processes').textContent = data.active_processes;
 
                 updateSystemInfoChart(data);
@@ -85,8 +85,8 @@
             data.cpu_usage,
             data.memory_usage,
             data.disk_usage,
-            (data.network_upload / 1024).toFixed(2),
-            (data.network_download / 1024).toFixed(2)
+            (data.network_upload / 1024).toFixed(2),  // convert to MB/s for better scaling
+            (data.network_download / 1024).toFixed(2)  // convert to MB/s for better scaling
         ];
         chart.update();
     }
