@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, redirect, url_for, jsonify
 import RPi.GPIO as GPIO
 import time
 import threading
@@ -17,32 +17,32 @@ PIR_PIN_2 = 24
 GPIO.setup(PIR_PIN_1, GPIO.IN)
 GPIO.setup(PIR_PIN_2, GPIO.IN)
 
-# Global variables to store sensor states
-sensor_1_state = "No Motion"
-sensor_2_state = "No Motion"
+# Global variables to store mailbox states
+mailbox_1_state = "No Mail"
+mailbox_2_state = "No Mail"
 
-def monitor_sensors():
-    global sensor_1_state, sensor_2_state
+def monitor_mailboxes():
+    global mailbox_1_state, mailbox_2_state
     while True:
         if GPIO.input(PIR_PIN_1):
-            sensor_1_state = "Motion Detected"
-            log_movement("Mehrdad")
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Motion Detected'})
+            mailbox_1_state = "Mail Detected"
+            log_mail("Mehrdad")
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
         else:
-            sensor_1_state = "No Motion"
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Motion'})
+            mailbox_1_state = "No Mail"
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
 
         if GPIO.input(PIR_PIN_2):
-            sensor_2_state = "Motion Detected"
-            log_movement("Rezvaneh")
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Motion Detected'})
+            mailbox_2_state = "Mail Detected"
+            log_mail("Rezvaneh")
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
         else:
-            sensor_2_state = "No Motion"
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Motion'})
+            mailbox_2_state = "No Mail"
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
 
         time.sleep(1)  # Check every second
 
-def log_movement(sensor):
+def log_mail(sensor):
     conn = sqlite3.connect('sensors.db')
     c = conn.cursor()
     c.execute("INSERT INTO movements (sensor, timestamp) VALUES (?, ?)", 
@@ -50,8 +50,8 @@ def log_movement(sensor):
     conn.commit()
     conn.close()
 
-# Background thread to monitor sensors
-threading.Thread(target=monitor_sensors, daemon=True).start()
+# Background thread to monitor mailboxes
+threading.Thread(target=monitor_mailboxes, daemon=True).start()
 
 @app.route('/')
 def index():
