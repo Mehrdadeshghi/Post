@@ -18,7 +18,7 @@
         </div>
     </div>
     <h2>Last 10 Movements</h2>
-    <ul class="list-group mb-4">
+    <ul id="movementList" class="list-group mb-4">
     {% for movement in movements %}
         <li class="list-group-item">{{ movement[0] }}</li>
     {% endfor %}
@@ -27,21 +27,24 @@
 </div>
 <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var chart;
 
-    socket.on('movement', function(data) {
-        if(data.sensor === '{{ sensor_name }}') {
-            // Update the chart or any other UI element
-            console.log('Movement detected: ', data);
-        }
-    });
+    function fetchData() {
+        fetch('/api/movements/{{ sensor_name }}')
+            .then(response => response.json())
+            .then(data => {
+                updateChart(data);
+                updateMovementList(data);
+            });
+    }
 
-    fetch('/api/movements/{{ sensor_name }}')
-        .then(response => response.json())
-        .then(data => {
-            const ctx = document.getElementById('movementsChart').getContext('2d');
-            const labels = data.map(movement => movement[0]);
-            const values = data.map((_, index) => index + 1);
-            new Chart(ctx, {
+    function updateChart(data) {
+        const ctx = document.getElementById('movementsChart').getContext('2d');
+        const labels = data.map(movement => movement[0]);
+        const values = data.map((_, index) => index + 1);
+
+        if (!chart) {
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
@@ -72,7 +75,35 @@
                     }
                 }
             });
+        } else {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = values;
+            chart.update();
+        }
+    }
+
+    function updateMovementList(data) {
+        const movementList = document.getElementById('movementList');
+        movementList.innerHTML = '';
+        data.forEach(movement => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = movement[0];
+            movementList.appendChild(li);
         });
+    }
+
+    socket.on('movement', function(data) {
+        if(data.sensor === '{{ sensor_name }}') {
+            fetchData();
+        }
+    });
+
+    // Initial fetch
+    fetchData();
+
+    // Fetch data every second
+    setInterval(fetchData, 1000);
 </script>
 </body>
 </html>
