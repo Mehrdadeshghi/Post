@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 
 # GPIO Pins definieren
-SENSOR_PIN = 23  # Pin für den Bewegungssensor
+SENSOR_PIN = 25  # Pin für den Bewegungssensor
 
 # GPIO-Modus festlegen (BCM)
 GPIO.setmode(GPIO.BCM)
