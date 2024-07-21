@@ -1,22 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Information</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Sensor Details</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Sensor Information: {{ sensor_name }}</h1>
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ sensor_name }} Information</h5>
-                <p class="card-text">{{ sensor_info }}</p>
-            </div>
-        </div>
-    </div>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <h1>Details for Sensor {{ sensor_name }}</h1>
+    <img src="{{ graph_url }}" alt="Movements Graph">
+    <h2>Last 10 Movements</h2>
+    <ul>
+    {% for movement in movements %}
+        <li>{{ movement[0] }}</li>
+    {% endfor %}
+    </ul>
+    <a href="{{ url_for('controller', ip='192.168.178.82') }}">Back to Sensors</a>
 </body>
 </html>
