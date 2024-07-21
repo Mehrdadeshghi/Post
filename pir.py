@@ -3,13 +3,15 @@ import time
 from datetime import datetime
 
 # GPIO Pins definieren
-SENSOR_PIN = 25  # Pin für den Bewegungssensor
+SENSOR_PIN_1 = 24  # Pin für den ersten Bewegungssensor
+SENSOR_PIN_2 = 25  # Pin für den zweiten Bewegungssensor
 
 # GPIO-Modus festlegen (BCM)
 GPIO.setmode(GPIO.BCM)
 
-# GPIO-Pin als Eingang definieren
-GPIO.setup(SENSOR_PIN, GPIO.IN)
+# GPIO-Pins als Eingang definieren
+GPIO.setup(SENSOR_PIN_1, GPIO.IN)
+GPIO.setup(SENSOR_PIN_2, GPIO.IN)
 
 # Logdatei öffnen
 log_file_path = "/home/mehrdad/git/Post/logfile.log"
@@ -30,9 +32,13 @@ try:
     while True:
         elapsed_time = time.time() - start_time
         if elapsed_time > 30:  # Ignorieren der Bewegungserkennung für die ersten 30 Sekunden
-            if GPIO.input(SENSOR_PIN):
-                log_message("Bewegung erkannt! Brief ist da.")
-            else:
+            sensor_1_state = GPIO.input(SENSOR_PIN_1)
+            sensor_2_state = GPIO.input(SENSOR_PIN_2)
+            if sensor_1_state:
+                log_message("Bewegung erkannt! Brief ist da. (GPIO24)")
+            if sensor_2_state:
+                log_message("Bewegung erkannt! Brief ist da. (GPIO25)")
+            if not sensor_1_state and not sensor_2_state:
                 log_message("Keine Bewegung. Kein Brief.")
         time.sleep(1)  # Überprüfen Sie den Sensor jede Sekunde
 except KeyboardInterrupt:
