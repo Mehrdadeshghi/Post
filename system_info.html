@@ -23,7 +23,8 @@
                 <li class="list-group-item">CPU Usage: <span id="cpu-usage"></span></li>
                 <li class="list-group-item">Memory Usage: <span id="memory-usage"></span></li>
                 <li class="list-group-item">Disk Usage: <span id="disk-usage"></span></li>
-                <li class="list-group-item">Network Activity: <span id="network-activity"></span></li>
+                <li class="list-group-item">Network Upload: <span id="network-upload"></span></li>
+                <li class="list-group-item">Network Download: <span id="network-download"></span></li>
                 <li class="list-group-item">Active Processes: <span id="active-processes"></span></li>
             </ul>
         </div>
@@ -57,9 +58,15 @@
                 data: []
             },
             {
-                label: 'Network Activity (bytes)',
+                label: 'Network Upload (bytes)',
                 borderColor: 'rgba(153, 102, 255, 1)',
                 backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                data: []
+            },
+            {
+                label: 'Network Download (bytes)',
+                borderColor: 'rgba(255, 159, 64, 1)',
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
                 data: []
             }
         ]
@@ -76,7 +83,8 @@
                 document.getElementById('cpu-usage').textContent = data.cpu_usage + ' %';
                 document.getElementById('memory-usage').textContent = data.memory_usage + ' %';
                 document.getElementById('disk-usage').textContent = data.disk_usage + ' %';
-                document.getElementById('network-activity').textContent = data.network_activity + ' bytes';
+                document.getElementById('network-upload').textContent = data.network_upload + ' bytes';
+                document.getElementById('network-download').textContent = data.network_download + ' bytes';
                 document.getElementById('active-processes').textContent = data.active_processes;
 
                 updateSystemInfoChart(data);
@@ -89,7 +97,8 @@
         systemInfoChartData.datasets[0].data.push(data.cpu_usage);
         systemInfoChartData.datasets[1].data.push(data.memory_usage);
         systemInfoChartData.datasets[2].data.push(data.disk_usage);
-        systemInfoChartData.datasets[3].data.push(data.network_activity);
+        systemInfoChartData.datasets[3].data.push(data.network_upload);
+        systemInfoChartData.datasets[4].data.push(data.network_download);
 
         if (systemInfoChartData.labels.length > 10) {
             systemInfoChartData.labels.shift();
@@ -99,7 +108,7 @@
         if (!chart) {
             const ctx = document.getElementById('systemInfoChart').getContext('2d');
             chart = new Chart(ctx, {
-                type: 'line',
+                type: 'bar',
                 data: systemInfoChartData,
                 options: {
                     scales: {
