@@ -107,44 +107,37 @@
             systemInfoChartData.datasets.forEach(dataset => dataset.data.shift());
         }
 
-        if (!chart) {
-            const ctx = document.getElementById('systemInfoChart').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'bar',
-                data: systemInfoChartData,
-                options: {
-                    scales: {
-                        x: {
+        chart.update();
+    }
+
+    window.onload = function() {
+        const ctx = document.getElementById('systemInfoChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'bar',
+            data: systemInfoChartData,
+            options: {
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
                             display: true,
-                            title: {
-                                display: true,
-                                text: 'Zeit'
-                            }
-                        },
-                        y: {
+                            text: 'Zeit'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
                             display: true,
-                            title: {
-                                display: true,
-                                text: 'Wert'
-                            }
+                            text: 'Wert'
                         }
                     }
                 }
-            });
-        } else {
-            chart.update();
-        }
-    }
+            }
+        });
 
-    socket.on('system_info', function(data) {
         fetchSystemInfo();
-    });
-
-    // Initial fetch
-    fetchSystemInfo();
-
-    // Fetch data every second
-    setInterval(fetchSystemInfo, 1000);
+        setInterval(fetchSystemInfo, 1000);
+    };
 </script>
 </body>
 </html>
