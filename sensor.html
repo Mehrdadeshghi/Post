@@ -18,12 +18,12 @@
         </div>
     </div>
     <h2>Briefe Statistik</h2>
-    <ul class="list-group mb-4">
-        <li class="list-group-item">Total Bewegungen: {{ data.total_movements }}</li>
-        <li class="list-group-item">Letzte 24 Stunden: {{ data.last_24h_movements }}</li>
-        <li class="list-group-item">Letzte Woche: {{ data.last_week_movements }}</li>
-        <li class="list-group-item">Letzter Monat: {{ data.last_month_movements }}</li>
-        <li class="list-group-item">Letzter Brief: {{ data.last_movement }}</li>
+    <ul id="statisticsList" class="list-group mb-4">
+        <li class="list-group-item" id="total-movements">Total Bewegungen: {{ data.total_movements }}</li>
+        <li class="list-group-item" id="last-24h-movements">Letzte 24 Stunden: {{ data.last_24h_movements }}</li>
+        <li class="list-group-item" id="last-week-movements">Letzte Woche: {{ data.last_week_movements }}</li>
+        <li class="list-group-item" id="last-month-movements">Letzter Monat: {{ data.last_month_movements }}</li>
+        <li class="list-group-item" id="last-movement">Letzter Brief: {{ data.last_movement }}</li>
     </ul>
     <h2>Letzte 10 Briefe</h2>
     <ul id="movementList" class="list-group mb-4">
@@ -43,6 +43,7 @@
             .then(data => {
                 updateChart(data.all_movements);
                 updateMovementList(data.last_10_movements);
+                updateStatistics(data);
             });
     }
 
@@ -99,6 +100,14 @@
             li.textContent = movement[0];
             movementList.appendChild(li);
         });
+    }
+
+    function updateStatistics(data) {
+        document.getElementById('total-movements').textContent = 'Total Bewegungen: ' + data.total_movements;
+        document.getElementById('last-24h-movements').textContent = 'Letzte 24 Stunden: ' + data.last_24h_movements;
+        document.getElementById('last-week-movements').textContent = 'Letzte Woche: ' + data.last_week_movements;
+        document.getElementById('last-month-movements').textContent = 'Letzter Monat: ' + data.last_month_movements;
+        document.getElementById('last-movement').textContent = 'Letzter Brief: ' + data.last_movement;
     }
 
     socket.on('movement', function(data) {
