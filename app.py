@@ -29,8 +29,8 @@ def monitor_mailboxes():
         mehrdad_status = GPIO.input(PIR_PIN_1)
         print(f"Mehrdad Sensor Status (vor debounce): {mehrdad_status}")
         if mehrdad_status:
-            time.sleep(0.1)  # Short wait to ensure the signal is stable
-            if GPIO.input(PIR_PIN_1):  # Double check
+            time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
+            if GPIO.input(PIR_PIN_1):  # Doppelt überprüfen
                 print(f"Mehrdad Sensor Status (nach debounce): {GPIO.input(PIR_PIN_1)}")
                 if mailbox_1_state != "Mail Detected":
                     mailbox_1_state = "Mail Detected"
@@ -45,8 +45,8 @@ def monitor_mailboxes():
         rezvaneh_status = GPIO.input(PIR_PIN_2)
         print(f"Rezvaneh Sensor Status (vor debounce): {rezvaneh_status}")
         if rezvaneh_status:
-            time.sleep(0.1)  # Short wait to ensure the signal is stable
-            if GPIO.input(PIR_PIN_2):  # Double check
+            time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
+            if GPIO.input(PIR_PIN_2):  # Doppelt überprüfen
                 print(f"Rezvaneh Sensor Status (nach debounce): {GPIO.input(PIR_PIN_2)}")
                 if mailbox_2_state != "Mail Detected":
                     mailbox_2_state = "Mail Detected"
