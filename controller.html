@@ -1,28 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sensors</title>
+    <title>Briefkästen</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Motion Detection</a>
+    <a class="navbar-brand" href="#">Briefkastenüberwachung</a>
 </nav>
 <div class="container mt-4">
-    <h1 class="mb-4">Sensors for Controller {{ controller_ip }}</h1>
+    <h1 class="mb-4">Briefe für Controller {{ controller_ip }}</h1>
     <div class="row">
     {% for sensor in sensors %}
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">{{ sensor.name }}</h5>
-                    <a href="{{ url_for('sensor', sensor_name=sensor.name) }}" class="btn btn-primary">View Movements</a>
+                    <a href="{{ url_for('sensor', sensor_name=sensor.name) }}" class="btn btn-primary">Briefe anzeigen</a>
                 </div>
             </div>
         </div>
     {% endfor %}
     </div>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Controllers</a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Zurück zu den Controllern</a>
 </div>
 </body>
 </html>
