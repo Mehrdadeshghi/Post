@@ -5,6 +5,7 @@ import threading
 import sqlite3
 import datetime
 from datetime import timedelta
+import psutil
 from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
@@ -98,6 +99,20 @@ def get_aggregated_data(sensor_name):
         "all_movements": all_movements
     }
 
+def get_system_info():
+    uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
+    return {
+        "system_name": "Raspberry Pi",
+        "system_ip": "192.168.178.82",
+        "system_uptime": str(uptime),
+        "cpu_temp": psutil.sensors_temperatures().get('cpu-thermal', [{'current': None}])[0]['current'],
+        "cpu_usage": psutil.cpu_percent(interval=1),
+        "memory_usage": psutil.virtual_memory().percent,
+        "disk_usage": psutil.disk_usage('/').percent,
+        "network_activity": psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv,
+        "active_processes": len(psutil.pids())
+    }
+
 @app.route('/')
 def index():
     controllers = [{"ip": "192.168.178.82", "name": "Controller 1"}]
@@ -117,6 +132,15 @@ def sensor(sensor_name):
 def api_movements(sensor_name):
     data = get_aggregated_data(sensor_name)
     return jsonify(data)
+
+@app.route('/api/system_info')
+def api_system_info():
+    data = get_system_info()
+    return jsonify(data)
+
+@app.route('/system_info/<ip>')
+def system_info(ip):
+    return render_template('system_info.html', controller_ip=ip)
 
 # Start socketio statt app
 if __name__ == '__main__':
