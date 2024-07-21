@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sensor Details</title>
+    <title>Briefkasten Details</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Motion Detection</a>
+    <a class="navbar-brand" href="#">Briefkastenüberwachung</a>
 </nav>
 <div class="container mt-4">
-    <h1 class="mb-4">Details for Sensor {{ sensor_name }}</h1>
+    <h1 class="mb-4">Details für Briefkasten {{ sensor_name }}</h1>
     <div class="card mb-4">
         <div class="card-body">
             <canvas id="movementsChart" width="400" height="200"></canvas>
         </div>
     </div>
-    <h2>Last 10 Movements</h2>
+    <h2>Letzte 10 Briefe</h2>
     <ul id="movementList" class="list-group mb-4">
     {% for movement in movements %}
         <li class="list-group-item">{{ movement[0] }}</li>
     {% endfor %}
     </ul>
-    <a href="{{ url_for('controller', ip='192.168.178.82') }}" class="btn btn-secondary">Back to Sensors</a>
+    <a href="{{ url_for('controller', ip='192.168.178.82') }}" class="btn btn-secondary">Zurück zu den Briefkästen</a>
 </div>
 <script>
     var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -49,7 +49,7 @@
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Movements',
+                        label: 'Briefe',
                         data: values,
                         borderColor: 'rgba(75, 192, 192, 1)',
                         borderWidth: 1,
@@ -62,14 +62,14 @@
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Timestamp'
+                                text: 'Zeitstempel'
                             }
                         },
                         y: {
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Movements'
+                                text: 'Briefe'
                             }
                         }
                     }
