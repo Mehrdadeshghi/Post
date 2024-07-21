@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, jsonify
+from flask import Flask, render_template, jsonify
 import RPi.GPIO as GPIO
 import time
 import threading
@@ -7,15 +7,15 @@ import datetime
 import matplotlib.pyplot as plt
 from flask_socketio import SocketIO, emit
 
+app = Flask(__name__)
+socketio = SocketIO(app)
+
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
 PIR_PIN_1 = 25
 PIR_PIN_2 = 24
 GPIO.setup(PIR_PIN_1, GPIO.IN)
 GPIO.setup(PIR_PIN_2, GPIO.IN)
-
-# Flask app setup
-app = Flask(__name__)
 
 # Global variables to store sensor states
 sensor_1_state = "No Motion"
@@ -71,16 +71,7 @@ def sensor(sensor_name):
     movements = c.fetchall()
     conn.close()
     
-    # Create a plot
-    timestamps = [m[0] for m in movements]
-    plt.figure()
-    plt.plot(timestamps, range(len(timestamps)), marker='o')
-    plt.title(f'Movements for {sensor_name}')
-    plt.xlabel('Timestamp')
-    plt.ylabel('Movements')
-    plt.savefig('static/movements.png')
-    
-    return render_template('sensor.html', sensor_name=sensor_name, movements=movements, graph_url='/static/movements.png')
+    return render_template('sensor.html', sensor_name=sensor_name, movements=movements)
 
 @app.route('/api/movements/<sensor_name>')
 def api_movements(sensor_name):
@@ -91,5 +82,6 @@ def api_movements(sensor_name):
     conn.close()
     return jsonify(movements)
 
+# Start socketio statt app
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
