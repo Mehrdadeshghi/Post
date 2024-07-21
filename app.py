@@ -15,8 +15,8 @@ socketio = SocketIO(app)
 GPIO.setmode(GPIO.BCM)
 PIR_PIN_1 = 25
 PIR_PIN_2 = 24
-GPIO.setup(PIR_PIN_1, GPIO.IN)
-GPIO.setup(PIR_PIN_2, GPIO.IN)
+GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 # Global variables to store mailbox states
 mailbox_1_state = "No Mail"
@@ -25,31 +25,39 @@ mailbox_2_state = "No Mail"
 def monitor_mailboxes():
     global mailbox_1_state, mailbox_2_state
     while True:
-        # Debugging Ausgabe für Mehrdad
+        # Check Mehrdad sensor status
         mehrdad_status = GPIO.input(PIR_PIN_1)
-        print(f"Mehrdad Sensor Status: {mehrdad_status}")
+        print(f"Mehrdad Sensor Status (vor debounce): {mehrdad_status}")
         if mehrdad_status:
-            mailbox_1_state = "Mail Detected"
-            log_mail("Mehrdad")
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
+            time.sleep(0.1)  # Short wait to ensure the signal is stable
+            if GPIO.input(PIR_PIN_1):  # Double check
+                print(f"Mehrdad Sensor Status (nach debounce): {GPIO.input(PIR_PIN_1)}")
+                if mailbox_1_state != "Mail Detected":
+                    mailbox_1_state = "Mail Detected"
+                    log_mail("Mehrdad")
+                    socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
         else:
-            mailbox_1_state = "No Mail"
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
+            if mailbox_1_state != "No Mail":
+                mailbox_1_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
 
-        # Debugging Ausgabe für Rezvaneh
+        # Check Rezvaneh sensor status
         rezvaneh_status = GPIO.input(PIR_PIN_2)
-        print(f"Rezvaneh Sensor Status: {rezvaneh_status}")
+        print(f"Rezvaneh Sensor Status (vor debounce): {rezvaneh_status}")
         if rezvaneh_status:
-            mailbox_2_state = "Mail Detected"
-            log_mail("Rezvaneh")
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
+            time.sleep(0.1)  # Short wait to ensure the signal is stable
+            if GPIO.input(PIR_PIN_2):  # Double check
+                print(f"Rezvaneh Sensor Status (nach debounce): {GPIO.input(PIR_PIN_2)}")
+                if mailbox_2_state != "Mail Detected":
+                    mailbox_2_state = "Mail Detected"
+                    log_mail("Rezvaneh")
+                    socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
         else:
-            mailbox_2_state = "No Mail"
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
+            if mailbox_2_state != "No Mail":
+                mailbox_2_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
 
         time.sleep(1)  # Check every second
-
-
 
 def log_mail(sensor):
     conn = sqlite3.connect('sensors.db')
