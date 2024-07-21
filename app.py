@@ -26,20 +26,24 @@ def monitor_mailboxes():
     global mailbox_1_state, mailbox_2_state
     while True:
         if GPIO.input(PIR_PIN_1):
-            mailbox_1_state = "Mail Detected"
-            log_mail("Mehrdad")
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
+            if mailbox_1_state == "No Mail":
+                mailbox_1_state = "Mail Detected"
+                log_mail("Mehrdad")
+                socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
         else:
-            mailbox_1_state = "No Mail"
-            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
+            if mailbox_1_state == "Mail Detected":
+                mailbox_1_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
 
         if GPIO.input(PIR_PIN_2):
-            mailbox_2_state = "Mail Detected"
-            log_mail("Rezvaneh")
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
+            if mailbox_2_state == "No Mail":
+                mailbox_2_state = "Mail Detected"
+                log_mail("Rezvaneh")
+                socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
         else:
-            mailbox_2_state = "No Mail"
-            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
+            if mailbox_2_state == "Mail Detected":
+                mailbox_2_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
 
         time.sleep(1)  # Check every second
 
