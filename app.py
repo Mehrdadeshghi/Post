@@ -120,5 +120,5 @@ def api_movements(sensor_name):
     return jsonify(data)
 
 # Start socketio statt app
-if __name__ == '__main__':
+if __name__ == '__='__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
