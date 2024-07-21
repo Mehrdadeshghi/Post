@@ -25,27 +25,31 @@ mailbox_2_state = "No Mail"
 def monitor_mailboxes():
     global mailbox_1_state, mailbox_2_state
     while True:
-        if GPIO.input(PIR_PIN_1):
-            if mailbox_1_state == "No Mail":
-                mailbox_1_state = "Mail Detected"
-                log_mail("Mehrdad")
-                socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
+        # Debugging Ausgabe für Mehrdad
+        mehrdad_status = GPIO.input(PIR_PIN_1)
+        print(f"Mehrdad Sensor Status: {mehrdad_status}")
+        if mehrdad_status:
+            mailbox_1_state = "Mail Detected"
+            log_mail("Mehrdad")
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
         else:
-            if mailbox_1_state == "Mail Detected":
-                mailbox_1_state = "No Mail"
-                socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
+            mailbox_1_state = "No Mail"
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
 
-        if GPIO.input(PIR_PIN_2):
-            if mailbox_2_state == "No Mail":
-                mailbox_2_state = "Mail Detected"
-                log_mail("Rezvaneh")
-                socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
+        # Debugging Ausgabe für Rezvaneh
+        rezvaneh_status = GPIO.input(PIR_PIN_2)
+        print(f"Rezvaneh Sensor Status: {rezvaneh_status}")
+        if rezvaneh_status:
+            mailbox_2_state = "Mail Detected"
+            log_mail("Rezvaneh")
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
         else:
-            if mailbox_2_state == "Mail Detected":
-                mailbox_2_state = "No Mail"
-                socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
+            mailbox_2_state = "No Mail"
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
 
         time.sleep(1)  # Check every second
+
+
 
 def log_mail(sensor):
     conn = sqlite3.connect('sensors.db')
