@@ -101,15 +101,19 @@ def get_aggregated_data(sensor_name):
 
 def get_system_info():
     uptime = datetime.datetime.now() - datetime.datetime.fromtimestamp(psutil.boot_time())
+    cpu_temps = psutil.sensors_temperatures()
+    cpu_temp = cpu_temps.get('cpu-thermal', cpu_temps.get('coretemp', [{'current': None}]))[0]['current']
+    net_io = psutil.net_io_counters()
     return {
         "system_name": "Raspberry Pi",
         "system_ip": "192.168.178.82",
         "system_uptime": str(uptime),
-        "cpu_temp": psutil.sensors_temperatures().get('cpu-thermal', [{'current': None}])[0]['current'],
+        "cpu_temp": cpu_temp,
         "cpu_usage": psutil.cpu_percent(interval=1),
         "memory_usage": psutil.virtual_memory().percent,
         "disk_usage": psutil.disk_usage('/').percent,
-        "network_activity": psutil.net_io_counters().bytes_sent + psutil.net_io_counters().bytes_recv,
+        "network_upload": net_io.bytes_sent,
+        "network_download": net_io.bytes_recv,
         "active_processes": len(psutil.pids())
     }
 
