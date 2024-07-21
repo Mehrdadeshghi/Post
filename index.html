@@ -2,13 +2,27 @@
 <html>
 <head>
     <title>Controllers</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
 <body>
-    <h1>Controllers</h1>
-    <ul>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">Motion Detection</a>
+</nav>
+<div class="container mt-4">
+    <h1 class="mb-4">Controllers</h1>
+    <div class="row">
     {% for controller in controllers %}
-        <li><a href="{{ url_for('controller', ip=controller.ip) }}">{{ controller.name }}</a></li>
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ controller.name }}</h5>
+                    <p class="card-text">IP: {{ controller.ip }}</p>
+                    <a href="{{ url_for('controller', ip=controller.ip) }}" class="btn btn-primary">View Sensors</a>
+                </div>
+            </div>
+        </div>
     {% endfor %}
-    </ul>
+    </div>
+</div>
 </body>
 </html>
