@@ -70,4 +70,48 @@
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Zeitstemp
+                                text: 'Zeitstempel'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Briefe'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = values;
+            chart.update();
+        }
+    }
+
+    function updateMovementList(last_10_movements) {
+        const movementList = document.getElementById('movementList');
+        movementList.innerHTML = '';
+        last_10_movements.forEach(movement => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item';
+            li.textContent = movement[0];
+            movementList.appendChild(li);
+        });
+    }
+
+    socket.on('movement', function(data) {
+        if(data.sensor === '{{ sensor_name }}') {
+            fetchData();
+        }
+    });
+
+    // Initial fetch
+    fetchData();
+
+    // Fetch data every second
+    setInterval(fetchData, 1000);
+</script>
+</body>
+</html>
