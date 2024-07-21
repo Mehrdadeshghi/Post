@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, jsonify
 import RPi.GPIO as GPIO
 import time
 import threading
@@ -76,6 +76,15 @@ def sensor(sensor_name):
     plt.savefig('static/movements.png')
     
     return render_template('sensor.html', sensor_name=sensor_name, movements=movements, graph_url='/static/movements.png')
+
+@app.route('/api/movements/<sensor_name>')
+def api_movements(sensor_name):
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("SELECT timestamp FROM movements WHERE sensor=? ORDER BY timestamp DESC LIMIT 10", (sensor_name,))
+    movements = c.fetchall()
+    conn.close()
+    return jsonify(movements)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
