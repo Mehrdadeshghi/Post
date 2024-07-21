@@ -39,15 +39,14 @@
     var socket = io.connect('http://' + document.domain + ':' + location.port);
     var chart;
     var systemInfoChartData = {
-        labels: ['CPU Usage', 'Memory Usage', 'Disk Usage', 'CPU Temperature', 'Network Upload', 'Network Download'],
+        labels: ['CPU Usage', 'Memory Usage', 'Disk Usage', 'Network Upload', 'Network Download'],
         datasets: [{
-            label: 'Value',
+            label: 'Value (%)',
             data: [],
             backgroundColor: [
                 'rgba(255, 99, 132, 0.2)',
                 'rgba(54, 162, 235, 0.2)',
                 'rgba(75, 192, 192, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
                 'rgba(153, 102, 255, 0.2)',
                 'rgba(255, 159, 64, 0.2)'
             ],
@@ -55,7 +54,6 @@
                 'rgba(255, 99, 132, 1)',
                 'rgba(54, 162, 235, 1)',
                 'rgba(75, 192, 192, 1)',
-                'rgba(255, 206, 86, 1)',
                 'rgba(153, 102, 255, 1)',
                 'rgba(255, 159, 64, 1)'
             ],
@@ -74,8 +72,8 @@
                 document.getElementById('cpu-usage').textContent = data.cpu_usage + ' %';
                 document.getElementById('memory-usage').textContent = data.memory_usage + ' %';
                 document.getElementById('disk-usage').textContent = data.disk_usage + ' %';
-                document.getElementById('network-upload').textContent = data.network_upload + ' bytes';
-                document.getElementById('network-download').textContent = data.network_download + ' bytes';
+                document.getElementById('network-upload').textContent = (data.network_upload / 1024).toFixed(2) + ' KB/s';
+                document.getElementById('network-download').textContent = (data.network_download / 1024).toFixed(2) + ' KB/s';
                 document.getElementById('active-processes').textContent = data.active_processes;
 
                 updateSystemInfoChart(data);
@@ -87,9 +85,8 @@
             data.cpu_usage,
             data.memory_usage,
             data.disk_usage,
-            data.cpu_temp,
-            data.network_upload,
-            data.network_download
+            (data.network_upload / 1024).toFixed(2),
+            (data.network_download / 1024).toFixed(2)
         ];
         chart.update();
     }
@@ -105,7 +102,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Value'
+                            text: 'Value (%)'
                         }
                     }
                 }
