@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Info</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">System Info</a>
+</nav>
+<div class="container mt-4">
+    <h1 class="mb-4">System Info for {{ controller_ip }}</h1>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Live System Info</h5>
+            <ul id="systemInfoList" class="list-group">
+                <li class="list-group-item">System Name: <span id="system-name"></span></li>
+                <li class="list-group-item">System IP: <span id="system-ip"></span></li>
+                <li class="list-group-item">System Uptime: <span id="system-uptime"></span></li>
+                <li class="list-group-item">CPU Temperature: <span id="cpu-temp"></span></li>
+                <li class="list-group-item">CPU Usage: <span id="cpu-usage"></span></li>
+                <li class="list-group-item">Memory Usage: <span id="memory-usage"></span></li>
+                <li class="list-group-item">Disk Usage: <span id="disk-usage"></span></li>
+                <li class="list-group-item">Network Activity: <span id="network-activity"></span></li>
+                <li class="list-group-item">Active Processes: <span id="active-processes"></span></li>
+            </ul>
+        </div>
+    </div>
+    <h2>System Info Graphs</h2>
+    <canvas id="systemInfoChart" width="400" height="200"></canvas>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Zurück zu den Controllern</a>
+</div>
+<script>
+    var socket = io.connect('http://' + document.domain + ':' + location.port);
+    var chart;
+    var systemInfoChartData = {
+        labels: [],
+        datasets: [
+            {
+                label: 'CPU Usage (%)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                data: []
+            },
+            {
+                label: 'Memory Usage (%)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                data: []
+            },
+            {
+                label: 'Disk Usage (%)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                data: []
+            },
+            {
+                label: 'Network Activity (bytes)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                data: []
+            }
+        ]
+    };
+
+    function fetchSystemInfo() {
+        fetch('/api/system_info')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('system-name').textContent = data.system_name;
+                document.getElementById('system-ip').textContent = data.system_ip;
+                document.getElementById('system-uptime').textContent = data.system_uptime;
+                document.getElementById('cpu-temp').textContent = data.cpu_temp + ' °C';
+                document.getElementById('cpu-usage').textContent = data.cpu_usage + ' %';
+                document.getElementById('memory-usage').textContent = data.memory_usage + ' %';
+                document.getElementById('disk-usage').textContent = data.disk_usage + ' %';
+                document.getElementById('network-activity').textContent = data.network_activity + ' bytes';
+                document.getElementById('active-processes').textContent = data.active_processes;
+
+                updateSystemInfoChart(data);
+            });
+    }
+
+    function updateSystemInfoChart(data) {
+        var currentTime = new Date().toLocaleTimeString();
+        systemInfoChartData.labels.push(currentTime);
+        systemInfoChartData.datasets[0].data.push(data.cpu_usage);
+        systemInfoChartData.datasets[1].data.push(data.memory_usage);
+        systemInfoChartData.datasets[2].data.push(data.disk_usage);
+        systemInfoChartData.datasets[3].data.push(data.network_activity);
+
+        if (systemInfoChartData.labels.length > 10) {
+            systemInfoChartData.labels.shift();
+            systemInfoChartData.datasets.forEach(dataset => dataset.data.shift());
+        }
+
+        if (!chart) {
+            const ctx = document.getElementById('systemInfoChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: systemInfoChartData,
+                options: {
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Zeit'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Wert'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            chart.update();
+        }
+    }
+
+    socket.on('system_info', function(data) {
+        fetchSystemInfo();
+    });
+
+    // Initial fetch
+    fetchSystemInfo();
+
+    // Fetch data every second
+    setInterval(fetchSystemInfo, 1000);
+</script>
+</body>
+</html>
