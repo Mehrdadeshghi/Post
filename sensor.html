@@ -17,9 +17,17 @@
             <canvas id="movementsChart" width="400" height="200"></canvas>
         </div>
     </div>
+    <h2>Briefe Statistik</h2>
+    <ul class="list-group mb-4">
+        <li class="list-group-item">Total Bewegungen: {{ data.total_movements }}</li>
+        <li class="list-group-item">Letzte 24 Stunden: {{ data.last_24h_movements }}</li>
+        <li class="list-group-item">Letzte Woche: {{ data.last_week_movements }}</li>
+        <li class="list-group-item">Letzter Monat: {{ data.last_month_movements }}</li>
+        <li class="list-group-item">Letzter Brief: {{ data.last_movement }}</li>
+    </ul>
     <h2>Letzte 10 Briefe</h2>
     <ul id="movementList" class="list-group mb-4">
-    {% for movement in movements %}
+    {% for movement in data.last_10_movements %}
         <li class="list-group-item">{{ movement[0] }}</li>
     {% endfor %}
     </ul>
@@ -33,15 +41,15 @@
         fetch('/api/movements/{{ sensor_name }}')
             .then(response => response.json())
             .then(data => {
-                updateChart(data);
-                updateMovementList(data);
+                updateChart(data.all_movements);
+                updateMovementList(data.last_10_movements);
             });
     }
 
-    function updateChart(data) {
+    function updateChart(all_movements) {
         const ctx = document.getElementById('movementsChart').getContext('2d');
-        const labels = data.map(movement => movement[0]);
-        const values = data.map((_, index) => index + 1);
+        const labels = all_movements.map(movement => movement[0]);
+        const values = all_movements.map((_, index) => index + 1);
 
         if (!chart) {
             chart = new Chart(ctx, {
@@ -62,48 +70,4 @@
                             display: true,
                             title: {
                                 display: true,
-                                text: 'Zeitstempel'
-                            }
-                        },
-                        y: {
-                            display: true,
-                            title: {
-                                display: true,
-                                text: 'Briefe'
-                            }
-                        }
-                    }
-                }
-            });
-        } else {
-            chart.data.labels = labels;
-            chart.data.datasets[0].data = values;
-            chart.update();
-        }
-    }
-
-    function updateMovementList(data) {
-        const movementList = document.getElementById('movementList');
-        movementList.innerHTML = '';
-        data.forEach(movement => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item';
-            li.textContent = movement[0];
-            movementList.appendChild(li);
-        });
-    }
-
-    socket.on('movement', function(data) {
-        if(data.sensor === '{{ sensor_name }}') {
-            fetchData();
-        }
-    });
-
-    // Initial fetch
-    fetchData();
-
-    // Fetch data every second
-    setInterval(fetchData, 1000);
-</script>
-</body>
-</html>
+                                text: 'Zeitstemp
