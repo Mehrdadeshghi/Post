@@ -1,7 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
 import RPi.GPIO as GPIO
 import time
 import threading
+import sqlite3
+import datetime
+import matplotlib.pyplot as plt
 
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
@@ -22,22 +25,57 @@ def monitor_sensors():
     while True:
         if GPIO.input(PIR_PIN_1):
             sensor_1_state = "Motion Detected"
+            log_movement("Mehrdad")
         else:
             sensor_1_state = "No Motion"
         
         if GPIO.input(PIR_PIN_2):
             sensor_2_state = "Motion Detected"
+            log_movement("Rezvaneh")
         else:
             sensor_2_state = "No Motion"
         
         time.sleep(1)  # Check every second
+
+def log_movement(sensor):
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO movements (sensor, timestamp) VALUES (?, ?)", 
+              (sensor, datetime.datetime.now()))
+    conn.commit()
+    conn.close()
 
 # Background thread to monitor sensors
 threading.Thread(target=monitor_sensors, daemon=True).start()
 
 @app.route('/')
 def index():
-    return render_template('index.html', sensor_1=sensor_1_state, sensor_2=sensor_2_state)
+    controllers = [{"ip": "192.168.178.82", "name": "Controller 1"}]
+    return render_template('index.html', controllers=controllers)
+
+@app.route('/controller/<ip>')
+def controller(ip):
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]
+    return render_template('controller.html', sensors=sensors, controller_ip=ip)
+
+@app.route('/sensor/<sensor_name>')
+def sensor(sensor_name):
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("SELECT timestamp FROM movements WHERE sensor=? ORDER BY timestamp DESC LIMIT 10", (sensor_name,))
+    movements = c.fetchall()
+    conn.close()
+    
+    # Create a plot
+    timestamps = [m[0] for m in movements]
+    plt.figure()
+    plt.plot(timestamps, range(len(timestamps)), marker='o')
+    plt.title(f'Movements for {sensor_name}')
+    plt.xlabel('Timestamp')
+    plt.ylabel('Movements')
+    plt.savefig('static/movements.png')
+    
+    return render_template('sensor.html', sensor_name=sensor_name, movements=movements, graph_url='/static/movements.png')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
