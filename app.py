@@ -5,6 +5,7 @@ import threading
 import sqlite3
 import datetime
 import matplotlib.pyplot as plt
+from flask_socketio import SocketIO, emit
 
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
@@ -26,15 +27,19 @@ def monitor_sensors():
         if GPIO.input(PIR_PIN_1):
             sensor_1_state = "Motion Detected"
             log_movement("Mehrdad")
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Motion Detected'})
         else:
             sensor_1_state = "No Motion"
-        
+            socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Motion'})
+
         if GPIO.input(PIR_PIN_2):
             sensor_2_state = "Motion Detected"
             log_movement("Rezvaneh")
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Motion Detected'})
         else:
             sensor_2_state = "No Motion"
-        
+            socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Motion'})
+
         time.sleep(1)  # Check every second
 
 def log_movement(sensor):
