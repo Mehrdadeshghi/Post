@@ -27,11 +27,9 @@ def monitor_mailboxes():
     while True:
         # Check Mehrdad sensor status
         mehrdad_status = GPIO.input(PIR_PIN_1)
-        print(f"Mehrdad Sensor Status (vor debounce): {mehrdad_status}")
         if mehrdad_status:
             time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
             if GPIO.input(PIR_PIN_1):  # Doppelt überprüfen
-                print(f"Mehrdad Sensor Status (nach debounce): {GPIO.input(PIR_PIN_1)}")
                 if mailbox_1_state != "Mail Detected":
                     mailbox_1_state = "Mail Detected"
                     log_mail("Mehrdad")
@@ -43,11 +41,9 @@ def monitor_mailboxes():
 
         # Check Rezvaneh sensor status
         rezvaneh_status = GPIO.input(PIR_PIN_2)
-        print(f"Rezvaneh Sensor Status (vor debounce): {rezvaneh_status}")
         if rezvaneh_status:
             time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
             if GPIO.input(PIR_PIN_2):  # Doppelt überprüfen
-                print(f"Rezvaneh Sensor Status (nach debounce): {GPIO.input(PIR_PIN_2)}")
                 if mailbox_2_state != "Mail Detected":
                     mailbox_2_state = "Mail Detected"
                     log_mail("Rezvaneh")
@@ -140,7 +136,7 @@ def index():
 
 @app.route('/controller/<ip>')
 def controller(ip):
-    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 23}]
     return render_template('controller.html', sensors=sensors, controller_ip=ip)
 
 @app.route('/sensor/<sensor_name>')
@@ -160,7 +156,8 @@ def api_system_info():
 
 @app.route('/system_info/<ip>')
 def system_info(ip):
-    return render_template('system_info.html', controller_ip=ip)
+    data = get_system_info()
+    return render_template('system_info.html', controller_ip=ip, data=data)
 
 # Start socketio statt app
 if __name__ == '__main__':
