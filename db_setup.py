@@ -1,13 +1,25 @@
 import sqlite3
 
-def setup_db():
-    conn = sqlite3.connect('sensors.db')
-    c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS movements (
-                 id INTEGER PRIMARY KEY,
-                 sensor TEXT,
-                 timestamp TEXT)''')
-    conn.commit()
-    conn.close()
+# Connect to SQLite database (this will create the database file if it doesn't exist)
+conn = sqlite3.connect('sensors.db')
 
-setup_db()
+# Create a cursor object using the cursor() method
+cursor = conn.cursor()
+
+# Drop the movements table if it already exists
+cursor.execute("DROP TABLE IF EXISTS movements")
+
+# Create the movements table
+cursor.execute('''
+CREATE TABLE movements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sensor TEXT NOT NULL,
+    timestamp DATETIME NOT NULL
+)
+''')
+
+# Commit the changes and close the connection
+conn.commit()
+conn.close()
+
+print("Database and table created successfully.")
