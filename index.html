@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         body {
             background-color: #f8f9fa;
         }
         .container {
             margin-top: 50px;
-            text-align: center;
         }
         .btn-container {
             display: flex;
@@ -19,10 +19,14 @@
             gap: 20px;
             margin-top: 20px;
         }
+        .btn-lg {
+            padding: 15px 30px;
+            font-size: 1.25rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container text-center">
         <h1 class="mb-4">Mailbox Dashboard</h1>
         <div class="btn-container">
             <a class="btn btn-primary btn-lg" href="/sensor/24">GPIO 24</a>
