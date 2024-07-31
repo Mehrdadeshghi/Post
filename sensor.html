@@ -131,7 +131,11 @@
                         x: {
                             type: 'time',
                             time: {
-                                unit: 'day'
+                                unit: 'minute',
+                                tooltipFormat: 'YYYY-MM-DD HH:mm:ss',
+                                displayFormats: {
+                                    'minute': 'HH:mm'
+                                }
                             }
                         },
                         y: {
