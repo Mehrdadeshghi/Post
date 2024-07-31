@@ -1,22 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Details</title>
+    <title>Sensor Data</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .theme-switch-wrapper span {
+            margin: 0 10px;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .slider.round {
+            border-radius: 34px;
+        }
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        #sensorData {
+            white-space: pre-wrap;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
-    <h1>Sensor Details for {{ sensor_name }}</h1>
-    <p>Total Movements: {{ data.total_movements }}</p>
-    <p>Movements in Last 24 Hours: {{ data.last_24h_movements }}</p>
-    <p>Movements in Last Week: {{ data.last_week_movements }}</p>
-    <p>Movements in Last Month: {{ data.last_month_movements }}</p>
-    <p>Last Movement: {{ data.last_movement }}</p>
-    <h3>Last 10 Movements</h3>
-    <ul>
-        {% for movement in data.last_10_movements %}
-            <li>{{ movement[0] }}</li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h1 class="text-center">Sensor Data for GPIO {{ gpio }}</h1>
+        <div class="theme-switch-wrapper">
+            <span>Light Mode</span>
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox">
+                <div class="slider round"></div>
+            </label>
+            <span>Dark Mode</span>
+        </div>
+        <div id="sensorData" class="mt-4"></div>
+    </div>
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+    <script>
+        async function fetchSensorData() {
+            const gpio = {{ gpio }};
+            try {
+                const response = await fetch(`/movements/${gpio}`);
+                if (!response.ok) {
+                    throw new Error(`Error fetching data for GPIO ${gpio}`);
+                }
+                const data = await response.json();
+                console.log(`Data for GPIO ${gpio}:`, data);
+                document.getElementById('sensorData').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('sensorData').innerText = 'Error fetching data';
+            }
+        }
+
+        // Initial load
+        fetchSensorData();
+    </script>
 </body>
 </html>
