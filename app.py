@@ -11,13 +11,13 @@ from flask_socketio import SocketIO, emit
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sensors.db'
-db = SQLAlchemy(app)
-socketio = SocketIO(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+app.config['SECRET_KEY'] = 'secret!'  # Secret key for session management
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sensors.db'  # SQLite database URI
+db = SQLAlchemy(app)  # Initialize SQLAlchemy with Flask app
+socketio = SocketIO(app)  # Initialize SocketIO with Flask app
+login_manager = LoginManager()  # Initialize LoginManager
+login_manager.init_app(app)  # Set up LoginManager with the Flask app
+login_manager.login_view = 'login'  # Set the login view route
 
 # User model
 class User(UserMixin, db.Model):
@@ -47,7 +47,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
+    if request.method == 'POST']:
         username = request.form['username']
         password = request.form['password']
         hashed_password = generate_password_hash(password, method='sha256')
@@ -106,8 +106,8 @@ def monitor_mailboxes():
         # Check Mehrdad sensor status
         mehrdad_status = GPIO.input(PIR_PIN_1)
         if mehrdad_status:
-            time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
-            if GPIO.input(PIR_PIN_1):  # Doppelt überprüfen
+            time.sleep(0.1)  # Short wait to ensure the signal is stable
+            if GPIO.input(PIR_PIN_1):  # Double-check
                 if mailbox_1_state != "Mail Detected":
                     mailbox_1_state = "Mail Detected"
                     log_mail("Mehrdad")
@@ -120,8 +120,8 @@ def monitor_mailboxes():
         # Check Rezvaneh sensor status
         rezvaneh_status = GPIO.input(PIR_PIN_2)
         if rezvaneh_status:
-            time.sleep(0.1)  # Kurzes Warten, um sicherzustellen, dass das Signal stabil ist
-            if GPIO.input(PIR_PIN_2):  # Doppelt überprüfen
+            time.sleep(0.1)  # Short wait to ensure the signal is stable
+            if GPIO.input(PIR_PIN_2):  # Double-check
                 if mailbox_2_state != "Mail Detected":
                     mailbox_2_state = "Mail Detected"
                     log_mail("Rezvaneh")
