@@ -1,77 +1,41 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f4f4f4;
-}
-
-h1, h2, h3 {
-    color: #333;
 }
 
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-top: 20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
 }
 
-table, th, td {
-    border: 1px solid #ddd;
+.theme-switch-wrapper .slider {
+    cursor: pointer;
 }
 
-th, td {
-    padding: 8px;
-    text-align: left;
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
 }
 
-th {
-    background-color: #f2f2f2;
+.card-deck {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
 
 .chart-container {
     position: relative;
-    height: 40vh;
-    width: 80vw;
+    height: 400px;
+    width: 100%;
+    margin-bottom: 40px;
 }
 
-.alert {
-    padding: 10px;
-    background-color: #f44336;
-    color: white;
-    margin-bottom: 15px;
+.download-buttons {
+    margin-top: 20px;
 }
 
-.success {
-    background-color: #4CAF50;
-}
-
-.info {
-    background-color: #2196F3;
-}
-
-.warning {
-    background-color: #ff9800;
-}
-
-.closebtn {
-    margin-left: 15px;
-    color: white;
-    font-weight: bold;
-    float: right;
-    font-size: 22px;
-    line-height: 20px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.closebtn:hover {
-    color: black;
+footer {
+    margin-top: 20px;
 }
