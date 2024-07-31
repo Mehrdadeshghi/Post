@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controller Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>Controller Details</h1>
-    <h2>IP: {{ controller_ip }}</h2>
-    <h3>Sensors</h3>
-    <ul>
-        {% for sensor in sensors %}
-            <li><a href="{{ url_for('sensor', sensor_name=sensor.name) }}">{{ sensor.name }}</a></li>
-        {% endfor %}
-    </ul>
-    <a href="{{ url_for('system_info', ip=controller_ip) }}">System Info</a>
+    <div class="container">
+        <h1 class="text-center">Controller Details for {{ controller_ip }}</h1>
+        <div class="list-group mt-4">
+            {% for sensor in sensors %}
+                <a href="/sensor/{{ sensor.name }}" class="list-group-item list-group-item-action">
+                    {{ sensor.name }} (Pin {{ sensor.pin }})
+                </a>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>
