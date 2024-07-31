@@ -1,21 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Mailbox Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">Dashboard</h1>
-        <div class="list-group mt-4">
-            {% for controller in controllers %}
-                <a href="/controller/{{ controller.ip }}" class="list-group-item list-group-item-action">
-                    {{ controller.name }} ({{ controller.ip }})
-                </a>
-            {% endfor %}
-        </div>
+    <div class="container text-center mt-5">
+        <h1>Welcome to the Mailbox Dashboard</h1>
+        <p>Click the button below to enter the dashboard</p>
+        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
     </div>
 </body>
 </html>
