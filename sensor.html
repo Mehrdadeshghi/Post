@@ -4,50 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sensor Details</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    <style>
-        body {
-            padding-top: 20px;
-        }
-        .container {
-            max-width: 800px;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">Sensor Details for {{ sensor_name }}</h1>
-        <div class="card mt-3">
-            <div class="card-body">
-                <p>Total Movements: {{ data.total_movements }}</p>
-                <p>Movements in Last 24 Hours: {{ data.last_24h_movements }}</p>
-                <p>Movements in Last Week: {{ data.last_week_movements }}</p>
-                <p>Movements in Last Month: {{ data.last_month_movements }}</p>
-                <p>Last Movement: {{ data.last_movement }}</p>
-            </div>
-        </div>
-        <div class="card mt-3">
-            <div class="card-body">
-                <h3>Last 10 Movements</h3>
-                <ul>
-                    {% for movement in data.last_10_movements %}
-                        <li>{{ movement[0] }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <div class="card mt-3">
-            <div class="card-body">
-                <h3>Movement Graph</h3>
-                <canvas id="movementChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <script>
-        var sensorName = "{{ sensor_name }}";
-    </script>
-    <script src="{{ url_for('static', filename='js/sensor.js') }}"></script>
+    <h1>Sensor Details for {{ sensor_name }}</h1>
+    <p>Total Movements: {{ data.total_movements }}</p>
+    <p>Movements in Last 24 Hours: {{ data.last_24h_movements }}</p>
+    <p>Movements in Last Week: {{ data.last_week_movements }}</p>
+    <p>Movements in Last Month: {{ data.last_month_movements }}</p>
+    <p>Last Movement: {{ data.last_movement }}</p>
+    <h3>Last 10 Movements</h3>
+    <ul>
+        {% for movement in data.last_10_movements %}
+            <li>{{ movement[0] }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
