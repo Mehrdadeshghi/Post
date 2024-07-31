@@ -3,7 +3,7 @@ import time
 import os
 import psutil
 from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_file
+from flask import Flask, jsonify, render_template, send_file, request
 import pandas as pd
 import io
 import threading
@@ -214,6 +214,7 @@ def download_excel():
     return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name=f'movements_sensor_{sensor_id}.xlsx', as_attachment=True)
 
 def log_message(message, sensor):
+    global movement_detected_times
     now = datetime.now()
     current_time = now.strftime("%Y-%m-%d %H:%M:%S")
     status["message"] = message
@@ -272,6 +273,7 @@ def check_sensor():
         time.sleep(1)
 
 def handle_motion_detected(current_time, sensor):
+    global movement_detected_times, last_motion_time
     movement_detected_times.append(current_time)
     movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
 
