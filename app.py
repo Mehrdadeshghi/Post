@@ -108,6 +108,9 @@ def get_aggregated_data(sensor_name):
 
     conn.close()
 
+    # Format the timestamps for Chart.js
+    all_movements_formatted = [(datetime.datetime.strptime(movement[0], '%Y-%m-%d %H:%M:%S')).isoformat() for movement in all_movements]
+
     return {
         "total_movements": total_movements,
         "last_24h_movements": last_24h_movements,
@@ -115,7 +118,7 @@ def get_aggregated_data(sensor_name):
         "last_month_movements": last_month_movements,
         "last_movement": last_movement,
         "last_10_movements": last_10_movements,
-        "all_movements": all_movements
+        "all_movements": all_movements_formatted
     }
 
 def get_system_info():
