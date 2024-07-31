@@ -93,8 +93,8 @@
                     $('#last-10-movements').html(last10MovementsHtml);
 
                     // Update chart
-                    const labels = data.all_movements.map(item => item[0]);
-                    const movementCounts = data.all_movements.map(item => 1);
+                    const labels = data.all_movements;
+                    const movementCounts = data.all_movements.map(() => 1);
 
                     console.log('Labels:', labels);
                     console.log('Movement Counts:', movementCounts);
@@ -112,12 +112,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('movementChart').getContext('2d');
             const movementData = {{ data.all_movements | tojson }};
-            const labels = movementData.map(item => item[0]);
+            const labels = movementData;
             const data = {
                 labels: labels,
                 datasets: [{
                     label: 'Movement',
-                    data: movementData.map(item => 1),  // Each movement represents a count of 1
+                    data: labels.map(() => 1),  // Each movement represents a count of 1
                     backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     borderColor: 'rgba(255, 99, 132, 1)',
                     borderWidth: 1
