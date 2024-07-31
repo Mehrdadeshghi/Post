@@ -1,16 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Dashboard</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Controller Overview</title>
 </head>
 <body>
-    <div class="container text-center mt-5">
-        <h1>Welcome to the Mailbox Dashboard</h1>
-        <p>Click the button below to enter the dashboard</p>
-        <a href="/dashboard" class="btn btn-primary">Go to Dashboard</a>
-    </div>
+    <h1>Controller Overview</h1>
+    <h2>System Info</h2>
+    <p>System Name: {{ system_info.system_name }}</p>
+    <p>System IP: {{ system_info.system_ip }}</p>
+    <p>Uptime: {{ system_info.system_uptime }}</p>
+    <p>CPU Temperature: {{ system_info.cpu_temp }}°C</p>
+    <p>CPU Usage: {{ system_info.cpu_usage }}%</p>
+    <p>Memory Usage: {{ system_info.memory_usage }}%</p>
+    <p>Disk Usage: {{ system_info.disk_usage }}%</p>
+    <p>Network Upload: {{ system_info.network_upload }}</p>
+    <p>Network Download: {{ system_info.network_download }}</p>
+    <p>Active Processes: {{ system_info.active_processes }}</p>
+
+    <h2>Controllers</h2>
+    <ul>
+        {% for controller in controllers %}
+            <li><a href="/controller/{{ controller.ip }}">{{ controller.name }} ({{ controller.ip }})</a></li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
