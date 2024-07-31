@@ -128,11 +128,15 @@ def get_status():
 @app.route('/movements/<int:sensor_id>')
 def get_movements(sensor_id):
     if sensor_id == 1:
+        print(f"Returning movements for sensor 1: {status['movements_sensor_1']}")
         return jsonify(status["movements_sensor_1"])
     elif sensor_id == 2:
+        print(f"Returning movements for sensor 2: {status['movements_sensor_2']}")
         return jsonify(status["movements_sensor_2"])
     else:
+        print(f"Invalid sensor ID: {sensor_id}")
         return jsonify({"error": "Invalid sensor ID"}), 400
+
 
 @app.route('/summary')
 def get_summary():
