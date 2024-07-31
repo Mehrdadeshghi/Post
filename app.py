@@ -14,7 +14,7 @@ socketio = SocketIO(app)
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
 PIR_PIN_1 = 25
-PIR_PIN_2 = 24
+PIR_PIN_2 = 24  # Geändert von 23 zu 24
 GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -102,6 +102,10 @@ def get_aggregated_data(sensor_name):
     c.execute("SELECT timestamp FROM movements WHERE sensor=? ORDER BY timestamp DESC LIMIT 10", (sensor_name,))
     last_10_movements = c.fetchall()
 
+    # All movements for the graph
+    c.execute("SELECT timestamp FROM movements WHERE sensor=?", (sensor_name,))
+    all_movements = c.fetchall()
+
     conn.close()
 
     return {
@@ -110,7 +114,8 @@ def get_aggregated_data(sensor_name):
         "last_week_movements": last_week_movements,
         "last_month_movements": last_month_movements,
         "last_movement": last_movement,
-        "last_10_movements": last_10_movements
+        "last_10_movements": last_10_movements,
+        "all_movements": all_movements
     }
 
 def get_system_info():
@@ -138,7 +143,7 @@ def index():
 
 @app.route('/controller/<ip>')
 def controller(ip):
-    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]  # Geändert von 23 zu 24
     return render_template('controller.html', sensors=sensors, controller_ip=ip)
 
 @app.route('/sensor/<sensor_name>')
