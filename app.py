@@ -28,34 +28,34 @@ def monitor_mailboxes():
         # Check Mehrdad sensor status
         mehrdad_status = GPIO.input(PIR_PIN_1)
         if mehrdad_status:
-            time.sleep(0.1)  # Short wait to ensure signal is stable
+            time.sleep(0.1)  # Wait briefly to ensure signal stability
             if GPIO.input(PIR_PIN_1):  # Double check
                 if mailbox_1_state != "Mail Detected":
                     mailbox_1_state = "Mail Detected"
                     log_mail("Mehrdad")
                     socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'Mail Detected'})
-                    print("Mehrdad: Movement detected")
+                    print("Mehrdad: Bewegung erkannt")
         else:
             if mailbox_1_state != "No Mail":
                 mailbox_1_state = "No Mail"
                 socketio.emit('movement', {'sensor': 'Mehrdad', 'status': 'No Mail'})
-                print("Mehrdad: No movement")
+                print("Mehrdad: Keine Bewegung")
 
         # Check Rezvaneh sensor status
         rezvaneh_status = GPIO.input(PIR_PIN_2)
         if rezvaneh_status:
-            time.sleep(0.1)  # Short wait to ensure signal is stable
+            time.sleep(0.1)  # Wait briefly to ensure signal stability
             if GPIO.input(PIR_PIN_2):  # Double check
                 if mailbox_2_state != "Mail Detected":
                     mailbox_2_state = "Mail Detected"
                     log_mail("Rezvaneh")
                     socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'Mail Detected'})
-                    print("Rezvaneh: Movement detected")
+                    print("Rezvaneh: Bewegung erkannt")
         else:
             if mailbox_2_state != "No Mail":
                 mailbox_2_state = "No Mail"
                 socketio.emit('movement', {'sensor': 'Rezvaneh', 'status': 'No Mail'})
-                print("Rezvaneh: No movement")
+                print("Rezvaneh: Keine Bewegung")
 
         time.sleep(1)  # Check every second
 
@@ -66,7 +66,6 @@ def log_mail(sensor):
               (sensor, datetime.datetime.now().replace(microsecond=0)))
     conn.commit()
     conn.close()
-    print(f"Logged movement for {sensor}")
 
 # Background thread to monitor mailboxes
 threading.Thread(target=monitor_mailboxes, daemon=True).start()
