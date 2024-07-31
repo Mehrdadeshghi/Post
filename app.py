@@ -85,17 +85,18 @@ def get_system_info():
 def index():
     return render_template('index.html')
 
-@app.route('/management')
-def management():
-    try:
-        return render_template('management.html')
-    except Exception as e:
-        print(f"Error loading management page: {e}")
-        return "Error loading management page"
+@app.route('/sensor/<int:gpio>')
+def sensor(gpio):
+    return render_template('sensor.html', gpio=gpio)
 
-@app.route('/user')
-def user():
-    return render_template('user.html')
+@app.route('/movements/<int:gpio>')
+def get_movements(gpio):
+    if gpio == 24:
+        return jsonify(status["movements_sensor_1"])
+    elif gpio == 25:
+        return jsonify(status["movements_sensor_2"])
+    else:
+        return jsonify({"error": "Invalid GPIO"}), 400
 
 @app.route('/system_info')
 def system_info():
@@ -124,19 +125,6 @@ def system_info():
 @app.route('/status')
 def get_status():
     return jsonify(status)
-
-@app.route('/movements/<int:sensor_id>')
-def get_movements(sensor_id):
-    if sensor_id == 1:
-        print(f"Returning movements for sensor 1: {status['movements_sensor_1']}")
-        return jsonify(status["movements_sensor_1"])
-    elif sensor_id == 2:
-        print(f"Returning movements for sensor 2: {status['movements_sensor_2']}")
-        return jsonify(status["movements_sensor_2"])
-    else:
-        print(f"Invalid sensor ID: {sensor_id}")
-        return jsonify({"error": "Invalid sensor ID"}), 400
-
 
 @app.route('/summary')
 def get_summary():
