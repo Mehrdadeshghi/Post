@@ -177,9 +177,9 @@ def get_hourly_movements():
 @app.route('/download/csv')
 def download_csv():
     sensor_id = request.args.get('sensor_id', type=int)
-    if sensor_id == 1:
+    if sensor_id == 24:
         df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
-    elif sensor_id == 2:
+    elif sensor_id == 25:
         df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
     else:
         return jsonify({"error": "Invalid sensor ID"}), 400
@@ -192,9 +192,9 @@ def download_csv():
 @app.route('/download/excel')
 def download_excel():
     sensor_id = request.args.get('sensor_id', type=int)
-    if sensor_id == 1:
+    if sensor_id == 24:
         df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
-    elif sensor_id == 2:
+    elif sensor_id == 25:
         df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
     else:
         return jsonify({"error": "Invalid sensor ID"}), 400
