@@ -1,291 +1,154 @@
+from flask import Flask, render_template, jsonify, send_file
 import RPi.GPIO as GPIO
 import time
-import os
-import psutil
-from datetime import datetime, timedelta
-from flask import Flask, jsonify, render_template, send_file, request
-import pandas as pd
-import io
 import threading
-
-class StateMachine:
-    def __init__(self):
-        self.state = "INIT"
-        self.lock = threading.Lock()
-
-    def set_state(self, state):
-        with self.lock:
-            print(f"Transitioning to {state} state.")
-            self.state = state
-
-    def get_state(self):
-        with self.lock:
-            return self.state
-
-# Initialize the state machine
-machine = StateMachine()
+import sqlite3
+import datetime
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
-app.config['DEBUG'] = True  # Activate debug mode
+socketio = SocketIO(app)
 
-# Define GPIO pins for two PIR sensors
-SENSOR_PIN_1 = 24  # Pin for the first motion sensor
-SENSOR_PIN_2 = 25  # Pin for the second motion sensor
-
-# Set GPIO mode (BCM)
+# Set up GPIO
 GPIO.setmode(GPIO.BCM)
+PIR_PIN_1 = 25
+PIR_PIN_2 = 24
+GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-# Set GPIO pins as input
-GPIO.setup(SENSOR_PIN_1, GPIO.IN)
-GPIO.setup(SENSOR_PIN_2, GPIO.IN)
+# Global variables to store mailbox states
+mailbox_1_state = "No Mail"
+mailbox_2_state = "No Mail"
 
-status = {
-    "message": "Waiting for motion...",
-    "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "movements_sensor_1": [],
-    "movements_sensor_2": [],
-    "cpu_temperature": 0,
-    "system_uptime": 0,
-    "network_activity": {"upload": 0, "download": 0},
-    "active_processes": 0
-}
+def monitor_mailboxes():
+    global mailbox_1_state, mailbox_2_state
+    while True:
+        # Check Mailbox 1 sensor status
+        mailbox_1_status = GPIO.input(PIR_PIN_1)
+        if mailbox_1_status:
+            time.sleep(0.1)  # Short wait to ensure signal stability
+            if GPIO.input(PIR_PIN_1):  # Double check
+                if mailbox_1_state != "Mail Detected":
+                    mailbox_1_state = "Mail Detected"
+                    log_mail("Mailbox 1")
+                    socketio.emit('movement', {'sensor': 'Mailbox 1'})
+        else:
+            if mailbox_1_state != "No Mail":
+                mailbox_1_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Mailbox 1'})
 
-movement_detected_times = []
-last_motion_time = None
-no_motion_threshold = 60  # Zeit in Sekunden ohne Bewegung für Mailbox open Zustand
-power_check_interval = 10  # Intervall in Sekunden, um den PIR-Sensor zu überprüfen
-last_power_check_time = time.time()
-power_check_window = 30  # Zeitfenster, um den Stromstatus des PIR-Sensors zu überprüfen
-power_check_status = []
+        # Check Mailbox 2 sensor status
+        mailbox_2_status = GPIO.input(PIR_PIN_2)
+        if mailbox_2_status:
+            time.sleep(0.1)  # Short wait to ensure signal stability
+            if GPIO.input(PIR_PIN_2):  # Double check
+                if mailbox_2_state != "Mail Detected":
+                    mailbox_2_state = "Mail Detected"
+                    log_mail("Mailbox 2")
+                    socketio.emit('movement', {'sensor': 'Mailbox 2'})
+        else:
+            if mailbox_2_state != "No Mail":
+                mailbox_2_state = "No Mail"
+                socketio.emit('movement', {'sensor': 'Mailbox 2'})
 
-def get_system_info():
-    try:
-        cpu_temperature = float(os.popen("vcgencmd measure_temp").readline().replace("temp=", "").replace("'C\n", ""))
-    except Exception as e:
-        print(f"Error fetching CPU temperature: {e}")
-        cpu_temperature = 0  # Default value if the command fails
-    try:
-        uptime = os.popen("uptime -p").readline().strip()
-    except Exception as e:
-        print(f"Error fetching uptime: {e}")
-        uptime = "N/A"
-    try:
-        net_stats = os.popen("ifstat -i eth0 1 1").readlines()[-1].strip().split()
-        upload = float(net_stats[0])
-        download = float(net_stats[1])
-    except Exception as e:
-        print(f"Error fetching network stats: {e}")
-        upload = 0
-        download = 0
-    active_processes = len(psutil.pids())
-    
-    return cpu_temperature, uptime, upload, download, active_processes
+        time.sleep(1)  # Check every second
+
+def log_mail(sensor):
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO movements (sensor, timestamp) VALUES (?, ?)", 
+              (sensor, datetime.datetime.now().replace(microsecond=0)))
+    conn.commit()
+    conn.close()
+
+# Background thread to monitor mailboxes
+threading.Thread(target=monitor_mailboxes, daemon=True).start()
+
+def get_summary():
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+
+    # Total movements
+    c.execute("SELECT COUNT(*) FROM movements")
+    total_movements = c.fetchone()[0]
+
+    # Last 24 hours movements
+    c.execute("SELECT COUNT(*) FROM movements WHERE timestamp >= datetime('now', '-1 day')")
+    last_24_hours_movements = c.fetchone()[0]
+
+    # Last week movements
+    c.execute("SELECT COUNT(*) FROM movements WHERE timestamp >= datetime('now', '-7 days')")
+    last_week_movements = c.fetchone()[0]
+
+    # Last month movements
+    c.execute("SELECT COUNT(*) FROM movements WHERE timestamp >= datetime('now', '-1 month')")
+    last_month_movements = c.fetchone()[0]
+
+    # Last motion time
+    c.execute("SELECT timestamp FROM movements ORDER BY timestamp DESC LIMIT 1")
+    last_motion_time = c.fetchone()
+    last_motion_time = last_motion_time[0] if last_motion_time else "No movements detected"
+
+    conn.close()
+
+    return {
+        "total_movements": total_movements,
+        "last_24_hours_movements": last_24_hours_movements,
+        "last_week_movements": last_week_movements,
+        "last_month_movements": last_month_movements,
+        "last_motion_time": last_motion_time
+    }
+
+def get_last_10_movements():
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("SELECT timestamp FROM movements ORDER BY timestamp DESC LIMIT 10")
+    last_10_movements = c.fetchall()
+    conn.close()
+    return [movement[0] for movement in last_10_movements]
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-@app.route('/sensor/<int:gpio>')
-def sensor(gpio):
-    return render_template('sensor.html', gpio=gpio)
-
-@app.route('/movements/<int:gpio>')
-def get_movements(gpio):
-    if gpio == 24:
-        return jsonify(status["movements_sensor_1"])
-    elif gpio == 25:
-        return jsonify(status["movements_sensor_2"])
-    else:
-        return jsonify({"error": "Invalid GPIO"}), 400
-
-@app.route('/system_info')
-def system_info():
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    memory_usage = memory.percent
-    disk_usage = psutil.disk_usage('/').percent
-    cpu_temperature, uptime, upload, download, active_processes = get_system_info()
-    print(f"Fetched system info - CPU Temp: {cpu_temperature}, Uptime: {uptime}, Upload: {upload}, Download: {download}, Active Processes: {active_processes}")
-    status.update({
-        "cpu_temperature": cpu_temperature,
-        "system_uptime": uptime,
-        "network_activity": {"upload": upload, "download": download},
-        "active_processes": active_processes
-    })
-    return jsonify({
-        "cpu_usage": cpu_usage,
-        "memory_usage": memory_usage,
-        "disk_usage": disk_usage,
-        "cpu_temperature": cpu_temperature,
-        "system_uptime": uptime,
-        "network_activity": {"upload": upload, "download": download},
-        "active_processes": active_processes
-    })
-
-@app.route('/status')
-def get_status():
-    return jsonify(status)
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
 
 @app.route('/summary')
-def get_summary():
-    now = datetime.now()
-    last_24_hours_movements_1 = [m for m in status["movements_sensor_1"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-    last_week_movements_1 = [m for m in status["movements_sensor_1"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-    last_month_movements_1 = [m for m in status["movements_sensor_1"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
+def summary():
+    return jsonify(get_summary())
 
-    last_24_hours_movements_2 = [m for m in status["movements_sensor_2"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(hours=24)]
-    last_week_movements_2 = [m for m in status["movements_sensor_2"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(weeks=1)]
-    last_month_movements_2 = [m for m in status["movements_sensor_2"] if datetime.strptime(m, "%Y-%m-%d %H:%M:%S") > now - timedelta(days=30)]
-    
-    summary = {
-        "sensor_1": {
-            "total_movements": len(status["movements_sensor_1"]),
-            "last_24_hours_movements": len(last_24_hours_movements_1),
-            "last_week_movements": len(last_week_movements_1),
-            "last_month_movements": len(last_month_movements_1),
-            "last_motion_time": status["movements_sensor_1"][-1] if status["movements_sensor_1"] else "No movements detected"
-        },
-        "sensor_2": {
-            "total_movements": len(status["movements_sensor_2"]),
-            "last_24_hours_movements": len(last_24_hours_movements_2),
-            "last_week_movements": len(last_week_movements_2),
-            "last_month_movements": len(last_month_movements_2),
-            "last_motion_time": status["movements_sensor_2"][-1] if status["movements_sensor_2"] else "No movements detected"
-        }
-    }
-    return jsonify(summary)
+@app.route('/movements')
+def movements():
+    return jsonify(get_last_10_movements())
 
 @app.route('/hourly_movements')
-def get_hourly_movements():
-    now = datetime.now()
-    hourly_movements_1 = {str(hour): 0 for hour in range(24)}
-    for movement in status["movements_sensor_1"]:
-        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
-        if movement_time.date() == now.date():
-            hour = movement_time.hour
-            hourly_movements_1[str(hour)] += 1
-
-    hourly_movements_2 = {str(hour): 0 for hour in range(24)}
-    for movement in status["movements_sensor_2"]:
-        movement_time = datetime.strptime(movement, "%Y-%m-%d %H:%M:%S")
-        if movement_time.date() == now.date():
-            hour = movement_time.hour
-            hourly_movements_2[str(hour)] += 1
-            
-    return jsonify({"sensor_1": hourly_movements_1, "sensor_2": hourly_movements_2})
+def hourly_movements():
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("SELECT strftime('%H', timestamp) as hour, COUNT(*) FROM movements GROUP BY hour")
+    hourly_movements = dict(c.fetchall())
+    conn.close()
+    return jsonify(hourly_movements)
 
 @app.route('/download/csv')
 def download_csv():
-    sensor_id = request.args.get('sensor_id', type=int)
-    if sensor_id == 24:
-        df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
-    elif sensor_id == 25:
-        df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
-    else:
-        return jsonify({"error": "Invalid sensor ID"}), 400
-
-    output = io.BytesIO()
-    df.to_csv(output, index_label="Index")
-    output.seek(0)
-    return send_file(output, mimetype='text/csv', download_name=f'movements_sensor_{sensor_id}.csv', as_attachment=True)
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute("SELECT * FROM movements")
+    data = c.fetchall()
+    conn.close()
+    with open('movements.csv', 'w') as f:
+        f.write('id,sensor,timestamp\n')
+        for row in data:
+            f.write(','.join(map(str, row)) + '\n')
+    return send_file('movements.csv', as_attachment=True)
 
 @app.route('/download/excel')
 def download_excel():
-    sensor_id = request.args.get('sensor_id', type=int)
-    if sensor_id == 24:
-        df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
-    elif sensor_id == 25:
-        df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
-    else:
-        return jsonify({"error": "Invalid sensor ID"}), 400
-
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index_label="Index")
-    output.seek(0)
-    return send_file(output, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name=f'movements_sensor_{sensor_id}.xlsx', as_attachment=True)
-
-def log_message(message, sensor):
-    global movement_detected_times
-    now = datetime.now()
-    current_time = now.strftime("%Y-%m-%d %H:%M:%S")
-    status["message"] = message
-    status["last_update"] = current_time
-    if "motion detected" in message.lower():
-        if sensor == 1:
-            status["movements_sensor_1"].append(current_time)
-        elif sensor == 2:
-            status["movements_sensor_2"].append(current_time)
-    print(f"{current_time} - {message} (Sensor {sensor})")
-
-def check_sensor():
-    global movement_detected_times, last_motion_time, last_power_check_time, power_check_status
-
-    while True:
-        current_state = machine.get_state()
-        current_time = time.time()
-
-        if current_state == "INIT":
-            log_message("Initializing...", 0)
-            machine.set_state("WAITING_FOR_MOTION")
-
-        elif current_state == "WAITING_FOR_MOTION":
-            sensor_input_1 = GPIO.input(SENSOR_PIN_1)
-            sensor_input_2 = GPIO.input(SENSOR_PIN_2)
-
-            # Update power check status
-            if current_time - last_power_check_time > power_check_interval:
-                last_power_check_time = current_time
-                power_check_status.append((current_time, sensor_input_1, sensor_input_2))
-                power_check_status = [status for status in power_check_status if current_time - status[0] <= power_check_window]
-
-                # Check if both PIRs have no power
-                if len(power_check_status) > 0 and all(status[1] == 0 and status[2] == 0 for status in power_check_status):
-                    log_message("Mailbox is open. (Both PIRs have no power)", 0)
-                    machine.set_state("MAILBOX_OPEN")
-
-            if sensor_input_1 == GPIO.HIGH:
-                handle_motion_detected(current_time, 1)
-            elif sensor_input_2 == GPIO.HIGH:
-                handle_motion_detected(current_time, 2)
-            else:
-                if last_motion_time and current_time - last_motion_time > no_motion_threshold:
-                    log_message("Mailbox is open. (No motion detected for threshold period)", 0)
-                    last_motion_time = None
-                    machine.set_state("MAILBOX_OPEN")
-
-        elif current_state == "MOTION_DETECTED":
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
-
-        elif current_state == "MAILBOX_OPEN":
-            time.sleep(2)  # Simulate processing time
-            machine.set_state("WAITING_FOR_MOTION")
-
-        time.sleep(1)
-
-def handle_motion_detected(current_time, sensor):
-    global movement_detected_times, last_motion_time
-    movement_detected_times.append(current_time)
-    movement_detected_times = [t for t in movement_detected_times if current_time - t <= 10]
-
-    if len(movement_detected_times) >= 2:
-        log_message("Motion detected! There is mail.", sensor)
-        movement_detected_times = []
-        last_motion_time = current_time
-        machine.set_state("MOTION_DETECTED")
-
-def cleanup_gpio():
-    GPIO.cleanup()
+    # Implement Excel file creation logic
+    pass
 
 if __name__ == '__main__':
-    try:
-        from threading import Thread
-        sensor_thread = Thread(target=check_sensor)
-        sensor_thread.start()
-        app.run(host='0.0.0.0', port=5000)
-    except KeyboardInterrupt:
-        cleanup_gpio()
-    except Exception as e:
-        print(f"Error: {e}")
-        cleanup_gpio()
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
