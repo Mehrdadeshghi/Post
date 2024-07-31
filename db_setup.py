@@ -8,7 +8,6 @@ cursor = conn.cursor()
 
 # Drop the movements table if it already exists
 cursor.execute("DROP TABLE IF EXISTS movements")
-cursor.execute("DROP TABLE IF EXISTS users")
 
 # Create the movements table
 cursor.execute('''
@@ -19,17 +18,8 @@ CREATE TABLE movements (
 )
 ''')
 
-# Create the users table
-cursor.execute('''
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
-)
-''')
-
 # Commit the changes and close the connection
 conn.commit()
 conn.close()
 
-print("Database and tables created successfully.")
+print("Database and table created successfully.")
