@@ -93,7 +93,7 @@
                     $('#last-10-movements').html(last10MovementsHtml);
 
                     // Update chart
-                    const labels = data.all_movements;
+                    const labels = data.all_movements.map(m => new Date(m));
                     const movementCounts = data.all_movements.map(() => 1);
 
                     console.log('Labels:', labels);
@@ -112,7 +112,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const ctx = document.getElementById('movementChart').getContext('2d');
             const movementData = {{ data.all_movements | tojson }};
-            const labels = movementData;
+            const labels = movementData.map(m => new Date(m));
             const data = {
                 labels: labels,
                 datasets: [{
