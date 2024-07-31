@@ -138,7 +138,7 @@ def index():
 
 @app.route('/controller/<ip>')
 def controller(ip):
-    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 23}]
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]
     return render_template('controller.html', sensors=sensors, controller_ip=ip)
 
 @app.route('/sensor/<sensor_name>')
