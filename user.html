@@ -101,7 +101,6 @@
                 <tr>
                     <th>#</th>
                     <th>Time</th>
-                    <th>Sensor</th>
                 </tr>
             </thead>
             <tbody id="movements-table-body"></tbody>
@@ -191,8 +190,8 @@
         }
 
         function updateChart(movements) {
-            const labels = movements.map((movement, index) => index + 1);
-            const dataPoints = movements.map(movement => new Date(movement.zeit).toLocaleTimeString());
+            const labels = movements.map(time => new Date(time).toLocaleTimeString());
+            const dataPoints = movements.map((time, index) => index + 1);
 
             if (movementChart) {
                 movementChart.data.labels = labels;
@@ -205,7 +204,7 @@
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Time of Movement',
+                            label: 'Movement Number',
                             data: dataPoints,
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 2,
@@ -219,8 +218,8 @@
                             tooltip: {
                                 callbacks: {
                                     label: function(tooltipItem) {
-                                        const formattedTime = tooltipItem.raw;
-                                        const movementNumber = tooltipItem.label;
+                                        const movementNumber = tooltipItem.raw;
+                                        const formattedTime = tooltipItem.label;
                                         return `Movement #${movementNumber}: ${formattedTime}`;
                                     }
                                 }
@@ -230,19 +229,17 @@
                             x: {
                                 title: {
                                     display: true,
-                                    text: 'Movement Number'
+                                    text: 'Time'
                                 }
                             },
                             y: {
                                 title: {
                                     display: true,
-                                    text: 'Time'
+                                    text: 'Movement Number'
                                 },
                                 ticks: {
-                                    beginAtZero: false,
-                                    callback: function(value) {
-                                        return new Date(value).toLocaleTimeString();
-                                    }
+                                    beginAtZero: true,
+                                    precision: 0
                                 }
                             }
                         }
@@ -274,9 +271,14 @@
                         }]
                     },
                     options: {
-                        indexAxis: 'y',  // Rotate the axes
                         scales: {
                             x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hour of the Day'
+                                }
+                            },
+                            y: {
                                 title: {
                                     display: true,
                                     text: 'Number of Movements'
@@ -284,12 +286,6 @@
                                 ticks: {
                                     beginAtZero: true,
                                     precision: 0
-                                }
-                            },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Hour of the Day'
                                 }
                             }
                         }
@@ -301,17 +297,14 @@
         function updateTable(movements) {
             const tableBody = document.getElementById('movements-table-body');
             tableBody.innerHTML = '';
-            movements.slice(-10).forEach((movement, index) => {
+            movements.slice(-10).forEach((time, index) => {
                 const row = document.createElement('tr');
                 const cellIndex = document.createElement('td');
                 const cellTime = document.createElement('td');
-                const cellSensor = document.createElement('td');
                 cellIndex.innerText = movements.length - 10 + index + 1;
-                cellTime.innerText = new Date(movement.zeit).toLocaleString();
-                cellSensor.innerText = movement.sensor;
+                cellTime.innerText = new Date(time).toLocaleString();
                 row.appendChild(cellIndex);
                 row.appendChild(cellTime);
-                row.appendChild(cellSensor);
                 tableBody.appendChild(row);
             });
         }
