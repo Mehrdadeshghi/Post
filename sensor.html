@@ -3,155 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Sensor Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
     <style>
-        .card-title {
-            font-size: 1.2rem;
-            font-weight: bold;
+        body {
+            padding-top: 20px;
         }
-        .card-text {
-            font-size: 1.1rem;
+        .container {
+            max-width: 800px;
         }
     </style>
 </head>
 <body>
-    <div class="container my-5">
-        <h1 class="mb-4 text-center">Sensor Dashboard for {{ sensor_name }}</h1>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card text-white bg-primary mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Total Movements</h5>
-                        <p class="card-text" id="total-movements">{{ data.total_movements }}</p>
-                    </div>
-                </div>
-                <div class="card text-white bg-success mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Last 24 Hours</h5>
-                        <p class="card-text" id="last-24h-movements">{{ data.last_24h_movements }}</p>
-                    </div>
-                </div>
-                <div class="card text-white bg-warning mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Last Week</h5>
-                        <p class="card-text" id="last-week-movements">{{ data.last_week_movements }}</p>
-                    </div>
-                </div>
-                <div class="card text-white bg-danger mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Last Month</h5>
-                        <p class="card-text" id="last-month-movements">{{ data.last_month_movements }}</p>
-                    </div>
-                </div>
-                <div class="card text-white bg-info mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Last Movement</h5>
-                        <p class="card-text" id="last-movement">{{ data.last_movement }}</p>
-                    </div>
-                </div>
+    <div class="container">
+        <h1 class="text-center">Sensor Details for {{ sensor_name }}</h1>
+        <div class="card mt-3">
+            <div class="card-body">
+                <p>Total Movements: {{ data.total_movements }}</p>
+                <p>Movements in Last 24 Hours: {{ data.last_24h_movements }}</p>
+                <p>Movements in Last Week: {{ data.last_week_movements }}</p>
+                <p>Movements in Last Month: {{ data.last_month_movements }}</p>
+                <p>Last Movement: {{ data.last_movement }}</p>
             </div>
-            <div class="col-md-9">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">Movement Trends</h5>
-                        <canvas id="movementChart"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Last 10 Movements</h5>
-                        <ul class="list-group" id="last-10-movements">
-                            {% for movement in data.last_10_movements %}
-                                <li class="list-group-item">{{ movement[0] }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <h3>Last 10 Movements</h3>
+                <ul>
+                    {% for movement in data.last_10_movements %}
+                        <li>{{ movement[0] }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-body">
+                <h3>Movement Graph</h3>
+                <canvas id="movementChart"></canvas>
             </div>
         </div>
     </div>
 
     <script>
-        function updateData() {
-            $.ajax({
-                url: '/api/movements/{{ sensor_name }}',
-                method: 'GET',
-                success: function(data) {
-                    $('#total-movements').text(data.total_movements);
-                    $('#last-24h-movements').text(data.last_24h_movements);
-                    $('#last-week-movements').text(data.last_week_movements);
-                    $('#last-month-movements').text(data.last_month_movements);
-                    $('#last-movement').text(data.last_movement);
-
-                    var last10MovementsHtml = '';
-                    data.last_10_movements.forEach(function(movement) {
-                        last10MovementsHtml += '<li class="list-group-item">' + movement[0] + '</li>';
-                    });
-                    $('#last-10-movements').html(last10MovementsHtml);
-
-                    // Update chart
-                    const labels = data.all_movements.map(m => new Date(m));
-                    const movementCounts = data.all_movements.map(() => 1);
-
-                    console.log('Labels:', labels);
-                    console.log('Movement Counts:', movementCounts);
-
-                    movementChart.data.labels = labels;
-                    movementChart.data.datasets[0].data = movementCounts;
-                    movementChart.update();
-                },
-                error: function(error) {
-                    console.error('Error fetching data:', error);
-                }
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('movementChart').getContext('2d');
-            const movementData = {{ data.all_movements | tojson }};
-            const labels = movementData.map(m => new Date(m));
-            const data = {
-                labels: labels,
+        var ctx = document.getElementById('movementChart').getContext('2d');
+        var movementChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Timestamps will go here
                 datasets: [{
-                    label: 'Movement',
-                    data: labels.map(() => 1),  // Each movement represents a count of 1
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    label: 'Movements',
+                    data: [], // Data points will go here
+                    borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
                 }]
-            };
-            const config = {
-                type: 'bar',
-                data: data,
-                options: {
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'minute',
-                                tooltipFormat: 'YYYY-MM-DD HH:mm:ss',
-                                displayFormats: {
-                                    'minute': 'HH:mm'
-                                }
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Movements'
-                            }
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute'
                         }
                     }
                 }
-            };
-            window.movementChart = new Chart(ctx, config);
+            }
+        });
 
-            // Update data every second
-            setInterval(updateData, 1000);
+        var socket = io();
+        socket.on('movement', function(data) {
+            if (data.sensor === '{{ sensor_name }}') {
+                var currentTime = new Date().toISOString();
+                movementChart.data.labels.push(currentTime);
+                movementChart.data.datasets[0].data.push(1); // 1 for a new movement
+                movementChart.update();
+            }
         });
     </script>
 </body>
