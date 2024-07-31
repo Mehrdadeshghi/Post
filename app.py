@@ -180,7 +180,7 @@ def download_csv():
     if sensor_id == 24:
         df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
     elif sensor_id == 25:
-        df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
+        df = pd.DataFrame(status["movements_sensor_2"], columns["Time"])
     else:
         return jsonify({"error": "Invalid sensor ID"}), 400
 
