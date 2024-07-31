@@ -28,10 +28,21 @@
     <script>
         async function selectSensor() {
             const sensorId = document.getElementById('sensorSelector').value;
-            const response = await fetch(`/movements/${sensorId}`);
-            const data = await response.json();
-            document.getElementById('sensorData').innerText = JSON.stringify(data, null, 2);
+            try {
+                const response = await fetch(`/movements/${sensorId}`);
+                if (!response.ok) {
+                    throw new Error(`Error fetching data for sensor ${sensorId}`);
+                }
+                const data = await response.json();
+                document.getElementById('sensorData').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('sensorData').innerText = 'Error fetching data';
+            }
         }
+
+        // Initial load
+        selectSensor();
     </script>
 </body>
 </html>
