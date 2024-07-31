@@ -147,9 +147,9 @@ def get_summary():
         },
         "sensor_2": {
             "total_movements": len(status["movements_sensor_2"]),
-            "last_24_hours_movements": len(last_24_hours_movements_2]),
-            "last_week_movements": len(last_week_movements_2]),
-            "last_month_movements": len(last_month_movements_2]),
+            "last_24_hours_movements": len(last_24_hours_movements_2),
+            "last_week_movements": len(last_week_movements_2),
+            "last_month_movements": len(last_month_movements_2),
             "last_motion_time": status["movements_sensor_2"][-1] if status["movements_sensor_2"] else "No movements detected"
         }
     }
