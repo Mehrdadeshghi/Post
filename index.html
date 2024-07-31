@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mailbox Monitoring</title>
+    <title>Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>Mailbox Monitoring</h1>
-    <h2>Controllers</h2>
-    <ul>
-        {% for controller in controllers %}
-            <li><a href="{{ url_for('controller', ip=controller.ip) }}">{{ controller.name }} ({{ controller.ip }})</a></li>
-        {% endfor %}
-    </ul>
+    <div class="container">
+        <h1 class="text-center">Dashboard</h1>
+        <div class="list-group mt-4">
+            {% for controller in controllers %}
+                <a href="/controller/{{ controller.ip }}" class="list-group-item list-group-item-action">
+                    {{ controller.name }} ({{ controller.ip }})
+                </a>
+            {% endfor %}
+        </div>
+    </div>
 </body>
 </html>
