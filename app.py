@@ -14,7 +14,7 @@ socketio = SocketIO(app)
 # Set up GPIO
 GPIO.setmode(GPIO.BCM)
 PIR_PIN_1 = 25
-PIR_PIN_2 = 24  # Geändert von 23 zu 24
+PIR_PIN_2 = 24
 GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
@@ -146,7 +146,7 @@ def index():
 
 @app.route('/controller/<ip>')
 def controller(ip):
-    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]  # Geändert von 23 zu 24
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 24}]
     return render_template('controller.html', sensors=sensors, controller_ip=ip)
 
 @app.route('/sensor/<sensor_name>')
