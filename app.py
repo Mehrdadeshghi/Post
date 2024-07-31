@@ -147,9 +147,9 @@ def get_summary():
         },
         "sensor_2": {
             "total_movements": len(status["movements_sensor_2"]),
-            "last_24_hours_movements": len(last_24_hours_movements_2),
-            "last_week_movements": len(last_week_movements_2),
-            "last_month_movements": len(last_month_movements_2),
+            "last_24_hours_movements": len(last_24_hours_movements_2]),
+            "last_week_movements": len(last_week_movements_2]),
+            "last_month_movements": len(last_month_movements_2]),
             "last_motion_time": status["movements_sensor_2"][-1] if status["movements_sensor_2"] else "No movements detected"
         }
     }
@@ -180,7 +180,7 @@ def download_csv():
     if sensor_id == 24:
         df = pd.DataFrame(status["movements_sensor_1"], columns=["Time"])
     elif sensor_id == 25:
-        df = pd.DataFrame(status["movements_sensor_2"], columns["Time"])
+        df = pd.DataFrame(status["movements_sensor_2"], columns=["Time"])
     else:
         return jsonify({"error": "Invalid sensor ID"}), 400
 
