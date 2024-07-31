@@ -18,20 +18,9 @@
             </label>
             <span>Dark Mode</span>
         </div>
-        <select id="sensorSelector" class="form-control" onchange="selectSensor()">
-            <option value="1">Sensor 1</option>
-            <option value="2">Sensor 2</option>
-        </select>
-        <div id="sensorData"></div>
+        <button onclick="window.location.href='/management'" class="btn btn-primary">Management</button>
+        <button onclick="window.location.href='/user'" class="btn btn-primary">User</button>
     </div>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-    <script>
-        async function selectSensor() {
-            const sensorId = document.getElementById('sensorSelector').value;
-            const response = await fetch(`/movements/${sensorId}`);
-            const data = await response.json();
-            document.getElementById('sensorData').innerText = JSON.stringify(data, null, 2);
-        }
-    </script>
 </body>
 </html>
