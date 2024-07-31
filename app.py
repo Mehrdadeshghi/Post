@@ -1,26 +1,104 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import RPi.GPIO as GPIO
 import time
 import threading
 import sqlite3
 import datetime
-from datetime import timedelta
 import psutil
 from flask_socketio import SocketIO, emit
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sensors.db'
+db = SQLAlchemy(app)
 socketio = SocketIO(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-# Set up GPIO
-GPIO.setmode(GPIO.BCM)
-PIR_PIN_1 = 25
-PIR_PIN_2 = 23
-GPIO.setup(PIR_PIN_1, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+# User model
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
-# Global variables to store mailbox states
-mailbox_1_state = "No Mail"
-mailbox_2_state = "No Mail"
+# Create the database and the User table if they don't exist
+db.create_all()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash('Login Unsuccessful. Please check username and password', 'danger')
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        hashed_password = generate_password_hash(password, method='sha256')
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('Your account has been created!', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+@app.route('/')
+@login_required
+def index():
+    controllers = [{"ip": "192.168.178.82", "name": "Controller 1"}]
+    return render_template('index.html', controllers=controllers)
+
+@app.route('/controller/<ip>')
+@login_required
+def controller(ip):
+    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 23}]
+    return render_template('controller.html', sensors=sensors, controller_ip=ip)
+
+@app.route('/sensor/<sensor_name>')
+@login_required
+def sensor(sensor_name):
+    data = get_aggregated_data(sensor_name)
+    return render_template('sensor.html', sensor_name=sensor_name, data=data)
+
+@app.route('/api/movements/<sensor_name>')
+@login_required
+def api_movements(sensor_name):
+    data = get_aggregated_data(sensor_name)
+    return jsonify(data)
+
+@app.route('/api/system_info')
+@login_required
+def api_system_info():
+    data = get_system_info()
+    return jsonify(data)
+
+@app.route('/system_info/<ip>')
+@login_required
+def system_info(ip):
+    data = get_system_info()
+    return render_template('system_info.html', controller_ip=ip, data=data)
 
 def monitor_mailboxes():
     global mailbox_1_state, mailbox_2_state
@@ -129,36 +207,5 @@ def get_system_info():
         "active_processes": len(psutil.pids())
     }
 
-@app.route('/')
-def index():
-    controllers = [{"ip": "192.168.178.82", "name": "Controller 1"}]
-    return render_template('index.html', controllers=controllers)
-
-@app.route('/controller/<ip>')
-def controller(ip):
-    sensors = [{"name": "Mehrdad", "pin": 25}, {"name": "Rezvaneh", "pin": 23}]
-    return render_template('controller.html', sensors=sensors, controller_ip=ip)
-
-@app.route('/sensor/<sensor_name>')
-def sensor(sensor_name):
-    data = get_aggregated_data(sensor_name)
-    return render_template('sensor.html', sensor_name=sensor_name, data=data)
-
-@app.route('/api/movements/<sensor_name>')
-def api_movements(sensor_name):
-    data = get_aggregated_data(sensor_name)
-    return jsonify(data)
-
-@app.route('/api/system_info')
-def api_system_info():
-    data = get_system_info()
-    return jsonify(data)
-
-@app.route('/system_info/<ip>')
-def system_info(ip):
-    data = get_system_info()
-    return render_template('system_info.html', controller_ip=ip, data=data)
-
-# Start socketio statt app
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
