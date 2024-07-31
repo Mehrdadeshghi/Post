@@ -2,3 +2,5 @@ Flask
 flask_socketio
 psutil
 RPi.GPIO
+Flask-SQLAlchemy
+Flask-Login
