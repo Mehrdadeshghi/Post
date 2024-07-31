@@ -63,20 +63,17 @@
         .slider.round:before {
             border-radius: 50%;
         }
-        #sensorData {
-            white-space: pre-wrap;
-            background-color: #ffffff;
-            padding: 20px;
-            border: 1px solid #dee2e6;
-            border-radius: 10px;
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
             margin-top: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center">Select Dashboard</h1>
+        <h1 class="text-center">Select GPIO</h1>
         <div class="theme-switch-wrapper">
             <span>Light Mode</span>
             <label class="theme-switch" for="checkbox">
@@ -85,35 +82,11 @@
             </label>
             <span>Dark Mode</span>
         </div>
-        <div class="form-group">
-            <label for="sensorSelector">Choose Sensor:</label>
-            <select id="sensorSelector" class="form-control" onchange="selectSensor()">
-                <option value="1">Sensor 1</option>
-                <option value="2">Sensor 2</option>
-            </select>
+        <div class="btn-container">
+            <a class="btn btn-primary" href="/sensor/24">GPIO 24</a>
+            <a class="btn btn-primary" href="/sensor/25">GPIO 25</a>
         </div>
-        <div id="sensorData" class="mt-4"></div>
     </div>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-    <script>
-        async function selectSensor() {
-            const sensorId = document.getElementById('sensorSelector').value;
-            try {
-                const response = await fetch(`/movements/${sensorId}`);
-                if (!response.ok) {
-                    throw new Error(`Error fetching data for sensor ${sensorId}`);
-                }
-                const data = await response.json();
-                console.log(`Data for sensor ${sensorId}:`, data);
-                document.getElementById('sensorData').innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('sensorData').innerText = 'Error fetching data';
-            }
-        }
-
-        // Initial load
-        selectSensor();
-    </script>
 </body>
 </html>
