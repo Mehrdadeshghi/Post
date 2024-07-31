@@ -4,7 +4,6 @@ import time
 import threading
 import sqlite3
 import datetime
-from datetime import timedelta
 import psutil
 from flask_socketio import SocketIO, emit
 
@@ -21,6 +20,23 @@ GPIO.setup(PIR_PIN_2, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 # Global variables to store sensor states
 sensor_1_state = "Inactive"
 sensor_2_state = "Inactive"
+
+# Ensure database and table are created
+def init_db():
+    conn = sqlite3.connect('sensors.db')
+    c = conn.cursor()
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS movements (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            sensor TEXT NOT NULL,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Initialize the database
+init_db()
 
 def monitor_sensors():
     global sensor_1_state, sensor_2_state
