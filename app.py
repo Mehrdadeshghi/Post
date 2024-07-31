@@ -131,7 +131,7 @@ def get_system_info():
         "system_name": "Raspberry Pi",
         "system_ip": "192.168.178.82",
         "system_uptime": str(uptime),
-        "cpu_temp": cpu_temp,
+        "cpu_temp": cpu_temp if cpu_temp is not None else "N/A",
         "cpu_usage": psutil.cpu_percent(interval=1),
         "memory_usage": psutil.virtual_memory().percent,
         "disk_usage": psutil.disk_usage('/').percent,
