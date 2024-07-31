@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mailbox Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .container {
+            margin-top: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .theme-switch-wrapper .slider {
+            cursor: pointer;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .card-deck {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .download-buttons {
+            margin-top: 20px;
+        }
+        footer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mailbox Dashboard</h1>
+            <div class="theme-switch-wrapper">
+                <span>Light Mode</span>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox">
+                    <div class="slider round"></div>
+                </label>
+                <span>Dark Mode</span>
+            </div>
+        </div>
+        <div class="card-deck">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Movements</h5>
+                    <p id="total_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last 24 Hours Movements</h5>
+                    <p id="last_24_hours_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Week Movements</h5>
+                    <p id="last_week_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Month Movements</h5>
+                    <p id="last_month_movements" class="card-text">0</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Last Motion Time</h5>
+                    <p id="last_motion_time" class="card-text">No movements detected</p>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="movementChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+        <h2>Last 10 Movements</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body"></tbody>
+        </table>
+        <div class="download-buttons">
+            <button class="btn btn-primary" onclick="window.location.href='/download/csv'">Download CSV</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/excel'">Download Excel</button>
+        </div>
+        <footer class="text-center mt-4">
+            <p>&copy; 2024 Mailbox Dashboard. All rights reserved.</p>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{{ url_for('static', filename='js/sensor.js') }}"></script>
+</body>
+</html>
