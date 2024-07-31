@@ -3,19 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controller Details</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Controller {{ controller_ip }}</title>
 </head>
 <body>
-    <div class="container">
-        <h1 class="text-center">Controller Details for {{ controller_ip }}</h1>
-        <div class="list-group mt-4">
-            {% for sensor in sensors %}
-                <a href="/sensor/{{ sensor.name }}" class="list-group-item list-group-item-action">
-                    {{ sensor.name }} (Pin {{ sensor.pin }})
-                </a>
-            {% endfor %}
-        </div>
-    </div>
+    <h1>Controller {{ controller_ip }}</h1>
+    <h2>Sensors</h2>
+    <ul>
+        {% for sensor in sensors %}
+            <li><a href="/sensor/{{ sensor.name }}">{{ sensor.name }} (GPIO {{ sensor.pin }})</a></li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
