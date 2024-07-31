@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Info</title>
+    <title>System Information</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>System Info for Controller {{ controller_ip }}</h1>
-    <p>System Name: {{ data.system_name }}</p>
-    <p>System IP: {{ data.system_ip }}</p>
-    <p>System Uptime: {{ data.system_uptime }}</p>
-    <p>CPU Temperature: {{ data.cpu_temp }}°C</p>
-    <p>CPU Usage: {{ data.cpu_usage }}%</p>
-    <p>Memory Usage: {{ data.memory_usage }}%</p>
-    <p>Disk Usage: {{ data.disk_usage }}%</p>
-    <p>Network Upload: {{ data.network_upload }} bytes</p>
-    <p>Network Download: {{ data.network_download }} bytes</p>
-    <p>Active Processes: {{ data.active_processes }}</p>
+    <div class="container">
+        <h1 class="text-center">System Information for {{ controller_ip }}</h1>
+        <div class="card mt-3">
+            <div class="card-body">
+                <p>System Name: {{ data.system_name }}</p>
+                <p>IP Address: {{ data.system_ip }}</p>
+                <p>Uptime: {{ data.system_uptime }}</p>
+                <p>CPU Temperature: {{ data.cpu_temp }} °C</p>
+                <p>CPU Usage: {{ data.cpu_usage }}%</p>
+                <p>Memory Usage: {{ data.memory_usage }}%</p>
+                <p>Disk Usage: {{ data.disk_usage }}%</p>
+                <p>Network Upload: {{ data.network_upload }} bytes</p>
+                <p>Network Download: {{ data.network_download }} bytes</p>
+                <p>Active Processes: {{ data.active_processes }}</p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
