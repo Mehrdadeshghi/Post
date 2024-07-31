@@ -4,42 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sensor Details</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Sensor Details for <span id="sensorName">{{ sensor_name }}</span></h1>
-        <div class="alert info">
-            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span> 
-            <strong>Info!</strong> Data updates every second.
-        </div>
-        <table>
-            <tr>
-                <th>Total Movements</th>
-                <td id="total_movements">{{ data.total_movements }}</td>
-            </tr>
-            <tr>
-                <th>Movements in Last 24 Hours</th>
-                <td id="last_24h_movements">{{ data.last_24h_movements }}</td>
-            </tr>
-            <tr>
-                <th>Movements in Last Week</th>
-                <td id="last_week_movements">{{ data.last_week_movements }}</td>
-            </tr>
-            <tr>
-                <th>Movements in Last Month</th>
-                <td id="last_month_movements">{{ data.last_month_movements }}</td>
-            </tr>
-            <tr>
-                <th>Last Movement</th>
-                <td id="last_movement">{{ data.last_movement }}</td>
-            </tr>
-        </table>
-        <div class="chart-container">
-            <canvas id="sensorChart"></canvas>
-        </div>
-    </div>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <h1>Sensor Details for {{ sensor_name }}</h1>
+    <p>Total Movements: {{ data.total_movements }}</p>
+    <p>Movements in Last 24 Hours: {{ data.last_24h_movements }}</p>
+    <p>Movements in Last Week: {{ data.last_week_movements }}</p>
+    <p>Movements in Last Month: {{ data.last_month_movements }}</p>
+    <p>Last Movement: {{ data.last_movement }}</p>
+    <h3>Last 10 Movements</h3>
+    <ul>
+        {% for movement in data.last_10_movements %}
+            <li>{{ movement[0] }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
