@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Server-URL
-SERVER_URL="http://45.149.78.188:8080/update"
+SERVER_URL="http://45.149.78.188:8000/update"
 
 # Funktion, um zu prüfen, ob eine Internetverbindung besteht
 check_internet() {
@@ -21,8 +21,8 @@ get_public_ip() {
 # Funktion, um den Netzwerkverkehr zu messen
 get_traffic() {
     # Nimm an, dass eth0 das Netzwerkinterface ist
-    RX_BYTES=$(ifconfig eth0 | grep 'RX bytes' | awk '{print $2}' | cut -d':' -f2)
-    TX_BYTES=$(ifconfig eth0 | grep 'TX bytes' | awk '{print $6}' | cut -d':' -f2)
+    RX_BYTES=$(ifconfig eth0 | grep 'RX packets' | awk '{print $5}')
+    TX_BYTES=$(ifconfig eth0 | grep 'TX packets' | awk '{print $5}')
     echo "$RX_BYTES $TX_BYTES"
 }
 
