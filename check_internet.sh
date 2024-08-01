@@ -13,16 +13,22 @@ check_internet() {
     fi
 }
 
+# Funktion, um die öffentliche IP-Adresse zu ermitteln
+get_public_ip() {
+    curl -s http://checkip.amazonaws.com
+}
+
 # Funktion, um Systeminformationen zu sammeln
 get_system_info() {
     HOSTNAME=$(hostname)
     IP_ADDRESS=$(hostname -I | awk '{print $1}')
+    PUBLIC_IP=$(get_public_ip)
     UPTIME=$(uptime -p)
     LOAD=$(uptime | awk -F 'load average:' '{ print $2 }')
     MEMORY=$(free -m | grep Mem | awk '{ print $3 "/" $2 " MB" }')
     DISK=$(df -h / | grep / | awk '{ print $3 "/" $2 }')
 
-    echo "hostname=$HOSTNAME&ip=$IP_ADDRESS&status=$(check_internet)&uptime=$UPTIME&load=$LOAD&memory=$MEMORY&disk=$DISK"
+    echo "hostname=$HOSTNAME&ip=$IP_ADDRESS&public_ip=$PUBLIC_IP&status=$(check_internet)&uptime=$UPTIME&load=$LOAD&memory=$MEMORY&disk=$DISK"
 }
 
 # Funktion, um den Status an den Server zu senden
