@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Server-URL
-SERVER_URL="http://45.149.78.188:8000/update"
+SERVER_URL="http://45.149.78.188:8080/update"
 
 # Funktion, um zu prüfen, ob eine Internetverbindung besteht
 check_internet() {
