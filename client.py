@@ -16,12 +16,11 @@ def register_with_server():
             response = requests.post(SERVER_URL, json=device_info)
             if response.status_code == 200:
                 print('Successfully registered with the server')
-                break
             else:
                 print(f'Failed to register: {response.status_code}')
         except Exception as e:
             print(f'Error: {e}')
-        time.sleep(60)  # Wiederhole alle 60 Sekunden bei Fehler
+        time.sleep(60)  # Melde jede Minute
 
 if __name__ == '__main__':
     register_with_server()
