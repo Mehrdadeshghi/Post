@@ -1,37 +1,31 @@
-import requests
-import json
-from datetime import datetime
+from influxdb_client import InfluxDBClient, Point
+from influxdb_client.client.write_api import SYNCHRONOUS
+import random
+import time
 
-# API Key und Server-URL
-API_KEY = 'Ihr_API_Schlüssel'
-SERVER_URL = 'http://45.149.78.188/api/datasources/proxy/1/push'
+# Details für den InfluxDB-Server
+url = "http://45.149.78.188:8086"
+username = "myuser"
+password = "mypassword"
+bucket = "mydatabase"
 
-# Beispiel-Daten
-data = {
-    "streams": [
-        {
-            "labels": "{job=\"raspberry_pi\"}",
-            "entries": [
-                {
-                    "ts": datetime.utcnow().isoformat() + "Z",
-                    "line": "temperature=30.5"
-                }
-            ]
-        }
-    ]
-}
+# Erstellen der Verbindung
+client = InfluxDBClient(url=url, username=username, password=password, org="")
 
-# Header für die API-Anfrage
-headers = {
-    'Content-Type': 'application/json',
-    'Authorization': f'Bearer {API_KEY}'
-}
+# API für das Schreiben von Daten
+write_api = client.write_api(write_options=SYNCHRONOUS)
 
-# Daten an den Server senden
-response = requests.post(SERVER_URL, headers=headers, data=json.dumps(data))
+while True:
+    # Simulierte Sensordaten
+    temperature = random.uniform(20.0, 25.0)
+    humidity = random.uniform(30.0, 50.0)
 
-# Ergebnis überprüfen
-if response.status_code == 204:
-    print("Daten erfolgreich gesendet")
-else:
-    print(f"Fehler beim Senden der Daten: {response.status_code}, {response.text}")
+    point = Point("environment") \
+        .tag("location", "RaspberryPi") \
+        .field("temperature", temperature) \
+        .field("humidity", humidity)
+
+    write_api.write(bucket=bucket, org="", record=point)
+    print(f"Gesendete Daten: Temperatur={temperature}, Feuchtigkeit={humidity}")
+    
+    time.sleep(10)  # Daten alle 10 Sekunden senden
