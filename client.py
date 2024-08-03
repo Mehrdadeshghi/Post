@@ -17,6 +17,16 @@ def get_local_ip():
         s.close()
     return ip
 
+def get_cpu_temp():
+    try:
+        # Versuchen Sie, die CPU-Temperatur vom Raspberry Pi zu lesen
+        with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
+            temp = int(f.read()) / 1000.0
+        return temp
+    except FileNotFoundError:
+        # Fallback, wenn die Datei nicht existiert
+        return "N/A"
+
 def get_device_info():
     hostname = socket.gethostname()
     local_ip_address = get_local_ip()
@@ -28,7 +38,7 @@ def get_device_info():
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
     net_io = psutil.net_io_counters()
-    cpu_temp = psutil.sensors_temperatures().get('cpu-thermal', [{}])[0].get('current', 'N/A')
+    cpu_temp = get_cpu_temp()
 
     return {
         'hostname': hostname,
