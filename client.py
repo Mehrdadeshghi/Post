@@ -6,8 +6,9 @@ SERVER_URL = 'http://45.149.78.188:8082/register'  # URL des Servers zum Registr
 
 def get_device_info():
     hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
-    return {'hostname': hostname, 'ip': ip_address}
+    local_ip_address = socket.gethostbyname(hostname)
+    public_ip_address = requests.get('https://api.ipify.org').text
+    return {'hostname': hostname, 'local_ip': local_ip_address, 'public_ip': public_ip_address}
 
 def register_with_server():
     while True:
