@@ -27,13 +27,20 @@ def get_cpu_temp():
         # Fallback, wenn die Datei nicht existiert
         return "N/A"
 
+def format_uptime(seconds):
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    return f"{days}d {hours}h {minutes}m {seconds}s"
+
 def get_device_info():
     hostname = socket.gethostname()
     local_ip_address = get_local_ip()
     public_ip_address = requests.get('https://api.ipify.org').text
 
     # Systeminformationen erfassen
-    uptime = time.time() - psutil.boot_time()
+    uptime_seconds = time.time() - psutil.boot_time()
+    uptime = format_uptime(uptime_seconds)
     load = psutil.getloadavg()
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage('/')
