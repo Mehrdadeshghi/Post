@@ -102,7 +102,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <td>{controller['public_ip']}</td>
                             <td>
                                 <a href="/systeminfo?id={controller['hostname']}" class="system-info-button">System Info</a>
-                                <a href="http://{controller['public_ip']}:5000" target="_blank" class="flask-link-button">Go to Flask</a>
+                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="flask-link-button">Go to Flask</a>
                             </td>
                         </tr>
                 """
