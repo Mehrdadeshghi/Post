@@ -14,7 +14,7 @@ def scan_pins():
     for pin in pins:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         status = GPIO.input(pin)
-        if status:  # Only include pins that are HIGH (belegt)
+        if status == GPIO.HIGH:
             pin_status[pin] = 'HIGH'
     return pin_status
 
