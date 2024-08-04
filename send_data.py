@@ -57,6 +57,9 @@ prev_download = net_io.bytes_recv
 hostname = socket.gethostname()
 public_ip = get_public_ip()
 
+print(f"Hostname: {hostname}")
+print(f"Public IP: {public_ip}")
+
 while True:
     # CPU-Auslastung in Prozent
     cpu_usage = psutil.cpu_percent(interval=1)
@@ -120,8 +123,9 @@ while True:
     ]
 
     try:
+        print(f"Sending data to InfluxDB: {json_body}")
         client.write_points(json_body)
-        print(f"Gesendete Systemdaten: {json_body}")
+        print("Data sent successfully")
     except Exception as e:
         print(f"Fehler beim Senden der Daten an InfluxDB: {e}")
     
