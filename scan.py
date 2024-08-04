@@ -14,7 +14,8 @@ def scan_pins():
     for pin in pins:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         status = GPIO.input(pin)
-        pin_status[pin] = 'HIGH' if status else 'LOW'
+        if status:  # Only include pins that are HIGH (belegt)
+            pin_status[pin] = 'HIGH'
     return pin_status
 
 @app.route('/')
