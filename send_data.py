@@ -2,9 +2,11 @@ import psutil
 import time
 from influxdb import InfluxDBClient
 import datetime
+import socket
+import requests
 
 # InfluxDB-Verbindungsdetails
-url = "45.149.78.188"
+url = "http://45.149.78.188"
 port = 8086
 username = "myuser"
 password = "mypassword"
@@ -21,10 +23,31 @@ def get_cpu_temp():
     except FileNotFoundError:
         return None
 
+# Funktion zur Abfrage der öffentlichen IP-Adresse
+def get_public_ip():
+    try:
+        response = requests.get('https://api.ipify.org')
+        return response.text
+    except requests.RequestException:
+        return None
+
+# Funktion zur Abfrage des aktuellen Stromverbrauchs (Beispiel)
+def get_power_consumption():
+    try:
+        with open('/sys/class/power_supply/energy_now', 'r') as f:
+            power = f.readline()
+        return float(power) / 1000000.0  # Umrechnung in Watt
+    except FileNotFoundError:
+        return None
+
 # Initialwerte für die Netzwerkschnittstelle
 net_io = psutil.net_io_counters()
 prev_upload = net_io.bytes_sent
 prev_download = net_io.bytes_recv
+
+# Hostname und öffentliche IP-Adresse
+hostname = socket.gethostname()
+public_ip = get_public_ip()
 
 while True:
     # CPU-Auslastung in Prozent
@@ -59,12 +82,16 @@ while True:
     
     # Formatieren der Uptime für eine lesbare Ausgabe
     uptime_str = str(datetime.timedelta(seconds=uptime_seconds))
+    
+    # Aktueller Stromverbrauch in Watt
+    power_consumption = get_power_consumption()
 
     json_body = [
         {
             "measurement": "system",
             "tags": {
-                "host": "RaspberryPi"
+                "host": hostname,
+                "public_ip": public_ip
             },
             "fields": {
                 "cpu_usage": cpu_usage,
@@ -78,7 +105,8 @@ while True:
                 "total_upload": upload / (1024 * 1024),  # MB
                 "total_download": download / (1024 * 1024),  # MB
                 "uptime_seconds": uptime_seconds,
-                "uptime_str": uptime_str
+                "uptime_str": uptime_str,
+                "power_consumption": power_consumption  # Watt
             }
         }
     ]
