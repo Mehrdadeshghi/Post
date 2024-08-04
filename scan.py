@@ -49,7 +49,7 @@ def index():
 @app.route('/sensor/<int:gpio>')
 def sensor(gpio):
     sensor_data = get_sensor_data(gpio)
-    return render_template('werte.html', gpio=gpio, data=sensor_data)
+    return render_template('werte.html', gpio=gpio, data=sensor_data, enumerate=enumerate)
 
 @app.route('/movements/<int:gpio>')
 def movements(gpio):
