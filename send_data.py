@@ -2,6 +2,8 @@ import psutil
 import time
 from influxdb import InfluxDBClient
 import datetime
+import socket
+import requests
 
 # InfluxDB-Verbindungsdetails
 url = "45.149.78.188"
@@ -19,12 +21,57 @@ def get_cpu_temp():
             temp = f.readline()
         return float(temp) / 1000.0
     except FileNotFoundError:
+        print("CPU temperature file not found.")
+        return None
+
+# Funktion zur Abfrage der öffentlichen IP-Adresse
+def get_public_ip():
+    ip_services = [
+        'https://api.ipify.org',
+        'https://ifconfig.me',
+        'https://api64.ipify.org'
+    ]
+    for service in ip_services:
+        try:
+            response = requests.get(service)
+            if response.status_code == 200:
+                return response.text
+        except requests.RequestException:
+            print(f"Failed to get public IP from {service}")
+            continue
+    return None
+
+# Funktion zur Abfrage des aktuellen Stromverbrauchs (Beispiel)
+def get_power_consumption():
+    try:
+        with open('/sys/class/power_supply/energy_now', 'r') as f:
+            power = f.readline()
+        return float(power) / 1000000.0  # Umrechnung in Watt
+    except FileNotFoundError:
+        print("Power consumption file not found.")
+        return None
+
+# Funktion zur Abfrage der aktuellen Spannung (Beispiel)
+def get_voltage():
+    try:
+        with open('/sys/class/power_supply/voltage_now', 'r') as f:
+            voltage = f.readline()
+        return float(voltage) / 1000000.0  # Umrechnung in Volt
+    except FileNotFoundError:
+        print("Voltage file not found.")
         return None
 
 # Initialwerte für die Netzwerkschnittstelle
 net_io = psutil.net_io_counters()
 prev_upload = net_io.bytes_sent
 prev_download = net_io.bytes_recv
+
+# Hostname und öffentliche IP-Adresse
+hostname = socket.gethostname()
+public_ip = get_public_ip()
+
+print(f"Hostname: {hostname}")
+print(f"Public IP: {public_ip}")
 
 while True:
     # CPU-Auslastung in Prozent
@@ -59,12 +106,19 @@ while True:
     
     # Formatieren der Uptime für eine lesbare Ausgabe
     uptime_str = str(datetime.timedelta(seconds=uptime_seconds))
+    
+    # Aktueller Stromverbrauch in Watt
+    power_consumption = get_power_consumption()
+    
+    # Aktuelle Spannung in Volt
+    voltage = get_voltage()
 
     json_body = [
         {
             "measurement": "system",
             "tags": {
-                "host": "RaspberryPi"
+                "host": hostname,
+                "public_ip": public_ip
             },
             "fields": {
                 "cpu_usage": cpu_usage,
@@ -78,14 +132,17 @@ while True:
                 "total_upload": upload / (1024 * 1024),  # MB
                 "total_download": download / (1024 * 1024),  # MB
                 "uptime_seconds": uptime_seconds,
-                "uptime_str": uptime_str
+                "uptime_str": uptime_str,
+                "power_consumption": power_consumption,  # Watt
+                "voltage": voltage  # Volt
             }
         }
     ]
 
     try:
+        print(f"Sending data to InfluxDB: {json_body}")
         client.write_points(json_body)
-        print(f"Gesendete Systemdaten: {json_body}")
+        print("Data sent successfully")
     except Exception as e:
         print(f"Fehler beim Senden der Daten an InfluxDB: {e}")
     
