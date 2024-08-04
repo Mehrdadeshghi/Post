@@ -1,29 +1,23 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>PIR Sensor Status</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>PIR Sensor Status</h1>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>GPIO Pin</th>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPIO Pin Status</title>
+</head>
+<body>
+    <h1>GPIO Pin Status</h1>
+    <table border="1">
+        <tr>
+            <th>Pin</th>
             <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for pin, state in sensor_states.items() %}
-          <tr>
+        </tr>
+        {% for pin, status in pin_status.items() %}
+        <tr>
             <td>{{ pin }}</td>
-            <td>{{ 'Bewegung erkannt' if state == 1 else 'Keine Bewegung' if state == 0 else state }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </body>
+            <td>{{ status }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
 </html>
