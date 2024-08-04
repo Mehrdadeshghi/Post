@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Data for GPIO {{ gpio }}</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #2c3e50;
+            color: white;
+            padding-top: 20px;
+            width: 220px;
+        }
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            display: block;
+        }
+        .sidebar a:hover {
+            background-color: #34495e;
+        }
+        .content {
+            margin-left: 220px;
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .download-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            color: #343a40;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #343a40;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="text-center mb-4">
+            <h2>Mailbox Dashboard</h2>
+        </div>
+        <a href="/">Home</a>
+        {% for pin in [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 21, 20, 16, 12, 7, 8, 25, 24, 23, 18, 15, 14] %}
+        <a href="/sensor/{{ pin }}">GPIO {{ pin }}</a>
+        {% endfor %}
+    </div>
+    <div class="content">
+        <div class="header">
+            <h1>Sensor Data for GPIO {{ gpio }}</h1>
+            <div class="theme-switch-wrapper">
+                <span>Light Mode</span>
+                <label class="theme-switch" for="checkbox">
+                    <input type="checkbox" id="checkbox">
+                    <div class="slider round"></div>
+                </label>
+                <span>Dark Mode</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">Total Movements</h5>
+                        <p id="total_movements" class="card-text">{{ data.total_movements }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">Last 24 Hours Movements</h5>
+                        <p id="last_24_hours_movements" class="card-text">{{ data.last_24_hours_movements }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Last Week Movements</h5>
+                        <p id="last_week_movements" class="card-text">{{ data.last_week_movements }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card text-white bg-danger">
+                    <div class="card-body">
+                        <h5 class="card-title">Last Month Movements</h5>
+                        <p id="last_month_movements" class="card-text">{{ data.last_month_movements }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">Last Motion Time</h5>
+                        <p id="last_motion_time" class="card-text">{{ data.last_motion_time }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="movementChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="hourlyChart"></canvas>
+        </div>
+        <h2>Last 10 Movements</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody id="movements-table-body">
+                {% for i, movement in enumerate(data.movements) %}
+                <tr>
+                    <td>{{ i + 1 }}</td>
+                    <td>{{ movement }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="download-buttons">
+            <button class="btn btn-primary" onclick="window.location.href='/download/csv?sensor_id={{ gpio }}'">Download CSV</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/excel?sensor_id={{ gpio }}'">Download Excel</button>
+        </div>
+        <footer class="footer mt-4">
+            <p>&copy; 2024 Mailbox Dashboard. All rights reserved. | <a href="#">Privacy Policy</a></p>
+        </footer>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+        const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+        if (currentTheme) {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            if (currentTheme === 'dark') {
+                toggleSwitch.checked = true;
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        toggleSwitch.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                document.body.classList.add('dark-mode');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+                document.body.classList.remove('dark-mode');
+            }
+        });
+
+        let movementChart;
+        let hourlyChart;
+        const gpio = {{ gpio }};
+
+        async function fetchSensorData() {
+            try {
+                const response = await fetch(`/movements/${gpio}`);
+                if (!response.ok) {
+                    throw new Error(`Error fetching data for GPIO ${gpio}`);
+                }
+                const data = await response.json();
+                updateSummary(data);
+                updateChart(data);
+                updateHourlyMovements(data);
+                updateTable(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('sensorData').innerText = 'Error fetching data';
+            }
+        }
+
+        function updateSummary(data) {
+            document.getElementById('total_movements').innerText = data.length;
+            const last24HoursMovements = data.filter(movement => new Date(movement) > new Date(Date.now() - 24 * 60 * 60 * 1000)).length;
+            const lastWeekMovements = data.filter(movement => new Date(movement) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length;
+            const lastMonthMovements = data.filter(movement => new Date(movement) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
+            document.getElementById('last_24_hours_movements').innerText = last24HoursMovements;
+            document.getElementById('last_week_movements').innerText = lastWeekMovements;
+            document.getElementById('last_month_movements').innerText = lastMonthMovements;
+            document.getElementById('last_motion_time').innerText = data.length > 0 ? new Date(data[data.length - 1]).toLocaleString() : "No movements detected";
+        }
+
+        function updateChart(movements) {
+            const labels = movements.map(time => new Date(time).toLocaleTimeString());
+            const dataPoints = movements.map((time, index) => index + 1);
+
+            if (movementChart) {
+                movementChart.data.labels = labels;
+                movementChart.data.datasets[0].data = dataPoints;
+                movementChart.update();
+            } else {
+                const ctx = document.getElementById('movementChart').getContext('2d');
+                movementChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Movement Number',
+                            data: dataPoints,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        const movementNumber = tooltipItem.raw;
+                                        const formattedTime = tooltipItem.label;
+                                        return `Movement #${movementNumber}: ${formattedTime}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Movement Number'
+                                },
+                                ticks: {
+                                    beginAtZero: true,
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateHourlyMovements(movements) {
+            const hourlyMovements = Array(24).fill(0);
+            movements.forEach(movement => {
+                const hour = new Date(movement).getHours();
+                hourlyMovements[hour]++;
+            });
+
+            const labels = Array.from({ length: 24 }, (_, i) => i);
+            const dataPoints = hourlyMovements;
+
+            if (hourlyChart) {
+                hourlyChart.data.labels = labels;
+                hourlyChart.data.datasets[0].data = dataPoints;
+                hourlyChart.update();
+            } else {
+                const ctx = document.getElementById('hourlyChart').getContext('2d');
+                hourlyChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Movements per Hour',
+                            data: dataPoints,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hour of the Day'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Number of Movements'
+                                },
+                                ticks: {
+                                    beginAtZero: true,
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTable(movements) {
+            const tableBody = document.getElementById('movements-table-body');
+            tableBody.innerHTML = '';
+            movements.slice(-10).forEach((time, index) => {
+                const row = document.createElement('tr');
+                const cellIndex = document.createElement('td');
+                const cellTime = document.createElement('td');
+                cellIndex.innerText = movements.length - 10 + index + 1;
+                cellTime.innerText = new Date(time).toLocaleString();
+                row.appendChild(cellIndex);
+                row.appendChild(cellTime);
+                tableBody.appendChild(row);
+            });
+        }
+
+        fetchSensorData();
+        setInterval(fetchSensorData, 10000);
+    </script>
+</body>
+</html>
