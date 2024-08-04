@@ -3,34 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sensor Data for GPIO {{ gpio }}</title>
+    <title>Sensor Data for GPIO {{ pin }}</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             background-color: #f0f2f5;
             font-family: Arial, sans-serif;
         }
-        .sidebar {
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            background-color: #2c3e50;
-            color: white;
-            padding-top: 20px;
-            width: 220px;
-        }
-        .sidebar a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            display: block;
-        }
-        .sidebar a:hover {
-            background-color: #34495e;
-        }
         .content {
-            margin-left: 220px;
             padding: 20px;
         }
         .card {
@@ -46,44 +26,36 @@
             margin-top: 20px;
             display: flex;
             justify-content: center;
-            gap: 20px.
+            gap: 20px;
         }
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: center.
+            align-items: center;
         }
         .header h1 {
-            color: #343a40.
+            color: #343a40;
         }
         .dark-mode {
             background-color: #121212;
-            color: #ffffff.
+            color: #ffffff;
         }
         .footer {
             text-align: center;
             margin-top: 50px;
-            color: #343a40.
+            color: #343a40;
         }
         .footer a {
             color: #007bff;
-            text-decoration: none.
+            text-decoration: none;
         }
     </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="text-center mb-4">
-            <h2>Mailbox Dashboard</h2>
-        </div>
-        <a href="/">Home</a>
-        {% for pin in [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 21, 20, 16, 12, 7, 8, 25, 24, 23, 18, 15, 14] %}
-        <a href="/sensor/{{ pin }}">GPIO {{ pin }}</a>
-        {% endfor %}
-    </div>
+
     <div class="content">
         <div class="header">
-            <h1>Sensor Data for GPIO {{ gpio }}</h1>
+            <h1>Sensor Data for GPIO {{ pin }}</h1>
             <div class="theme-switch-wrapper">
                 <span>Light Mode</span>
                 <label class="theme-switch" for="checkbox">
@@ -98,7 +70,7 @@
                 <div class="card text-white bg-primary">
                     <div class="card-body">
                         <h5 class="card-title">Total Movements</h5>
-                        <p id="total_movements" class="card-text">{{ data.total_movements }}</p>
+                        <p id="total_movements" class="card-text">0</p>
                     </div>
                 </div>
             </div>
@@ -106,7 +78,7 @@
                 <div class="card text-white bg-success">
                     <div class="card-body">
                         <h5 class="card-title">Last 24 Hours Movements</h5>
-                        <p id="last_24_hours_movements" class="card-text">{{ data.last_24_hours_movements }}</p>
+                        <p id="last_24_hours_movements" class="card-text">0</p>
                     </div>
                 </div>
             </div>
@@ -114,7 +86,7 @@
                 <div class="card text-white bg-warning">
                     <div class="card-body">
                         <h5 class="card-title">Last Week Movements</h5>
-                        <p id="last_week_movements" class="card-text">{{ data.last_week_movements }}</p>
+                        <p id="last_week_movements" class="card-text">0</p>
                     </div>
                 </div>
             </div>
@@ -124,7 +96,7 @@
                 <div class="card text-white bg-danger">
                     <div class="card-body">
                         <h5 class="card-title">Last Month Movements</h5>
-                        <p id="last_month_movements" class="card-text">{{ data.last_month_movements }}</p>
+                        <p id="last_month_movements" class="card-text">0</p>
                     </div>
                 </div>
             </div>
@@ -132,7 +104,7 @@
                 <div class="card text-white bg-info">
                     <div class="card-body">
                         <h5 class="card-title">Last Motion Time</h5>
-                        <p id="last_motion_time" class="card-text">{{ data.last_motion_time }}</p>
+                        <p id="last_motion_time" class="card-text">No movements detected</p>
                     </div>
                 </div>
             </div>
@@ -151,18 +123,11 @@
                     <th>Time</th>
                 </tr>
             </thead>
-            <tbody id="movements-table-body">
-                {% for i, movement in enumerate(data.movements) %}
-                <tr>
-                    <td>{{ i + 1 }}</td>
-                    <td>{{ movement }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
+            <tbody id="movements-table-body"></tbody>
         </table>
         <div class="download-buttons">
-            <button class="btn btn-primary" onclick="window.location.href='/download/csv?sensor_id={{ gpio }}'">Download CSV</button>
-            <button class="btn btn-primary" onclick="window.location.href='/download/excel?sensor_id={{ gpio }}'">Download Excel</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/csv?sensor_id={{ pin }}'">Download CSV</button>
+            <button class="btn btn-primary" onclick="window.location.href='/download/excel?sensor_id={{ pin }}'">Download Excel</button>
         </div>
         <footer class="footer mt-4">
             <p>&copy; 2024 Mailbox Dashboard. All rights reserved. | <a href="#">Privacy Policy</a></p>
@@ -195,13 +160,13 @@
 
         let movementChart;
         let hourlyChart;
-        const gpio = {{ gpio }};
+        const pin = {{ pin }};
 
         async function fetchSensorData() {
             try {
-                const response = await fetch(`/movements/${gpio}`);
+                const response = await fetch(`/movements/${pin}`);
                 if (!response.ok) {
-                    throw new Error(`Error fetching data for GPIO ${gpio}`);
+                    throw new Error(`Error fetching data for GPIO ${pin}`);
                 }
                 const data = await response.json();
                 updateSummary(data);
