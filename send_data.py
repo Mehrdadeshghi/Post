@@ -6,7 +6,7 @@ import socket
 import requests
 
 # InfluxDB-Verbindungsdetails
-url = "http://45.149.78.188"
+url = "45.149.78.188"
 port = 8086
 username = "myuser"
 password = "mypassword"
