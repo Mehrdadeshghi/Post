@@ -3,12 +3,13 @@ import time
 from influxdb import InfluxDBClient
 
 # InfluxDB-Verbindungsdetails
-url = "http://45.149.78.188:8086"
+url = "45.149.78.188"
+port = 8086
 username = "myuser"
 password = "mypassword"
 database = "mydatabase"
 
-client = InfluxDBClient(url, username=username, password=password, database=database)
+client = InfluxDBClient(host=url, port=port, username=username, password=password, database=database)
 
 # Funktion zur Abfrage der CPU-Temperatur (Linux)
 def get_cpu_temp():
@@ -73,6 +74,10 @@ while True:
         }
     ]
 
-    client.write_points(json_body)
-    print(f"Gesendete Systemdaten: {json_body}")
+    try:
+        client.write_points(json_body)
+        print(f"Gesendete Systemdaten: {json_body}")
+    except Exception as e:
+        print(f"Fehler beim Senden der Daten an InfluxDB: {e}")
+    
     time.sleep(10)  # Daten alle 10 Sekunden senden
