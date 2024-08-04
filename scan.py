@@ -9,7 +9,7 @@ gpio_pins = [4, 17, 18, 27, 22, 23, 24, 25, 5, 6, 12, 13, 19, 16, 26, 20, 21]
 # Richten Sie die GPIO-Pins ein
 GPIO.setmode(GPIO.BCM)
 for pin in gpio_pins:
-    GPIO.setup(pin, GPIO.IN)
+    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 @app.route('/')
 def index():
