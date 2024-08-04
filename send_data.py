@@ -21,6 +21,7 @@ def get_cpu_temp():
             temp = f.readline()
         return float(temp) / 1000.0
     except FileNotFoundError:
+        print("CPU temperature file not found.")
         return None
 
 # Funktion zur Abfrage der öffentlichen IP-Adresse
@@ -36,6 +37,7 @@ def get_public_ip():
             if response.status_code == 200:
                 return response.text
         except requests.RequestException:
+            print(f"Failed to get public IP from {service}")
             continue
     return None
 
@@ -46,6 +48,7 @@ def get_power_consumption():
             power = f.readline()
         return float(power) / 1000000.0  # Umrechnung in Watt
     except FileNotFoundError:
+        print("Power consumption file not found.")
         return None
 
 # Initialwerte für die Netzwerkschnittstelle
