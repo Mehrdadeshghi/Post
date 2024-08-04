@@ -20,8 +20,9 @@ def scan_pins():
         status = GPIO.input(pin)
         if status == GPIO.LOW:
             pin_status[pin] = 'Connected'
-            # Log the movement
-            movements_data[pin].append(datetime.datetime.now().isoformat())
+            # Log the movement if it's a new movement (avoid duplicate entries)
+            if not movements_data[pin] or (movements_data[pin] and movements_data[pin][-1] != datetime.datetime.now().isoformat()):
+                movements_data[pin].append(datetime.datetime.now().isoformat())
         else:
             pin_status[pin] = 'Not Connected'
     return pin_status
