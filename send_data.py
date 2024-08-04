@@ -25,11 +25,19 @@ def get_cpu_temp():
 
 # Funktion zur Abfrage der öffentlichen IP-Adresse
 def get_public_ip():
-    try:
-        response = requests.get('https://api.ipify.org')
-        return response.text
-    except requests.RequestException:
-        return None
+    ip_services = [
+        'https://api.ipify.org',
+        'https://ifconfig.me',
+        'https://api64.ipify.org'
+    ]
+    for service in ip_services:
+        try:
+            response = requests.get(service)
+            if response.status_code == 200:
+                return response.text
+        except requests.RequestException:
+            continue
+    return None
 
 # Funktion zur Abfrage des aktuellen Stromverbrauchs (Beispiel)
 def get_power_consumption():
