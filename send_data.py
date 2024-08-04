@@ -1,6 +1,7 @@
 import psutil
 import time
 from influxdb import InfluxDBClient
+import datetime
 
 # InfluxDB-Verbindungsdetails
 url = "45.149.78.188"
@@ -52,6 +53,12 @@ while True:
     
     prev_upload = upload
     prev_download = download
+    
+    # System Uptime in Sekunden
+    uptime_seconds = int(time.time() - psutil.boot_time())
+    
+    # Formatieren der Uptime für eine lesbare Ausgabe
+    uptime_str = str(datetime.timedelta(seconds=uptime_seconds))
 
     json_body = [
         {
@@ -69,7 +76,9 @@ while True:
                 "upload_speed": upload_speed,
                 "download_speed": download_speed,
                 "total_upload": upload / (1024 * 1024),  # MB
-                "total_download": download / (1024 * 1024)  # MB
+                "total_download": download / (1024 * 1024),  # MB
+                "uptime_seconds": uptime_seconds,
+                "uptime_str": uptime_str
             }
         }
     ]
