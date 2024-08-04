@@ -11,8 +11,8 @@ def load_registered_controllers():
         return []
 
 # Auth0-Domain und Client-ID
-AUTH0_DOMAIN = 'your-tenant-name.auth0.com'  # Ersetze dies durch deine Auth0-Domain
-AUTH0_CLIENT_ID = 'YOUR_CLIENT_ID'  # Ersetze dies durch deine Auth0-Client-ID
+AUTH0_DOMAIN = 'dev-yyhasue2lro86ieb.us.auth0.com'  # Ersetze dies durch deine Auth0-Domain
+AUTH0_CLIENT_ID = '9HFGG9qfA31pOVYDfHZIB9ZTSD3jknx3'  # Ersetze dies durch deine Auth0-Client-ID
 
 LOGOUT_URL = 'https://dev-yyhasue2lro86ieb.us.auth0.com/v2/logout?client_id=9HFGG9qfA31pOVYDfHZIB9ZTSD3jknx3&returnTo=http://45.149.78.188:8080/login'
 
@@ -36,17 +36,21 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         margin: 0;
                         padding: 0;
                         background-color: #f0f0f0;
+                        color: #333;
                     }
                     .container {
-                        width: 80%;
-                        margin: 20px auto;
+                        width: 90%;
+                        max-width: 1200px;
+                        margin: 40px auto;
                         background-color: #fff;
                         padding: 20px;
-                        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
                     }
                     h1 {
                         text-align: center;
                         color: #333;
+                        margin-bottom: 20px;
                     }
                     .box {
                         display: flex;
@@ -59,6 +63,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         padding: 20px;
                         margin-right: 10px;
                         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+                        border-radius: 8px;
                     }
                     .box-item:last-child {
                         margin-right: 0;
@@ -78,6 +83,46 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         margin: 10px 2px;
                         cursor: pointer;
                         text-decoration: none;
+                        border-radius: 5px;
+                    }
+                    #searchInput {
+                        width: 100%;
+                        padding: 12px;
+                        margin-top: 20px;
+                        margin-bottom: 12px;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    th, td {
+                        padding: 12px;
+                        text-align: left;
+                        border-bottom: 1px solid #ddd;
+                    }
+                    th {
+                        background-color: #f2f2f2;
+                    }
+                    tr:hover {
+                        background-color: #f1f1f1;
+                    }
+                    .action-button {
+                        background-color: #007BFF;
+                        color: white;
+                        padding: 10px 20px;
+                        text-align: center;
+                        display: inline-block;
+                        font-size: 14px;
+                        margin: 2px;
+                        cursor: pointer;
+                        text-decoration: none;
+                        border-radius: 5px;
+                    }
+                    .action-button:hover {
+                        background-color: #0056b3;
                     }
                 </style>
             </head>
@@ -101,8 +146,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <td>{controller['local_ip']}</td>
                             <td>{controller['public_ip']}</td>
                             <td>
-                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="system-info-button">System Info</a>
-                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="flask-link-button">Go to Flask</a>
+                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="action-button">System Info</a>
+                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="action-button">Go to Flask</a>
                             </td>
                         </tr>
                 """
