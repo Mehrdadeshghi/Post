@@ -101,7 +101,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
                             <td>{controller['local_ip']}</td>
                             <td>{controller['public_ip']}</td>
                             <td>
-                                <a href="/systeminfo?id={controller['hostname']}" class="system-info-button">System Info</a>
+                                <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="system-info-button">System Info</a>
                                 <a href="http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now" target="_blank" class="flask-link-button">Go to Flask</a>
                             </td>
                         </tr>
@@ -134,164 +134,15 @@ class DashboardHandler(BaseHTTPRequestHandler):
             """
             self.wfile.write(response.encode('utf-8'))
         elif self.path.startswith('/systeminfo'):
-            query = urllib.parse.urlparse(self.path).query
-            params = urllib.parse.parse_qs(query)
-            hostname = params['id'][0]
-            registered_controllers = load_registered_controllers()
-            controller = next((c for c in registered_controllers if c['hostname'] == hostname), None)
-
-            if controller:
-                self.send_response(200)
-                self.send_header('Content-type', 'text/html')
-                self.end_headers()
-                response = f"""
-                <!doctype html>
-                <html>
-                <head>
-                    <title>System Info for {controller['hostname']}</title>
-                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                    <style>
-                        body {{
-                            font-family: Arial, sans-serif;
-                            margin: 0;
-                            padding: 0;
-                            background-color: #f0f0f0;
-                        }}
-                        .container {{
-                            width: 80%;
-                            margin: 20px auto;
-                            background-color: #fff;
-                            padding: 20px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                        }}
-                        h1 {{
-                            text-align: center;
-                            color: #333;
-                        }}
-                        .box {{
-                            display: flex;
-                            justify-content: space-between;
-                            margin-bottom: 20px;
-                        }}
-                        .box-item {{
-                            flex: 1;
-                            background-color: #f9f9f9;
-                            padding: 20px;
-                            margin-right: 10px;
-                            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-                        }}
-                        .box-item:last-child {{
-                            margin-right: 0;
-                        }}
-                        .chart-container {{
-                            position: relative;
-                            height: 400px;
-                            width: 100%;
-                        }}
-                    </style>
-                </head>
-                <body>
-                    <div class="container">
-                        <h1>System Info for {controller['hostname']}</h1>
-                        <div class="box">
-                            <div class="box-item">
-                                <h2>Local IP Address</h2>
-                                <p>{controller['local_ip']}</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>Public IP Address</h2>
-                                <p>{controller['public_ip']}</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>Hostname</h2>
-                                <p>{controller['hostname']}</p>
-                            </div>
-                        </div>
-                        <div class="box">
-                            <div class="box-item">
-                                <h2>Uptime</h2>
-                                <p>{controller['uptime']}</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>Load</h2>
-                                <p>{controller['load']}</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>Memory</h2>
-                                <p>{controller['memory'] / (1024 ** 3):.2f} GB</p>
-                            </div>
-                        </div>
-                        <div class="box">
-                            <div class="box-item">
-                                <h2>Disk</h2>
-                                <p>{controller['disk'] / (1024 ** 3):.2f} GB</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>RX Bytes</h2>
-                                <p>{controller['rx_bytes']}</p>
-                            </div>
-                            <div class="box-item">
-                                <h2>TX Bytes</h2>
-                                <p>{controller['tx_bytes']}</p>
-                            </div>
-                        </div>
-                        <div class="box">
-                            <div class="box-item">
-                                <h2>CPU Temp</h2>
-                                <p>{controller['cpu_temp']}°C</p>
-                            </div>
-                        </div>
-                        <h2>Connected Pins</h2>
-                        <table>
-                            <tr>
-                                <th>Pin</th>
-                                <th>Status</th>
-                            </tr>
-                            <!-- Hier sollten die verbundenen Pins aufgelistet werden -->
-                        </table>
-                        <h2>System Load</h2>
-                        <div class="chart-container">
-                            <canvas id="loadChart"></canvas>
-                        </div>
-                    </div>
-                    <script>
-                        var ctx = document.getElementById('loadChart').getContext('2d');
-                        var loadChart = new Chart(ctx, {{
-                            type: 'line',
-                            data: {{
-                                labels: ['1 min', '5 min', '15 min'],
-                                datasets: [{{
-                                    label: 'Load Average',
-                                    data: {controller['load']},
-                                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                                    borderColor: 'rgba(75, 192, 192, 1)',
-                                    borderWidth: 1
-                                }}]
-                            }},
-                            options: {{
-                                scales: {{
-                                    yAxes: [{{
-                                        ticks: {{
-                                            beginAtZero: true
-                                        }}
-                                    }}]
-                                }}
-                            }}
-                        }});
-                    </script>
-                </body>
-                </html>
-                """
-                self.wfile.write(response.encode('utf-8'))
-            else:
-                self.send_response(404)
-                self.end_headers()
-                self.wfile.write(b'Controller not found')
+            # Redirection to the specified URL instead of displaying system info
+            self.send_response(302)
+            self.send_header('Location', 'http://45.149.78.188:3000/d/000000127/telegraf-system-pi-dashboard?orgId=1&refresh=5s&from=now-5m&to=now')
+            self.end_headers()
         elif self.path.startswith('/logout'):
             # Leitet den Benutzer zur Auth0-Logout-Seite weiter
             self.send_response(302)
             self.send_header('Location', LOGOUT_URL)
-            self.endheaders()
+            self.end_headers()
         else:
             self.send_response(404)
             self.end_headers()
