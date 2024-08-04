@@ -12,10 +12,13 @@ pins = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 21, 20, 16, 12, 7, 8, 
 def scan_pins():
     pin_status = {}
     for pin in pins:
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        status = GPIO.input(pin)
-        if status == GPIO.HIGH:
-            pin_status[pin] = 'HIGH'
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_OFF)
+        try:
+            GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
+            pin_status[pin] = 'Not Connected'
+        except:
+            pin_status[pin] = 'Connected'
+        GPIO.setup(pin, GPIO.IN)
     return pin_status
 
 @app.route('/')
