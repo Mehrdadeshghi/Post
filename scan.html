@@ -4,6 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GPIO Pin Status</title>
+    <script>
+        function showPinDetails(pin) {
+            fetch(`/pin/${pin}`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Pin ${pin} Status: ${data.status}`);
+                });
+        }
+    </script>
 </head>
 <body>
     <h1>GPIO Pin Status</h1>
@@ -13,7 +22,7 @@
             <th>Status</th>
         </tr>
         {% for pin, status in pin_status.items() %}
-        <tr>
+        <tr onclick="showPinDetails({{ pin }})" style="cursor: pointer;">
             <td>{{ pin }}</td>
             <td>{{ status }}</td>
         </tr>
