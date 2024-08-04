@@ -1,29 +1,26 @@
-from flask import Flask, render_template
 import RPi.GPIO as GPIO
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
-# Liste der GPIO-Pins, die auf Ihrem Raspberry Pi verfügbar sind
-gpio_pins = [4, 17, 18, 27, 22, 23, 24, 25, 5, 6, 12, 13, 19, 16, 26, 20, 21]
-
-# Richten Sie die GPIO-Pins ein
+# Set up the GPIO pins
 GPIO.setmode(GPIO.BCM)
-for pin in gpio_pins:
-    GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
+# Define the pins you want to check
+pins = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 21, 20, 16, 12, 7, 8, 25, 24, 23, 18, 15, 14]
+
+def scan_pins():
+    pin_status = {}
+    for pin in pins:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        status = GPIO.input(pin)
+        pin_status[pin] = 'HIGH' if status else 'LOW'
+    return pin_status
 
 @app.route('/')
 def index():
-    sensor_states = {}
-    for pin in gpio_pins:
-        try:
-            state = GPIO.input(pin)
-            sensor_states[pin] = state
-        except RuntimeError:
-            sensor_states[pin] = "Fehler"
-    return render_template('scan.html', sensor_states=sensor_states)
+    pin_status = scan_pins()
+    return render_template('scan.html', pin_status=pin_status)
 
 if __name__ == '__main__':
-    try:
-        app.run(host='0.0.0.0', port=5050)
-    except KeyboardInterrupt:
-        GPIO.cleanup()
+    app.run(host='0.0.0.0', port=5050)
