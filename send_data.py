@@ -2,58 +2,29 @@ import psutil
 import time
 from influxdb import InfluxDBClient
 import datetime
-import socket
-import subprocess
 
 # InfluxDB-Verbindungsdetails
-influxdb_host = "45.149.78.188"
-influxdb_port = 8086
+url = "45.149.78.188"
+port = 8086
 username = "myuser"
 password = "mypassword"
 database = "mydatabase"
 
-client = InfluxDBClient(host=influxdb_host, port=influxdb_port, username=username, password=password, database=database)
+client = InfluxDBClient(host=url, port=port, username=username, password=password, database=database)
 
-# Funktion zur Abfrage der CPU-Temperatur (Raspberry Pi)
+# Funktion zur Abfrage der CPU-Temperatur (Linux)
 def get_cpu_temp():
     try:
-        temp = subprocess.check_output(["vcgencmd", "measure_temp"]).decode()
-        temp = float(temp.split("=")[1].split("'")[0])
-        print(f"CPU Temp: {temp} °C")
-        return temp
-    except Exception as e:
-        print(f"Failed to get CPU temperature: {e}")
-        return None
-
-# Funktion zur Abfrage der Spannung (Raspberry Pi)
-def get_voltage():
-    try:
-        voltage = subprocess.check_output(["vcgencmd", "measure_volts"]).decode()
-        voltage = float(voltage.split("=")[1].split("V")[0])
-        print(f"Voltage: {voltage} V")
-        return voltage
-    except Exception as e:
-        print(f"Failed to get voltage: {e}")
-        return None
-
-# Funktion zur Abfrage des aktuellen Stromverbrauchs (Beispiel)
-def get_power_consumption():
-    try:
-        with open('/sys/class/power_supply/energy_now', 'r') as f:
-            power = f.readline()
-        return float(power) / 1000000.0  # Umrechnung in Watt
+        with open('/sys/class/thermal/thermal_zone0/temp', 'r') as f:
+            temp = f.readline()
+        return float(temp) / 1000.0
     except FileNotFoundError:
-        print("Power consumption file not found.")
         return None
 
 # Initialwerte für die Netzwerkschnittstelle
 net_io = psutil.net_io_counters()
 prev_upload = net_io.bytes_sent
 prev_download = net_io.bytes_recv
-
-# Hostname des Systems
-hostname = socket.gethostname()
-print(f"Hostname: {hostname}")
 
 while True:
     # CPU-Auslastung in Prozent
@@ -88,18 +59,12 @@ while True:
     
     # Formatieren der Uptime für eine lesbare Ausgabe
     uptime_str = str(datetime.timedelta(seconds=uptime_seconds))
-    
-    # Aktueller Stromverbrauch in Watt
-    power_consumption = get_power_consumption()
-    
-    # Aktuelle Spannung in Volt
-    voltage = get_voltage()
 
     json_body = [
         {
             "measurement": "system",
             "tags": {
-                "host": hostname
+                "host": "RaspberryPi"
             },
             "fields": {
                 "cpu_usage": cpu_usage,
@@ -113,17 +78,14 @@ while True:
                 "total_upload": upload / (1024 * 1024),  # MB
                 "total_download": download / (1024 * 1024),  # MB
                 "uptime_seconds": uptime_seconds,
-                "uptime_str": uptime_str,
-                "power_consumption": power_consumption,  # Watt
-                "voltage": voltage  # Volt
+                "uptime_str": uptime_str
             }
         }
     ]
 
     try:
-        print(f"Sending data to InfluxDB: {json_body}")
         client.write_points(json_body)
-        print("Data sent successfully")
+        print(f"Gesendete Systemdaten: {json_body}")
     except Exception as e:
         print(f"Fehler beim Senden der Daten an InfluxDB: {e}")
     
