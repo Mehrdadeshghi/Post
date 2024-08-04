@@ -14,7 +14,7 @@ def scan_pins():
     for pin in pins:
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_OFF)
         try:
-            GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
+            GPIO.setup(pin, GPIO.OUT, initial=GPIO.HIGH)
             pin_status[pin] = 'Not Connected'
         except:
             pin_status[pin] = 'Connected'
