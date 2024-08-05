@@ -4,8 +4,8 @@ import requests
 import json
 
 # Konfigurationsvariablen
-AUTH0_CLIENT_ID = '6o3JOdcOVAGK5KS4fo1ZcT9JEPOG8t0u'
-AUTH0_CLIENT_SECRET = 'E-4Xsdg1Y302ppXGAhsJ5MBM6ajRyh0HX4a1Dy-ymtHQSXqiN0v13MuEepljqxWE'
+AUTH0_CLIENT_ID = '9HFGG9qfA31pOVYDfHZIB9ZTSD3jknx3'
+AUTH0_CLIENT_SECRET = 'lNIlAKj8Mcwq-IxN5TfWvhWiRQoRszt0DdRgo7lqK8IzWXbhTtz38sBVR4pIkNDS'
 AUTH0_DOMAIN = 'dev-yyhasue2lro86ieb.us.auth0.com'  # Ersetze dies durch deine Auth0-Domain
 REDIRECT_URI = 'http://45.149.78.188:8080/callback'  # Ersetze localhost durch deine Server-IP
 DASHBOARD_URL = 'http://45.149.78.188:8000'
