@@ -31,7 +31,7 @@ data = {
 }
 
 # HTTP-POST-Anfrage senden
-url = "http://dein-server-ip:5000/register"
+url = "http://45.149.78.188:5000/register"
 headers = {'Content-Type': 'application/json'}
 response = requests.post(url, data=json.dumps(data), headers=headers)
 
