@@ -36,4 +36,8 @@ headers = {'Content-Type': 'application/json'}
 response = requests.post(url, data=json.dumps(data), headers=headers)
 
 print(response.status_code)
-print(response.json())
+print(response.text)  # Drucke die Rohantwort des Servers für Debugging
+try:
+    print(response.json())
+except requests.exceptions.JSONDecodeError as e:
+    print("JSON decode error:", e)
