@@ -21,6 +21,13 @@ os_version = subprocess.check_output(['uname', '-a']).decode().strip()
 firmware_version = subprocess.check_output(['vcgencmd', 'version']).decode().strip()
 ip_address = subprocess.check_output(['hostname', '-I']).decode().strip().split()[0]
 
+# Debugging-Ausgaben hinzufügen
+print(f"Serial Number: {serial_number} (Length: {len(serial_number)})")
+print(f"Model: {model} (Length: {len(model)})")
+print(f"OS Version: {os_version} (Length: {len(os_version)})")
+print(f"Firmware Version: {firmware_version} (Length: {len(firmware_version)})")
+print(f"IP Address: {ip_address} (Length: {len(ip_address)})")
+
 # Daten vorbereiten
 data = {
     "serial_number": serial_number,
