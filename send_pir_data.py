@@ -1,61 +1,55 @@
-import RPi.GPIO as GPIO
-import requests
-import json
-import time
+from flask import Flask, request, jsonify
+import psycopg2
+from datetime import datetime
 
-# Konfiguration des PIR-Sensors
-PIR_PIN = 7
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PIR_PIN, GPIO.IN)
+app = Flask(__name__)
+app.config['DEBUG'] = True
 
-# Funktion zum Abrufen der Serialnummer
-def get_serial():
-    cpuserial = "0000000000000000"
+# Datenbankverbindung einrichten
+def connect_db():
+    return psycopg2.connect(
+        dbname="post",
+        user="myuser",
+        password="mypassword",
+        host="45.149.78.188"
+    )
+
+# API-Endpunkt für das Speichern der PIR-Daten
+@app.route('/pir_data', methods=['POST'])
+def save_pir_data():
     try:
-        with open('/proc/cpuinfo', 'r') as f:
-            for line in f:
-                if line[0:6] == 'Serial':
-                    cpuserial = line[10:26]
-    except:
-        cpuserial = "ERROR000000000"
-    return cpuserial
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
 
-# Funktion zum Abrufen der Sensor-ID aus der Datenbank
-def get_sensor_id():
-    serial_number = get_serial()
-    # Verbindung zur Datenbank und Abruf der Sensor-ID (dieser Teil muss angepasst werden)
-    # Hier wird angenommen, dass die Sensor-ID auf eine andere Weise abgerufen wird.
-    # Dies ist nur ein Beispiel.
-    # return die richtige sensor_id, möglicherweise durch ein anderes API-Aufruf
-    return 1  # Beispielwert, dies sollte durch die richtige sensor_id ersetzt werden.
+        sensor_id = data.get('sensor_id')
+        movement_detected = data.get('movement_detected')
 
-# Sensor-ID abrufen
-sensor_id = get_sensor_id()
+        if sensor_id is None or movement_detected is None:
+            return jsonify({"error": "Missing fields"}), 400
 
-# Endpunkt-URL
-url = "http://45.149.78.188:5001/pir_data"
-headers = {'Content-Type': 'application/json'}
+        if not isinstance(sensor_id, int):
+            return jsonify({"error": "Invalid sensor_id type"}), 400
 
-# Funktion zum Senden der PIR-Daten
-def send_pir_data(movement_detected):
-    data = {
-        "sensor_id": sensor_id,
-        "movement_detected": movement_detected
-    }
-    response = requests.post(url, data=json.dumps(data), headers=headers)
-    print(response.status_code)
-    print(response.text)
+        # Verbindung zur Datenbank
+        conn = connect_db()
+        cursor = conn.cursor()
 
-print("PIR Sensor initialisiert...")
+        # SQL-Abfrage zum Einfügen der PIR-Daten
+        cursor.execute("""
+            INSERT INTO sensor_data (sensor_id, timestamp, movement_detected)
+            VALUES (%s, %s, %s);
+        """, (sensor_id, datetime.now(), movement_detected))
 
-try:
-    while True:
-        if GPIO.input(PIR_PIN):
-            print("Bewegung erkannt!")
-            send_pir_data(True)
-        else:
-            send_pir_data(False)
-        time.sleep(5)
-except KeyboardInterrupt:
-    print("Beende...")
-    GPIO.cleanup()
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"status": "success"}), 201
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001)
