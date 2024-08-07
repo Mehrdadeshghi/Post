@@ -28,6 +28,9 @@ def save_pir_data():
         if sensor_id is None or movement_detected is None:
             return jsonify({"error": "Missing fields"}), 400
 
+        if not isinstance(sensor_id, int):
+            return jsonify({"error": "Invalid sensor_id type"}), 400
+
         # Verbindung zur Datenbank
         conn = connect_db()
         cursor = conn.cursor()
