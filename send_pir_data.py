@@ -24,8 +24,10 @@ def get_serial():
 def get_sensor_id():
     serial_number = get_serial()
     # Verbindung zur Datenbank und Abruf der Sensor-ID (dieser Teil muss angepasst werden)
-    # Dies ist nur ein Beispiel und setzt voraus, dass die Serialnummer als Sensor-ID verwendet wird.
-    return serial_number
+    # Hier wird angenommen, dass die Sensor-ID auf eine andere Weise abgerufen wird.
+    # Dies ist nur ein Beispiel.
+    # return die richtige sensor_id, möglicherweise durch ein anderes API-Aufruf
+    return 1  # Beispielwert, dies sollte durch die richtige sensor_id ersetzt werden.
 
 # Sensor-ID abrufen
 sensor_id = get_sensor_id()
