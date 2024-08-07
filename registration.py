@@ -8,9 +8,9 @@ app.config['DEBUG'] = True
 # Datenbankverbindung einrichten
 def connect_db():
     return psycopg2.connect(
-        dbname="post",
-        user="myuser",
-        password="mypassword",
+        dbname="deine_datenbank",
+        user="dein_benutzer",
+        password="dein_passwort",
         host="localhost"
     )
 
