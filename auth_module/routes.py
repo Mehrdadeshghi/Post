@@ -20,7 +20,7 @@ def login():
 
         if not all([email, password]):
             flash('Bitte füllen Sie alle Felder aus.', 'danger')
-            return render_template('templates/auth/login.html')
+            return render_template('auth/login.html')
 
         try:
             conn = connect_db()
