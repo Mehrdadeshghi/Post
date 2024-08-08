@@ -54,11 +54,15 @@
         <canvas id="movementChart" width="400" height="200"></canvas>
         <script>
             var ctx = document.getElementById('movementChart').getContext('2d');
+            var labels = {{ movement_data | map(attribute='timestamp') | list }};
+            var data = {{ movement_data | map(attribute='movement_detected') | list }};
+            var formattedLabels = labels.map(label => new Date(label).toLocaleString());
+
             var movementData = {
-                labels: {{ movement_data | map(attribute='timestamp') | list }},
+                labels: formattedLabels,
                 datasets: [{
                     label: 'Movement Detected',
-                    data: {{ movement_data | map(attribute='movement_detected') | list }},
+                    data: data,
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
