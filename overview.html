@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Overview</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Raspberry Pi Overview</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Model</th>
+                    <th>OS Version</th>
+                    <th>Firmware Version</th>
+                    <th>IP Address</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody id="raspberry-overview">
+                <!-- Raspberry Pi Übersicht wird hier eingefügt -->
+            </tbody>
+        </table>
+        <button class="btn btn-secondary mt-4" onclick="window.location.href='/'">Back to Management</button>
+    </div>
+    <script>
+        function fetchRaspberryOverview() {
+            $.get('/api/raspberry_pis', function(data) {
+                var overviewTable = $('#raspberry-overview');
+                overviewTable.empty();
+                data.forEach(function(raspberry) {
+                    var location = raspberry.street + ' ' + raspberry.house_number + ', ' + raspberry.postal_code + ' ' + raspberry.city + ', ' + raspberry.state + ', ' + raspberry.country;
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + raspberry.serial_number + '</td>');
+                    row.append('<td>' + raspberry.model + '</td>');
+                    row.append('<td>' + raspberry.os_version + '</td>');
+                    row.append('<td>' + raspberry.firmware_version + '</td>');
+                    row.append('<td>' + raspberry.ip_address + '</td>');
+                    row.append('<td>' + location + '</td>');
+                    overviewTable.append(row);
+                });
+            });
+        }
+
+        // Initiales Laden der Raspberry Pi Übersicht
+        fetchRaspberryOverview();
+    </script>
+</body>
+</html>
