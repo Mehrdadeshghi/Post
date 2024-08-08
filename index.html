@@ -63,11 +63,11 @@
                 raspberryList.empty();
                 data.forEach(function(raspberry) {
                     var listItem = $('<li class="list-group-item list-group-item-action"></li>');
-                    listItem.text('Serial Number: ' + raspberry[1] + ' | Model: ' + raspberry[2]);
+                    listItem.html('Serial Number: ' + raspberry[1] + ' | Model: ' + raspberry[2] +
+                                  ' <button class="btn btn-sm btn-primary float-right" onclick="showManagement(' + raspberry[0] + ')">Management</button>');
                     listItem.data('raspberry-id', raspberry[0]);
                     listItem.click(function() {
                         fetchSensors(raspberry[0]);
-                        showManagement(raspberry[0]);
                     });
                     raspberryList.append(listItem);
                 });
@@ -89,12 +89,12 @@
         function showManagement(raspberryId) {
             $.get('/api/raspberry_pis/' + raspberryId, function(data) {
                 $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data[1] + ' | Model: ' + data[2] + ' | OS Version: ' + data[3] + ' | Firmware Version: ' + data[4]);
-                $('#street').val(data[5] || '');
-                $('#house_number').val(data[6] || '');
-                $('#postal_code').val(data[7] || '');
-                $('#city').val(data[8] || '');
-                $('#state').val(data[9] || '');
-                $('#country').val(data[10] || '');
+                $('#street').val(data[8] || '');
+                $('#house_number').val(data[9] || '');
+                $('#postal_code').val(data[10] || '');
+                $('#city').val(data[11] || '');
+                $('#state').val(data[12] || '');
+                $('#country').val(data[13] || '');
                 $('#management-section').data('raspberry-id', raspberryId).show();
             });
         }
