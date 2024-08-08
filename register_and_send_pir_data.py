@@ -28,12 +28,34 @@ def get_public_ip():
         print(f"Error fetching public IP: {e}")
         return None
 
+# Funktion zum Registrieren eines neuen Raspberry Pi, wenn nicht vorhanden
+def register_raspberry_pi(serial_number):
+    data = {
+        "serial_number": serial_number,
+        "model": "Raspberry Pi Model",
+        "os_version": subprocess.check_output(['uname', '-a']).decode().strip(),
+        "firmware_version": subprocess.check_output(['vcgencmd', 'version']).decode().strip(),
+        "ip_address": get_public_ip()
+    }
+    try:
+        response = requests.post('http://45.149.78.188:5000/register', json=data)
+        if response.status_code == 201:
+            return response.json()['raspberry_id']
+        else:
+            print(f"Error registering Raspberry Pi: {response.json()}")
+            return None
+    except Exception as e:
+        print(f"Error registering Raspberry Pi: {e}")
+        return None
+
 # Funktion zum Abrufen der Raspberry Pi ID anhand der Seriennummer
 def get_raspberry_id(serial_number):
     try:
         response = requests.get(f'http://45.149.78.188:5002/get_raspberry_id?serial_number={serial_number}')
         if response.status_code == 200:
             return response.json()['raspberry_id']
+        elif response.status_code == 404:
+            return register_raspberry_pi(serial_number)
         else:
             print(f"Error fetching raspberry_id: {response.json()}")
             return None
