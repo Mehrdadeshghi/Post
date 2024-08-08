@@ -2,9 +2,12 @@ from flask import Flask, request, render_template, redirect, url_for, flash, ses
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from werkzeug.security import check_password_hash
+import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'  # Notwendig für Flash-Messages und Sessions
+
+# Generieren Sie eine sichere secret_key
+app.secret_key = os.urandom(24)  # Notwendig für Flash-Messages und Sessions
 
 # Datenbankverbindung einrichten
 def connect_db():
