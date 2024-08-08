@@ -103,6 +103,25 @@ def update_raspberry_pi_location(raspberry_id):
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/raspberrys', methods=['GET'])
+def view_raspberrys():
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
+            FROM raspberry_pis rp
+            LEFT JOIN locations l ON rp.location_id = l.location_id
+        """)
+        raspberrys = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('raspberrys.html', raspberrys=raspberrys)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 # API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
 @app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
 def get_pir_sensors(raspberry_id):
