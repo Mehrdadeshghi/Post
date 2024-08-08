@@ -69,7 +69,7 @@ def update_raspberry_pi_location(raspberry_id):
             return jsonify({"error": "Missing location fields"}), 400
 
         conn = connect_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
 
         # Überprüfen, ob der Standort bereits existiert
         cursor.execute("""
