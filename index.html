@@ -21,7 +21,8 @@
                 <h3>Management</h3>
                 <div id="management-section" style="display: none;">
                     <h4 id="raspberry-info"></h4>
-                    <form id="location-form">
+                    <button id="assign-location-btn" class="btn btn-primary">Assign Location</button>
+                    <form id="location-form" style="display: none;">
                         <div class="form-group">
                             <label for="street">Straße</label>
                             <input type="text" class="form-control" id="street" placeholder="Straße eingeben">
@@ -46,13 +47,9 @@
                             <label for="country">Land</label>
                             <input type="text" class="form-control" id="country" placeholder="Land eingeben">
                         </div>
-                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
                     </form>
                 </div>
-                <h3>Verbunde PIR-Sensoren</h3>
-                <ul id="sensor-list" class="list-group">
-                    <!-- PIR-Sensoren werden hier eingefügt -->
-                </ul>
             </div>
         </div>
     </div>
@@ -74,28 +71,12 @@
             });
         }
 
-        function fetchSensors(raspberryId) {
-            $.get('/api/raspberry_pis/' + raspberryId + '/sensors', function(data) {
-                var sensorList = $('#sensor-list');
-                sensorList.empty();
-                data.forEach(function(sensor) {
-                    var listItem = $('<li class="list-group-item"></li>');
-                    listItem.text('Sensor ID: ' + sensor[0] + ' | Location: ' + sensor[1]);
-                    sensorList.append(listItem);
-                });
-            });
-        }
-
         function showManagement(raspberryId) {
             $.get('/api/raspberry_pis/' + raspberryId, function(data) {
                 $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data[1] + ' | Model: ' + data[2] + ' | OS Version: ' + data[3] + ' | Firmware Version: ' + data[4]);
-                $('#street').val(data[8] || '');
-                $('#house_number').val(data[9] || '');
-                $('#postal_code').val(data[10] || '');
-                $('#city').val(data[11] || '');
-                $('#state').val(data[12] || '');
-                $('#country').val(data[13] || '');
+                $('#assign-location-btn').attr('onclick', 'window.location.href="/assign_location/' + raspberryId + '"');
                 $('#management-section').data('raspberry-id', raspberryId).show();
+                $('#location-form').hide(); // Verstecke das Formular, bis "Assign Location" geklickt wird
             });
         }
 
