@@ -28,10 +28,6 @@ def get_public_ip():
         print(f"Error fetching public IP: {e}")
         return None
 
-# Funktion zum Kürzen von Strings auf eine maximale Länge
-def truncate_string(s, max_length):
-    return s if len(s) <= max_length else s[:max_length]
-
 # Funktion zum Registrieren eines neuen Raspberry Pi, wenn nicht vorhanden
 def register_raspberry_pi(serial_number):
     model = "Raspberry Pi Model"
@@ -40,13 +36,13 @@ def register_raspberry_pi(serial_number):
     
     data = {
         "serial_number": serial_number,
-        "model": truncate_string(model, 100),
-        "os_version": truncate_string(os_version, 100),
-        "firmware_version": truncate_string(firmware_version, 100),
+        "model": model,
+        "os_version": os_version,
+        "firmware_version": firmware_version,
         "ip_address": get_public_ip()
     }
     try:
-        response = requests.post('http://45.149.78.188:5000/register', json=data)
+        response = requests.post('http://45.149.78.188:5003/register', json=data)
         if response.status_code == 201:
             return response.json()['raspberry_id']
         else:
@@ -59,7 +55,7 @@ def register_raspberry_pi(serial_number):
 # Funktion zum Abrufen der Raspberry Pi ID anhand der Seriennummer
 def get_raspberry_id(serial_number):
     try:
-        response = requests.get(f'http://45.149.78.188:5002/get_raspberry_id?serial_number={serial_number}')
+        response = requests.get(f'http://45.149.78.188:5003/get_raspberry_id?serial_number={serial_number}')
         if response.status_code == 200:
             return response.json()['raspberry_id']
         elif response.status_code == 404:
@@ -74,7 +70,7 @@ def get_raspberry_id(serial_number):
 # Funktion zum Überprüfen, ob ein Sensor bereits registriert ist
 def check_sensor(raspberry_id, location):
     try:
-        response = requests.get(f'http://45.149.78.188:5001/check_sensor?raspberry_id={raspberry_id}&location={location}')
+        response = requests.get(f'http://45.149.78.188:5003/check_sensor?raspberry_id={raspberry_id}&location={location}')
         if response.status_code == 200:
             return response.json()['sensor_id']
         else:
@@ -93,7 +89,7 @@ def register_sensor(raspberry_id, location):
         "location": location
     }
     try:
-        response = requests.post('http://45.149.78.188:5001/add_sensor', json=data)
+        response = requests.post('http://45.149.78.188:5003/add_sensor', json=data)
         if response.status_code == 201:
             return response.json()['sensor_id']
         else:
@@ -110,7 +106,7 @@ def send_pir_data(sensor_id, movement_detected):
         "movement_detected": movement_detected
     }
     try:
-        response = requests.post('http://45.149.78.188:5001/pir_data', json=data)
+        response = requests.post('http://45.149.78.188:5003/pir_data', json=data)
         print(f"Data sent: {data}, Response: {response.status_code}, {response.text}")
     except Exception as e:
         print(f"Error sending PIR data: {e}")
