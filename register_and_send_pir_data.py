@@ -4,10 +4,8 @@ import json
 import subprocess
 import time
 
-# Konfiguration des PIR-Sensors
-PIR_PIN = 7
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PIR_PIN, GPIO.IN)
+# Liste aller möglichen GPIO-Pins, die geprüft werden sollen
+GPIO_PINS = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 14, 15, 18, 23, 24, 25, 8, 7, 1, 12, 16, 20, 21]
 
 # Funktion zum Abrufen der Serialnummer
 def get_serial():
@@ -60,41 +58,64 @@ def register_sensor(raspberry_id, location):
         print(f"Error registering sensor: {e}")
         return None
 
+# Funktion zum Senden der PIR-Daten
+def send_pir_data(sensor_id, movement_detected):
+    data = {
+        "sensor_id": sensor_id,
+        "movement_detected": movement_detected
+    }
+    try:
+        response = requests.post('http://45.149.78.188:5001/pir_data', json=data)
+        print(f"Data sent: {data}, Response: {response.status_code}, {response.text}")
+    except Exception as e:
+        print(f"Error sending PIR data: {e}")
+
 # Systeminformationen sammeln
 serial_number = get_serial()
 public_ip = get_public_ip()
 raspberry_id = get_raspberry_id(serial_number)
 
 if raspberry_id:
-    sensor_id = register_sensor(raspberry_id, "Briefkasten Standort 1")
-    if sensor_id:
-        print(f"Sensor registriert mit ID: {sensor_id}")
+    sensors = []
+    GPIO.setmode(GPIO.BCM)
+    
+    # Scanne alle möglichen GPIO-Pins
+    for pin in GPIO_PINS:
+        try:
+            GPIO.setup(pin, GPIO.IN)
+            if GPIO.input(pin):
+                location = f"Sensor at GPIO {pin}"
+                sensor_id = register_sensor(raspberry_id, location)
+                if sensor_id:
+                    sensors.append({
+                        "pin": pin,
+                        "sensor_id": sensor_id,
+                        "location": location
+                    })
+                    print(f"Sensor registriert mit ID: {sensor_id} an PIN: {pin}")
+        except Exception as e:
+            print(f"Error setting up GPIO pin {pin}: {e}")
 
-        # Funktion zum Senden der PIR-Daten
-        def send_pir_data(movement_detected):
-            data = {
-                "sensor_id": sensor_id,
-                "movement_detected": movement_detected
-            }
-            response = requests.post('http://45.149.78.188:5001/pir_data', json=data)
-            print(response.status_code)
-            print(response.text)
-
-        print("PIR Sensor initialisiert...")
+    if sensors:
+        print("PIR Sensoren initialisiert...")
 
         try:
-            previous_state = False
+            previous_states = {sensor['pin']: False for sensor in sensors}
             while True:
-                current_state = GPIO.input(PIR_PIN)
-                if current_state and not previous_state:
-                    print("Bewegung erkannt!")
-                    send_pir_data(True)
-                    previous_state = True
-                elif not current_state and previous_state:
-                    previous_state = False
+                for sensor in sensors:
+                    current_state = GPIO.input(sensor['pin'])
+                    if current_state and not previous_states[sensor['pin']]:
+                        print(f"Bewegung erkannt an PIN: {sensor['pin']}, Location: {sensor['location']}")
+                        send_pir_data(sensor['sensor_id'], True)
+                        previous_states[sensor['pin']] = True
+                    elif not current_state and previous_states[sensor['pin']]:
+                        print(f"Keine Bewegung mehr erkannt an PIN: {sensor['pin']}, Location: {sensor['location']}")
+                        previous_states[sensor['pin']] = False
                 time.sleep(1)
         except KeyboardInterrupt:
             print("Beende...")
             GPIO.cleanup()
+    else:
+        print("Keine Sensoren konnten registriert werden.")
 else:
     print("Raspberry ID konnte nicht abgerufen werden.")
