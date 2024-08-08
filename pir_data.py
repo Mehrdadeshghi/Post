@@ -14,6 +14,29 @@ def connect_db():
         host="localhost"
     )
 
+# API-Endpunkt zum Überprüfen, ob ein Sensor bereits registriert ist
+@app.route('/check_sensor', methods=['GET'])
+def check_sensor():
+    raspberry_id = request.args.get('raspberry_id')
+    location = request.args.get('location')
+
+    if not raspberry_id or not location:
+        return jsonify({"error": "Missing raspberry_id or location"}), 400
+
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT sensor_id FROM pir_sensors WHERE raspberry_id = %s AND location = %s", (raspberry_id, location))
+        result = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if result:
+            return jsonify({"sensor_id": result[0]}), 200
+        else:
+            return jsonify({"error": "Sensor not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # API-Endpunkt für das Hinzufügen von Sensoren
 @app.route('/add_sensor', methods=['POST'])
 def add_sensor():
