@@ -86,6 +86,9 @@ def update_raspberry_pi_location(raspberry_id):
 
         conn = connect_db()
         cursor = conn.cursor()
+
+        print(f"Updating location for Raspberry Pi {raspberry_id} with data: {data}")
+
         cursor.execute("""
             UPDATE locations
             SET street = %s, house_number = %s, postal_code = %s, city = %s, state = %s, country = %s
@@ -97,6 +100,8 @@ def update_raspberry_pi_location(raspberry_id):
         conn.commit()
         cursor.close()
         conn.close()
+
+        print(f"Successfully updated location for Raspberry Pi {raspberry_id}")
 
         return jsonify({"status": "success"}), 200
     except Exception as e:
