@@ -35,15 +35,21 @@ def register():
         conn = connect_db()
         cursor = conn.cursor()
 
-        # SQL-Abfrage zum Einfügen der Daten
-        cursor.execute("""
-            INSERT INTO raspberry_pis (serial_number, model, os_version, firmware_version, created_at)
-            VALUES (%s, %s, %s, %s, %s)
-            RETURNING raspberry_id;
-        """, (serial_number, model, os_version, firmware_version, datetime.now()))
+        # Überprüfen, ob die Seriennummer bereits vorhanden ist
+        cursor.execute("SELECT raspberry_id FROM raspberry_pis WHERE serial_number = %s", (serial_number,))
+        result = cursor.fetchone()
 
-        raspberry_id = cursor.fetchone()[0]
-        conn.commit()
+        if result:
+            raspberry_id = result[0]
+        else:
+            # Neue Raspberry Pi-Eintragung hinzufügen
+            cursor.execute("""
+                INSERT INTO raspberry_pis (serial_number, model, os_version, firmware_version, created_at)
+                VALUES (%s, %s, %s, %s, %s)
+                RETURNING raspberry_id;
+            """, (serial_number, model, os_version, firmware_version, datetime.now()))
+            raspberry_id = cursor.fetchone()[0]
+            conn.commit()
 
         cursor.execute("""
             INSERT INTO raspberry_logs (raspberry_id, timestamp, status, public_ip)
