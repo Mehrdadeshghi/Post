@@ -103,6 +103,7 @@ def user_dashboard():
         return redirect(url_for('login'))
 
 
+
 @app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
 def assign_user(sensor_id):
     if request.method == 'POST':
