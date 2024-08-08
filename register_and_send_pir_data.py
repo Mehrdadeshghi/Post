@@ -82,7 +82,7 @@ if raspberry_id:
     # Scanne alle möglichen GPIO-Pins
     for pin in GPIO_PINS:
         try:
-            GPIO.setup(pin, GPIO.IN)
+            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
             # Warte kurz, um den PIN zu stabilisieren
             time.sleep(0.1)
             if GPIO.input(pin):
@@ -112,6 +112,7 @@ if raspberry_id:
                         previous_states[sensor['pin']] = True
                     elif not current_state and previous_states[sensor['pin']]:
                         print(f"Keine Bewegung mehr erkannt an PIN: {sensor['pin']}, Location: {sensor['location']}")
+                        send_pir_data(sensor['sensor_id'], False)
                         previous_states[sensor['pin']] = False
                 time.sleep(1)
         except KeyboardInterrupt:
