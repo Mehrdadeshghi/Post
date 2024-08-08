@@ -83,13 +83,16 @@ if raspberry_id:
         print("PIR Sensor initialisiert...")
 
         try:
+            previous_state = False
             while True:
-                if GPIO.input(PIR_PIN):
+                current_state = GPIO.input(PIR_PIN)
+                if current_state and not previous_state:
                     print("Bewegung erkannt!")
                     send_pir_data(True)
-                else:
-                    send_pir_data(False)
-                time.sleep(5)
+                    previous_state = True
+                elif not current_state and previous_state:
+                    previous_state = False
+                time.sleep(1)
         except KeyboardInterrupt:
             print("Beende...")
             GPIO.cleanup()
