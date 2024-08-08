@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, redirect, url_for
 import psycopg2
 from datetime import datetime
 
@@ -7,9 +7,9 @@ app = Flask(__name__)
 # Datenbankverbindung einrichten
 def connect_db():
     return psycopg2.connect(
-        dbname="post",
-        user="myuser",
-        password="mypassword",
+        dbname="deine_datenbank",
+        user="dein_benutzer",
+        password="dein_passwort",
         host="localhost"
     )
 
@@ -29,21 +29,6 @@ def get_raspberry_pis():
         cursor.close()
         conn.close()
         return jsonify(raspberry_pis), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-# API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
-@app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
-def get_pir_sensors(raspberry_id):
-    try:
-        conn = connect_db()
-        cursor = conn.cursor()
-        cursor.execute("SELECT sensor_id, location FROM pir_sensors WHERE raspberry_id = %s", (raspberry_id,))
-        sensors = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(sensors), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -81,19 +66,11 @@ def update_raspberry_pi_location(raspberry_id):
         state = data.get('state')
         country = data.get('country')
 
-        # Debugging-Ausgaben hinzufügen
-        print(f"Received data: {data}")
-        print(f"Raspberry ID: {raspberry_id}")
-
         if not all([street, house_number, postal_code, city, state, country]):
-            print("Missing location fields")
             return jsonify({"error": "Missing location fields"}), 400
 
         conn = connect_db()
         cursor = conn.cursor()
-
-        # Debugging-Ausgaben hinzufügen
-        print(f"Updating location for Raspberry Pi {raspberry_id} with data: {data}")
 
         cursor.execute("""
             UPDATE locations
@@ -107,12 +84,15 @@ def update_raspberry_pi_location(raspberry_id):
         cursor.close()
         conn.close()
 
-        print(f"Successfully updated location for Raspberry Pi {raspberry_id}")
-
         return jsonify({"status": "success"}), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+# Seite zum Zuweisen des Standorts anzeigen
+@app.route('/assign_location/<int:raspberry_id>')
+def assign_location(raspberry_id):
+    return render_template('assign_location.html', raspberry_id=raspberry_id)
 
 # HTML-Seite rendern
 @app.route('/')
