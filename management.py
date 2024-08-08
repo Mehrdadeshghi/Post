@@ -68,7 +68,7 @@ def user_dashboard():
         conn = connect_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
-            SELECT ps.sensor_id, ps.location
+            SELECT DISTINCT ps.sensor_id, ps.location
             FROM pir_sensors ps
             JOIN user_pir_assignments upa ON ps.sensor_id = upa.sensor_id
             WHERE upa.user_id = %s
@@ -84,6 +84,7 @@ def user_dashboard():
         print(f"Error: {e}")
         flash('Es gab ein Problem beim Abrufen der Sensordaten. Bitte versuchen Sie es erneut.', 'danger')
         return redirect(url_for('login'))
+
 
 @app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
 def assign_user(sensor_id):
