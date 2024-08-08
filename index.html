@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raspberry Pi Monitoring</title>
+    <title>Raspberry Pi Management</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
     <div class="container mt-5">
-        <h1 class="mb-4">Raspberry Pi Monitoring</h1>
+        <h1 class="mb-4">Raspberry Pi Management</h1>
         <div class="row">
             <div class="col-md-4">
                 <h3>Raspberry Pis</h3>
@@ -18,6 +18,17 @@
                 </ul>
             </div>
             <div class="col-md-8">
+                <h3>Management</h3>
+                <div id="management-section" style="display: none;">
+                    <h4 id="raspberry-info"></h4>
+                    <form id="location-form">
+                        <div class="form-group">
+                            <label for="location">Standort</label>
+                            <input type="text" class="form-control" id="location" placeholder="Standort eingeben">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                    </form>
+                </div>
                 <h3>Verbunde PIR-Sensoren</h3>
                 <ul id="sensor-list" class="list-group">
                     <!-- PIR-Sensoren werden hier eingefügt -->
@@ -36,6 +47,7 @@
                     listItem.data('raspberry-id', raspberry[0]);
                     listItem.click(function() {
                         fetchSensors(raspberry[0]);
+                        showManagement(raspberry[0]);
                     });
                     raspberryList.append(listItem);
                 });
@@ -53,6 +65,33 @@
                 });
             });
         }
+
+        function showManagement(raspberryId) {
+            $.get('/api/raspberry_pis/' + raspberryId, function(data) {
+                $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data[1] + ' | Model: ' + data[2] + ' | OS Version: ' + data[3] + ' | Firmware Version: ' + data[4]);
+                $('#location').val(data[5] || '');
+                $('#management-section').data('raspberry-id', raspberryId).show();
+            });
+        }
+
+        $('#location-form').submit(function(event) {
+            event.preventDefault();
+            var raspberryId = $('#management-section').data('raspberry-id');
+            var location = $('#location').val();
+            $.ajax({
+                url: '/api/raspberry_pis/' + raspberryId,
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ location: location }),
+                success: function(response) {
+                    alert('Standortinformationen gespeichert');
+                    fetchRaspberryPis();
+                },
+                error: function(xhr, status, error) {
+                    alert('Fehler beim Speichern der Standortinformationen: ' + xhr.responseText);
+                }
+            });
+        });
 
         // Initiales Laden der Raspberry Pis
         fetchRaspberryPis();
