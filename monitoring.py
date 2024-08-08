@@ -1,6 +1,5 @@
 from flask import Flask, render_template, jsonify
 import psycopg2
-from datetime import datetime
 
 app = Flask(__name__)
 
@@ -13,21 +12,35 @@ def connect_db():
         host="localhost"
     )
 
-# API-Endpunkt zum Abrufen der PIR-Sensordaten
-@app.route('/api/sensor_data', methods=['GET'])
-def get_sensor_data():
+# API-Endpunkt zum Abrufen aller Raspberry Pis
+@app.route('/api/raspberry_pis', methods=['GET'])
+def get_raspberry_pis():
     try:
         conn = connect_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 100")
-        sensor_data = cursor.fetchall()
+        cursor.execute("SELECT raspberry_id, serial_number, model, os_version, firmware_version FROM raspberry_pis")
+        raspberry_pis = cursor.fetchall()
         cursor.close()
         conn.close()
-        return jsonify(sensor_data), 200
+        return jsonify(raspberry_pis), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# HTML-Seite dienen
+# API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
+@app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
+def get_pir_sensors(raspberry_id):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("SELECT sensor_id, location FROM pir_sensors WHERE raspberry_id = %s", (raspberry_id,))
+        sensors = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(sensors), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# HTML-Seite rendern
 @app.route('/')
 def index():
     return render_template('index.html')
