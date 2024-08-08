@@ -14,7 +14,7 @@ def get_serial():
         with open('/proc/cpuinfo', 'r') as f:
             for line in f:
                 if line[0:6] == 'Serial':
-                    cpuserial = line[10:26]
+                    cpuserial = line[10:26].strip()
     except:
         cpuserial = "ERROR000000000"
     return cpuserial
@@ -84,6 +84,7 @@ def scan_pins():
 
 # Systeminformationen sammeln
 serial_number = get_serial()
+print(f"Serial Number: {serial_number}")
 public_ip = get_public_ip()
 raspberry_id = get_raspberry_id(serial_number)
 
