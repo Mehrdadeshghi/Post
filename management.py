@@ -93,6 +93,9 @@ def user_dashboard():
         cursor.close()
         conn.close()
 
+        # Debugging: Daten in der Konsole ausgeben
+        print("DEBUG: Movement data fetched from database:", movement_data)
+
         return render_template('user_dashboard.html', sensors=sensors, movement_data=movement_data)
     except Exception as e:
         print(f"Error: {e}")
