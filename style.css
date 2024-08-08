@@ -1,0 +1,31 @@
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h3 {
+    color: #343a40;
+}
+
+.table {
+    margin-top: 20px;
+}
+
+.btn {
+    margin-top: 10px;
+}
+
+thead {
+    background-color: #343a40;
+    color: white;
+}
