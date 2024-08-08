@@ -81,12 +81,18 @@ def update_raspberry_pi_location(raspberry_id):
         state = data.get('state')
         country = data.get('country')
 
+        # Debugging-Ausgaben hinzufügen
+        print(f"Received data: {data}")
+        print(f"Raspberry ID: {raspberry_id}")
+
         if not all([street, house_number, postal_code, city, state, country]):
+            print("Missing location fields")
             return jsonify({"error": "Missing location fields"}), 400
 
         conn = connect_db()
         cursor = conn.cursor()
 
+        # Debugging-Ausgaben hinzufügen
         print(f"Updating location for Raspberry Pi {raspberry_id} with data: {data}")
 
         cursor.execute("""
