@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Location</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Assign Location to Raspberry Pi</h1>
+        <form id="assign-location-form">
+            <div class="form-group">
+                <label for="street">Straße</label>
+                <input type="text" class="form-control" id="street" placeholder="Straße eingeben">
+            </div>
+            <div class="form-group">
+                <label for="house_number">Hausnummer</label>
+                <input type="text" class="form-control" id="house_number" placeholder="Hausnummer eingeben">
+            </div>
+            <div class="form-group">
+                <label for="postal_code">Postleitzahl</label>
+                <input type="text" class="form-control" id="postal_code" placeholder="Postleitzahl eingeben">
+            </div>
+            <div class="form-group">
+                <label for="city">Stadt</label>
+                <input type="text" class="form-control" id="city" placeholder="Stadt eingeben">
+            </div>
+            <div class="form-group">
+                <label for="state">Bundesland</label>
+                <input type="text" class="form-control" id="state" placeholder="Bundesland eingeben">
+            </div>
+            <div class="form-group">
+                <label for="country">Land</label>
+                <input type="text" class="form-control" id="country" placeholder="Land eingeben">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+        </form>
+    </div>
+    <script>
+        $('#assign-location-form').submit(function(event) {
+            event.preventDefault();
+            var raspberryId = {{ raspberry_id }};
+            var locationData = {
+                street: $('#street').val(),
+                house_number: $('#house_number').val(),
+                postal_code: $('#postal_code').val(),
+                city: $('#city').val(),
+                state: $('#state').val(),
+                country: $('#country').val()
+            };
+            $.ajax({
+                url: '/api/raspberry_pis/' + raspberryId + '/location',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(locationData),
+                success: function(response) {
+                    alert('Standortinformationen gespeichert');
+                    window.location.href = '/';
+                },
+                error: function(xhr, status, error) {
+                    alert('Fehler beim Speichern der Standortinformationen: ' + xhr.responseText);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
