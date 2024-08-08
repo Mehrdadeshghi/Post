@@ -5,11 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Raspberry Pi Management</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Raspberry Pi Management</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/overview">Overview</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
     <div class="container mt-5">
-        <h1 class="mb-4">Raspberry Pi Management</h1>
         <div class="row">
             <div class="col-md-4">
                 <h3>Raspberry Pis</h3>
@@ -21,7 +31,7 @@
                 <h3>Management</h3>
                 <div id="management-section" style="display: none;">
                     <h4 id="raspberry-info"></h4>
-                    <button id="assign-location-btn" class="btn btn-primary">Assign Location</button>
+                    <button id="assign-location-btn" class="btn btn-primary mb-3">Assign Location</button>
                     <form id="location-form" style="display: none;">
                         <div class="form-group">
                             <label for="street">Straße</label>
@@ -47,12 +57,11 @@
                             <label for="country">Land</label>
                             <input type="text" class="form-control" id="country" placeholder="Land eingeben">
                         </div>
-                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="submit" class="btn btn-success">Save</button>
                     </form>
                 </div>
             </div>
         </div>
-        <button class="btn btn-secondary mt-4" onclick="window.location.href='/overview'">Overview</button>
     </div>
     <script>
         function fetchRaspberryPis() {
