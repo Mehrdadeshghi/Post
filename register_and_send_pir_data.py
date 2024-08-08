@@ -5,7 +5,7 @@ import subprocess
 import time
 
 # Liste aller möglichen GPIO-Pins, die geprüft werden sollen
-GPIO_PINS = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 14, 15, 18, 23, 24, 25, 8, 7, 12, 16, 20, 21]
+GPIO_PINS = [2, 3, 4, 17, 27, 22, 10, 9, 11, 5, 6, 13, 19, 26, 21, 20, 16, 12, 7, 8, 25, 24, 23, 18, 15, 14]
 
 # Funktion zum Abrufen der Serialnummer
 def get_serial():
@@ -70,6 +70,18 @@ def send_pir_data(sensor_id, movement_detected):
     except Exception as e:
         print(f"Error sending PIR data: {e}")
 
+# Funktion zum Scannen der GPIO-Pins
+def scan_pins():
+    pin_status = {}
+    for pin in GPIO_PINS:
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        status = GPIO.input(pin)
+        if status == GPIO.LOW:
+            pin_status[pin] = 'Connected'
+        else:
+            pin_status[pin] = 'Not Connected'
+    return pin_status
+
 # Systeminformationen sammeln
 serial_number = get_serial()
 public_ip = get_public_ip()
@@ -78,25 +90,20 @@ raspberry_id = get_raspberry_id(serial_number)
 if raspberry_id:
     sensors = []
     GPIO.setmode(GPIO.BCM)
-    
+
     # Scanne alle möglichen GPIO-Pins
-    for pin in GPIO_PINS:
-        try:
-            GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            # Warte kurz, um den PIN zu stabilisieren
-            time.sleep(0.1)
-            if GPIO.input(pin):
-                location = f"Sensor at GPIO {pin}"
-                sensor_id = register_sensor(raspberry_id, location)
-                if sensor_id:
-                    sensors.append({
-                        "pin": pin,
-                        "sensor_id": sensor_id,
-                        "location": location
-                    })
-                    print(f"Sensor registriert mit ID: {sensor_id} an PIN: {pin}")
-        except Exception as e:
-            print(f"Error setting up GPIO pin {pin}: {e}")
+    pin_status = scan_pins()
+    for pin, status in pin_status.items():
+        if status == 'Connected':
+            location = f"Sensor at GPIO {pin}"
+            sensor_id = register_sensor(raspberry_id, location)
+            if sensor_id:
+                sensors.append({
+                    "pin": pin,
+                    "sensor_id": sensor_id,
+                    "location": location
+                })
+                print(f"Sensor registriert mit ID: {sensor_id} an PIN: {pin}")
 
     if sensors:
         print("PIR Sensoren initialisiert...")
