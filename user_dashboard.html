@@ -54,8 +54,8 @@
         <canvas id="movementChart" width="400" height="200"></canvas>
         <script>
             var ctx = document.getElementById('movementChart').getContext('2d');
-            var labels = {{ movement_data | map(attribute='timestamp') | list }};
-            var data = {{ movement_data | map(attribute='movement_detected') | list }};
+            var labels = {{ movement_data | map(attribute='timestamp') | list | safe }};
+            var data = {{ movement_data | map(attribute='movement_detected') | list | safe }};
             var formattedLabels = labels.map(label => new Date(label).toLocaleString());
 
             var movementData = {
