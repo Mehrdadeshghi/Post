@@ -1,8 +1,8 @@
 from flask import Flask
 from config import Config
-from auth.routes import auth_bp
-from management.routes import management_bp
-from user.routes import user_bp
+from auth import auth_bp
+from management import management_bp
+from user import user_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
