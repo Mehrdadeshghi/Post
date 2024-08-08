@@ -23,8 +23,28 @@
                     <h4 id="raspberry-info"></h4>
                     <form id="location-form">
                         <div class="form-group">
-                            <label for="location">Standort</label>
-                            <input type="text" class="form-control" id="location" placeholder="Standort eingeben">
+                            <label for="street">Straße</label>
+                            <input type="text" class="form-control" id="street" placeholder="Straße eingeben">
+                        </div>
+                        <div class="form-group">
+                            <label for="house_number">Hausnummer</label>
+                            <input type="text" class="form-control" id="house_number" placeholder="Hausnummer eingeben">
+                        </div>
+                        <div class="form-group">
+                            <label for="postal_code">Postleitzahl</label>
+                            <input type="text" class="form-control" id="postal_code" placeholder="Postleitzahl eingeben">
+                        </div>
+                        <div class="form-group">
+                            <label for="city">Stadt</label>
+                            <input type="text" class="form-control" id="city" placeholder="Stadt eingeben">
+                        </div>
+                        <div class="form-group">
+                            <label for="state">Bundesland</label>
+                            <input type="text" class="form-control" id="state" placeholder="Bundesland eingeben">
+                        </div>
+                        <div class="form-group">
+                            <label for="country">Land</label>
+                            <input type="text" class="form-control" id="country" placeholder="Land eingeben">
                         </div>
                         <button type="submit" class="btn btn-primary">Speichern</button>
                     </form>
@@ -69,7 +89,12 @@
         function showManagement(raspberryId) {
             $.get('/api/raspberry_pis/' + raspberryId, function(data) {
                 $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data[1] + ' | Model: ' + data[2] + ' | OS Version: ' + data[3] + ' | Firmware Version: ' + data[4]);
-                $('#location').val(data[5] || '');
+                $('#street').val(data[5] || '');
+                $('#house_number').val(data[6] || '');
+                $('#postal_code').val(data[7] || '');
+                $('#city').val(data[8] || '');
+                $('#state').val(data[9] || '');
+                $('#country').val(data[10] || '');
                 $('#management-section').data('raspberry-id', raspberryId).show();
             });
         }
@@ -77,12 +102,19 @@
         $('#location-form').submit(function(event) {
             event.preventDefault();
             var raspberryId = $('#management-section').data('raspberry-id');
-            var location = $('#location').val();
+            var locationData = {
+                street: $('#street').val(),
+                house_number: $('#house_number').val(),
+                postal_code: $('#postal_code').val(),
+                city: $('#city').val(),
+                state: $('#state').val(),
+                country: $('#country').val()
+            };
             $.ajax({
-                url: '/api/raspberry_pis/' + raspberryId,
+                url: '/api/raspberry_pis/' + raspberryId + '/location',
                 method: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ location: location }),
+                data: JSON.stringify(locationData),
                 success: function(response) {
                     alert('Standortinformationen gespeichert');
                     fetchRaspberryPis();
