@@ -60,11 +60,11 @@
                 raspberryList.empty();
                 data.forEach(function(raspberry) {
                     var listItem = $('<li class="list-group-item list-group-item-action"></li>');
-                    listItem.html('Serial Number: ' + raspberry[1] + ' | Model: ' + raspberry[2] +
-                                  ' <button class="btn btn-sm btn-primary float-right" onclick="showManagement(' + raspberry[0] + ')">Management</button>');
-                    listItem.data('raspberry-id', raspberry[0]);
+                    listItem.html('Serial Number: ' + raspberry.serial_number + ' | Model: ' + raspberry.model +
+                                  ' <button class="btn btn-sm btn-primary float-right" onclick="showManagement(' + raspberry.raspberry_id + ')">Management</button>');
+                    listItem.data('raspberry-id', raspberry.raspberry_id);
                     listItem.click(function() {
-                        fetchSensors(raspberry[0]);
+                        fetchSensors(raspberry.raspberry_id);
                     });
                     raspberryList.append(listItem);
                 });
@@ -73,7 +73,7 @@
 
         function showManagement(raspberryId) {
             $.get('/api/raspberry_pis/' + raspberryId, function(data) {
-                $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data[1] + ' | Model: ' + data[2] + ' | OS Version: ' + data[3] + ' | Firmware Version: ' + data[4]);
+                $('#raspberry-info').text('Raspberry Pi Info: Serial Number: ' + data.serial_number + ' | Model: ' + data.model + ' | OS Version: ' + data.os_version + ' | Firmware Version: ' + data.firmware_version);
                 $('#assign-location-btn').attr('onclick', 'window.location.href="/assign_location/' + raspberryId + '"');
                 $('#management-section').data('raspberry-id', raspberryId).show();
                 $('#location-form').hide(); // Verstecke das Formular, bis "Assign Location" geklickt wird
