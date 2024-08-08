@@ -1,127 +1,57 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, redirect, url_for, flash
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from werkzeug.security import generate_password_hash
 from datetime import datetime
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Notwendig für Flash-Messages
 
 # Datenbankverbindung einrichten
 def connect_db():
     return psycopg2.connect(
-        dbname="post",
-        user="myuser",
-        password="mypassword",
+        dbname="deine_datenbank",
+        user="dein_benutzer",
+        password="dein_passwort",
         host="localhost"
     )
 
-# API-Endpunkt zum Abrufen aller Raspberry Pis
-@app.route('/api/raspberry_pis', methods=['GET'])
-def get_raspberry_pis():
-    try:
-        conn = connect_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("""
-            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
-            FROM raspberry_pis rp
-            LEFT JOIN locations l ON rp.location_id = l.location_id
-        """)
-        raspberry_pis = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(raspberry_pis), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+# Benutzerregistrierung
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        password_hash = generate_password_hash(password)
 
-# API-Endpunkt zum Abrufen der Infos eines Raspberry Pi
-@app.route('/api/raspberry_pis/<int:raspberry_id>', methods=['GET'])
-def get_raspberry_pi_info(raspberry_id):
-    try:
-        conn = connect_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("""
-            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
-            FROM raspberry_pis rp
-            LEFT JOIN locations l ON rp.location_id = l.location_id
-            WHERE rp.raspberry_id = %s
-        """, (raspberry_id,))
-        raspberry_pi = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return jsonify(raspberry_pi), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        if not all([username, email, password]):
+            flash('Bitte füllen Sie alle Felder aus.', 'danger')
+            return render_template('register.html')
 
-# API-Endpunkt zum Aktualisieren der Standortinformationen eines Raspberry Pi
-@app.route('/api/raspberry_pis/<int:raspberry_id>/location', methods=['POST'])
-def update_raspberry_pi_location(raspberry_id):
-    try:
-        data = request.json
-        street = data.get('street')
-        house_number = data.get('house_number')
-        postal_code = data.get('postal_code')
-        city = data.get('city')
-        state = data.get('state')
-        country = data.get('country')
-
-        if not all([street, house_number, postal_code, city, state, country]):
-            return jsonify({"error": "Missing location fields"}), 400
-
-        conn = connect_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-
-        # Überprüfen, ob der Standort bereits existiert
-        cursor.execute("""
-            SELECT location_id FROM locations
-            WHERE street = %s AND house_number = %s AND postal_code = %s AND city = %s AND state = %s AND country = %s
-        """, (street, house_number, postal_code, city, state, country))
-        location = cursor.fetchone()
-
-        if location:
-            location_id = location['location_id']
-        else:
+        try:
+            conn = connect_db()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             cursor.execute("""
-                INSERT INTO locations (street, house_number, postal_code, city, state, country)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                RETURNING location_id
-            """, (street, house_number, postal_code, city, state, country))
-            location_id = cursor.fetchone()['location_id']
+                INSERT INTO users (username, email, password_hash)
+                VALUES (%s, %s, %s)
+                RETURNING user_id, username, email, created_at
+            """, (username, email, password_hash))
+            
+            user = cursor.fetchone()
+            conn.commit()
+            cursor.close()
+            conn.close()
 
-        cursor.execute("""
-            UPDATE raspberry_pis
-            SET location_id = %s
-            WHERE raspberry_id = %s
-        """, (location_id, raspberry_id))
+            flash('Registrierung erfolgreich. Sie können sich jetzt anmelden.', 'success')
+            return redirect(url_for('register'))
+        except Exception as e:
+            print(f"Error: {e}")
+            flash('Es gab ein Problem mit der Registrierung. Bitte versuchen Sie es erneut.', 'danger')
+            return render_template('register.html')
+    return render_template('register.html')
 
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        return jsonify({"status": "success"}), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/raspberry/<int:raspberry_id>/pirs', methods=['GET'])
-def view_pirs(raspberry_id):
-    try:
-        conn = connect_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("""
-            SELECT ps.sensor_id, ps.location, ps.gpio_pin
-            FROM pir_sensors ps
-            WHERE ps.raspberry_id = %s
-        """, (raspberry_id,))
-        pirs = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return render_template('pirs.html', raspberry_id=raspberry_id, pirs=pirs)
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
+# API-Endpunkt zum Abrufen aller Raspberry Pis
 @app.route('/raspberrys', methods=['GET'])
 def view_raspberrys():
     try:
@@ -140,11 +70,31 @@ def view_raspberrys():
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
+@app.route('/raspberry/<int:raspberry_id>/pirs', methods=['GET'])
+def view_pirs(raspberry_id):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT ps.sensor_id, ps.location
+            FROM pir_sensors ps
+            WHERE ps.raspberry_id = %s
+        """, (raspberry_id,))
+        pirs = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('pirs.html', raspberry_id=raspberry_id, pirs=pirs)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
+# API-Endpunkt zum Zuweisen eines Benutzers zu einem PIR-Sensor
 @app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
 def assign_user(sensor_id):
     if request.method == 'POST':
         user_id = request.form['user_id']
+        raspberry_id = request.form['raspberry_id']
         try:
             conn = connect_db()
             cursor = conn.cursor()
@@ -157,11 +107,11 @@ def assign_user(sensor_id):
             cursor.close()
             conn.close()
             flash('User assigned successfully', 'success')
-            return redirect(url_for('view_pirs', raspberry_id=request.form['raspberry_id']))
+            return redirect(url_for('view_pirs', raspberry_id=raspberry_id))
         except Exception as e:
             print(f"Error: {e}")
             flash('Failed to assign user', 'danger')
-            return redirect(url_for('assign_user', sensor_id=sensor_id))
+            return redirect(url_for('assign_user', sensor_id=sensor_id, raspberry_id=raspberry_id))
     try:
         conn = connect_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
@@ -169,43 +119,11 @@ def assign_user(sensor_id):
         users = cursor.fetchall()
         cursor.close()
         conn.close()
-        return render_template('assign_user.html', sensor_id=sensor_id, users=users, raspberry_id=request.args.get('raspberry_id'))
+        raspberry_id = request.args.get('raspberry_id')
+        return render_template('assign_user.html', sensor_id=sensor_id, users=users, raspberry_id=raspberry_id)
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
-
-
-
-
-# API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
-@app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
-def get_pir_sensors(raspberry_id):
-    try:
-        conn = connect_db()
-        cursor = conn.cursor(cursor_factory=RealDictCursor)
-        cursor.execute("SELECT sensor_id, location FROM pir_sensors WHERE raspberry_id = %s", (raspberry_id,))
-        sensors = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return jsonify(sensors), 200
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
-# Seite zum Zuweisen des Standorts anzeigen
-@app.route('/assign_location/<int:raspberry_id>')
-def assign_location(raspberry_id):
-    return render_template('assign_location.html', raspberry_id=raspberry_id)
-
-# Seite zur Übersicht der Raspberry Pis anzeigen
-@app.route('/overview')
-def overview():
-    return render_template('overview.html')
-
-# HTML-Seite rendern
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5003)
