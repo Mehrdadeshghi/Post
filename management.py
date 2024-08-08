@@ -103,6 +103,25 @@ def update_raspberry_pi_location(raspberry_id):
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/raspberry/<int:raspberry_id>/pirs', methods=['GET'])
+def view_pirs(raspberry_id):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT ps.sensor_id, ps.location, ps.gpio_pin
+            FROM pir_sensors ps
+            WHERE ps.raspberry_id = %s
+        """, (raspberry_id,))
+        pirs = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('pirs.html', raspberry_id=raspberry_id, pirs=pirs)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/raspberrys', methods=['GET'])
 def view_raspberrys():
     try:
