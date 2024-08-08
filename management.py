@@ -1,5 +1,6 @@
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 
 app = Flask(__name__)
@@ -18,12 +19,11 @@ def connect_db():
 def get_raspberry_pis():
     try:
         conn = connect_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
             SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
             FROM raspberry_pis rp
-            LEFT JOIN mailboxes mb ON rp.mailbox_id = mb.mailbox_id
-            LEFT JOIN locations l ON mb.location_id = l.location_id
+            LEFT JOIN locations l ON rp.location_id = l.location_id
         """)
         raspberry_pis = cursor.fetchall()
         cursor.close()
@@ -38,12 +38,11 @@ def get_raspberry_pis():
 def get_raspberry_pi_info(raspberry_id):
     try:
         conn = connect_db()
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
-            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, mb.mailbox_id, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
+            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
             FROM raspberry_pis rp
-            LEFT JOIN mailboxes mb ON rp.mailbox_id = mb.mailbox_id
-            LEFT JOIN locations l ON mb.location_id = l.location_id
+            LEFT JOIN locations l ON rp.location_id = l.location_id
             WHERE rp.raspberry_id = %s
         """, (raspberry_id,))
         raspberry_pi = cursor.fetchone()
@@ -72,19 +71,49 @@ def update_raspberry_pi_location(raspberry_id):
         conn = connect_db()
         cursor = conn.cursor()
 
+        # Überprüfen, ob der Standort bereits existiert
         cursor.execute("""
-            UPDATE locations
-            SET street = %s, house_number = %s, postal_code = %s, city = %s, state = %s, country = %s
-            FROM mailboxes mb
-            WHERE mb.mailbox_id = (
-                SELECT mailbox_id FROM raspberry_pis WHERE raspberry_id = %s
-            ) AND locations.location_id = mb.location_id
-        """, (street, house_number, postal_code, city, state, country, raspberry_id))
+            SELECT location_id FROM locations
+            WHERE street = %s AND house_number = %s AND postal_code = %s AND city = %s AND state = %s AND country = %s
+        """, (street, house_number, postal_code, city, state, country))
+        location = cursor.fetchone()
+
+        if location:
+            location_id = location['location_id']
+        else:
+            cursor.execute("""
+                INSERT INTO locations (street, house_number, postal_code, city, state, country)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING location_id
+            """, (street, house_number, postal_code, city, state, country))
+            location_id = cursor.fetchone()['location_id']
+
+        cursor.execute("""
+            UPDATE raspberry_pis
+            SET location_id = %s
+            WHERE raspberry_id = %s
+        """, (location_id, raspberry_id))
+
         conn.commit()
         cursor.close()
         conn.close()
 
         return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
+@app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
+def get_pir_sensors(raspberry_id):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT sensor_id, location FROM pir_sensors WHERE raspberry_id = %s", (raspberry_id,))
+        sensors = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return jsonify(sensors), 200
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
