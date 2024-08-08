@@ -19,7 +19,12 @@ def get_raspberry_pis():
     try:
         conn = connect_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT raspberry_id, serial_number, model, os_version, firmware_version, location FROM raspberry_pis")
+        cursor.execute("""
+            SELECT rp.raspberry_id, rp.system_info, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
+            FROM raspberry_pis rp
+            JOIN mailboxes mb ON rp.mailbox_id = mb.mailbox_id
+            JOIN locations l ON mb.location_id = l.location_id
+        """)
         raspberry_pis = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -49,7 +54,13 @@ def get_raspberry_pi_info(raspberry_id):
     try:
         conn = connect_db()
         cursor = conn.cursor()
-        cursor.execute("SELECT raspberry_id, serial_number, model, os_version, firmware_version, location FROM raspberry_pis WHERE raspberry_id = %s", (raspberry_id,))
+        cursor.execute("""
+            SELECT rp.raspberry_id, rp.system_info, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
+            FROM raspberry_pis rp
+            JOIN mailboxes mb ON rp.mailbox_id = mb.mailbox_id
+            JOIN locations l ON mb.location_id = l.location_id
+            WHERE rp.raspberry_id = %s
+        """, (raspberry_id,))
         raspberry_pi = cursor.fetchone()
         cursor.close()
         conn.close()
@@ -59,18 +70,30 @@ def get_raspberry_pi_info(raspberry_id):
         return jsonify({"error": str(e)}), 500
 
 # API-Endpunkt zum Aktualisieren der Standortinformationen eines Raspberry Pi
-@app.route('/api/raspberry_pis/<int:raspberry_id>', methods=['POST'])
+@app.route('/api/raspberry_pis/<int:raspberry_id>/location', methods=['POST'])
 def update_raspberry_pi_location(raspberry_id):
     try:
         data = request.json
-        location = data.get('location')
+        street = data.get('street')
+        house_number = data.get('house_number')
+        postal_code = data.get('postal_code')
+        city = data.get('city')
+        state = data.get('state')
+        country = data.get('country')
 
-        if not location:
-            return jsonify({"error": "Missing location"}), 400
+        if not all([street, house_number, postal_code, city, state, country]):
+            return jsonify({"error": "Missing location fields"}), 400
 
         conn = connect_db()
         cursor = conn.cursor()
-        cursor.execute("UPDATE raspberry_pis SET location = %s WHERE raspberry_id = %s", (location, raspberry_id))
+        cursor.execute("""
+            UPDATE locations
+            SET street = %s, house_number = %s, postal_code = %s, city = %s, state = %s, country = %s
+            FROM mailboxes mb
+            WHERE mb.mailbox_id = (
+                SELECT mailbox_id FROM raspberry_pis WHERE raspberry_id = %s
+            ) AND locations.location_id = mb.location_id
+        """, (street, house_number, postal_code, city, state, country, raspberry_id))
         conn.commit()
         cursor.close()
         conn.close()
