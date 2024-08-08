@@ -65,7 +65,7 @@ def user_dashboard():
         conn = connect_db()
         cursor = conn.cursor(cursor_factory=RealDictCursor)
         cursor.execute("""
-            SELECT ps.sensor_id, ps.location, ps.gpio_pin
+            SELECT ps.sensor_id, ps.location
             FROM pir_sensors ps
             JOIN user_pir_assignments upa ON ps.sensor_id = upa.sensor_id
             WHERE upa.user_id = %s
