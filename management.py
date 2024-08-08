@@ -123,6 +123,11 @@ def get_pir_sensors(raspberry_id):
 def assign_location(raspberry_id):
     return render_template('assign_location.html', raspberry_id=raspberry_id)
 
+# Seite zur Übersicht der Raspberry Pis anzeigen
+@app.route('/overview')
+def overview():
+    return render_template('overview.html')
+
 # HTML-Seite rendern
 @app.route('/')
 def index():
