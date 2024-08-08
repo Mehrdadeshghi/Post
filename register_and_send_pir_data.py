@@ -83,6 +83,8 @@ if raspberry_id:
     for pin in GPIO_PINS:
         try:
             GPIO.setup(pin, GPIO.IN)
+            # Warte kurz, um den PIN zu stabilisieren
+            time.sleep(0.1)
             if GPIO.input(pin):
                 location = f"Sensor at GPIO {pin}"
                 sensor_id = register_sensor(raspberry_id, location)
