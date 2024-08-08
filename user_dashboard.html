@@ -28,6 +28,7 @@
             {% endif %}
         {% endwith %}
         <h3 class="mb-4">Your Assigned PIR Sensors</h3>
+        {% if sensors %}
         <table class="table table-bordered table-striped">
             <thead class="thead-dark">
                 <tr>
@@ -44,6 +45,9 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% else %}
+        <p>No sensors assigned.</p>
+        {% endif %}
     </div>
 </body>
 </html>
