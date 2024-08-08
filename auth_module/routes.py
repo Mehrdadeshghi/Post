@@ -37,12 +37,12 @@ def login():
                 return redirect(url_for('user.user_dashboard'))
             else:
                 flash('Ungültige Anmeldedaten.', 'danger')
-                return render_template('templates/auth/login.html')
+                return render_template('auth/login.html')
         except Exception as e:
             print(f"Error: {e}")
             flash('Es gab ein Problem mit der Anmeldung. Bitte versuchen Sie es erneut.', 'danger')
             return render_template('templates/auth/login.html')
-    return render_template('templates/auth/login.html')
+    return render_template('auth/login.html')
 
 @auth_bp.route('/logout')
 def logout():
