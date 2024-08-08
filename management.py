@@ -141,6 +141,42 @@ def view_raspberrys():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
+def assign_user(sensor_id):
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        try:
+            conn = connect_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE pir_sensors
+                SET user_id = %s
+                WHERE sensor_id = %s
+            """, (user_id, sensor_id))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            flash('User assigned successfully', 'success')
+            return redirect(url_for('view_pirs', raspberry_id=request.form['raspberry_id']))
+        except Exception as e:
+            print(f"Error: {e}")
+            flash('Failed to assign user', 'danger')
+            return redirect(url_for('assign_user', sensor_id=sensor_id))
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT user_id, username FROM users")
+        users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('assign_user.html', sensor_id=sensor_id, users=users, raspberry_id=request.args.get('raspberry_id'))
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+
+
 # API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
 @app.route('/api/raspberry_pis/<int:raspberry_id>/sensors', methods=['GET'])
 def get_pir_sensors(raspberry_id):
