@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIR Sensors</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Raspberry Pi Management</a>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="mb-4">PIR Sensors for Raspberry Pi ID: {{ raspberry_id }}</h1>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Sensor ID</th>
+                    <th>Location</th>
+                    <th>GPIO Pin</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pir in pirs %}
+                <tr>
+                    <td>{{ pir.sensor_id }}</td>
+                    <td>{{ pir.location }}</td>
+                    <td>{{ pir.gpio_pin }}</td>
+                    <td>
+                        <a href="{{ url_for('assign_user', sensor_id=pir.sensor_id) }}" class="btn btn-primary">Assign User</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-secondary mt-4" onclick="window.location.href='/raspberrys'">Back to Raspberrys</button>
+    </div>
+</body>
+</html>
