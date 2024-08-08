@@ -99,5 +99,75 @@ def user_dashboard():
         flash('Es gab ein Problem beim Abrufen der Sensordaten. Bitte versuchen Sie es erneut.', 'danger')
         return redirect(url_for('login'))
 
+@app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
+def assign_user(sensor_id):
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        raspberry_id = request.form['raspberry_id']
+        try:
+            conn = connect_db()
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO user_pir_assignments (user_id, sensor_id)
+                VALUES (%s, %s)
+            """, (user_id, sensor_id))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            flash('Postfach zugewiesen', 'success')
+            return redirect(url_for('view_pirs', raspberry_id=raspberry_id))
+        except Exception as e:
+            print(f"Error: {e}")
+            flash('Failed to assign user', 'danger')
+            return redirect(url_for('assign_user', sensor_id=sensor_id, raspberry_id=raspberry_id))
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("SELECT user_id, username FROM users")
+        users = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        raspberry_id = request.args.get('raspberry_id')
+        return render_template('assign_user.html', sensor_id=sensor_id, users=users, raspberry_id=raspberry_id)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/raspberry/<int:raspberry_id>/pirs', methods=['GET'])
+def view_pirs(raspberry_id):
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT ps.sensor_id, ps.location
+            FROM pir_sensors ps
+            WHERE ps.raspberry_id = %s
+        """, (raspberry_id,))
+        pirs = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('pirs.html', raspberry_id=raspberry_id, pirs=pirs)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/raspberrys', methods=['GET'])
+def view_raspberrys():
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        cursor.execute("""
+            SELECT rp.raspberry_id, rp.serial_number, rp.model, rp.os_version, rp.firmware_version, rp.ip_address, rp.created_at, l.street, l.house_number, l.postal_code, l.city, l.state, l.country
+            FROM raspberry_pis rp
+            LEFT JOIN locations l ON rp.location_id = l.location_id
+        """)
+        raspberrys = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return render_template('raspberrys.html', raspberrys=raspberrys)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5003)
