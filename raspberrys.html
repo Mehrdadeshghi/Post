@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Overview</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">Raspberry Pi Management</a>
+    </nav>
+    <div class="container mt-5">
+        <h1 class="mb-4">Raspberry Pis</h1>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Model</th>
+                    <th>OS Version</th>
+                    <th>Firmware Version</th>
+                    <th>IP Address</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for raspberry in raspberrys %}
+                <tr>
+                    <td>{{ raspberry.serial_number }}</td>
+                    <td>{{ raspberry.model }}</td>
+                    <td>{{ raspberry.os_version }}</td>
+                    <td>{{ raspberry.firmware_version }}</td>
+                    <td>{{ raspberry.ip_address }}</td>
+                    <td>{{ raspberry.street }} {{ raspberry.house_number }}, {{ raspberry.postal_code }} {{ raspberry.city }}, {{ raspberry.state }}, {{ raspberry.country }}</td>
+                    <td>
+                        <a href="{{ url_for('view_pirs', raspberry_id=raspberry.raspberry_id) }}" class="btn btn-primary">View PIRs</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
