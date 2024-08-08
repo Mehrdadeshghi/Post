@@ -102,6 +102,7 @@ def user_dashboard():
         flash('Es gab ein Problem beim Abrufen der Sensordaten. Bitte versuchen Sie es erneut.', 'danger')
         return redirect(url_for('login'))
 
+
 @app.route('/assign_user/<int:sensor_id>', methods=['GET', 'POST'])
 def assign_user(sensor_id):
     if request.method == 'POST':
