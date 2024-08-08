@@ -14,6 +14,37 @@ def connect_db():
         host="localhost"
     )
 
+# API-Endpunkt für das Hinzufügen von Sensoren
+@app.route('/add_sensor', methods=['POST'])
+def add_sensor():
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        raspberry_id = data.get('raspberry_id')
+        location = data.get('location')
+
+        if not raspberry_id or not location:
+            return jsonify({"error": "Missing fields"}), 400
+
+        conn = connect_db()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO pir_sensors (raspberry_id, location, created_at)
+            VALUES (%s, %s, %s)
+            RETURNING sensor_id;
+        """, (raspberry_id, location, datetime.now()))
+        sensor_id = cursor.fetchone()[0]
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return jsonify({"sensor_id": sensor_id}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # API-Endpunkt für das Speichern der PIR-Daten
 @app.route('/pir_data', methods=['POST'])
 def save_pir_data():
@@ -31,11 +62,8 @@ def save_pir_data():
         if not isinstance(sensor_id, int):
             return jsonify({"error": "Invalid sensor_id type"}), 400
 
-        # Verbindung zur Datenbank
         conn = connect_db()
         cursor = conn.cursor()
-
-        # SQL-Abfrage zum Einfügen der PIR-Daten
         cursor.execute("""
             INSERT INTO sensor_data (sensor_id, timestamp, movement_detected)
             VALUES (%s, %s, %s);
@@ -48,7 +76,6 @@ def save_pir_data():
         return jsonify({"status": "success"}), 201
 
     except Exception as e:
-        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
