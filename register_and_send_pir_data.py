@@ -71,8 +71,23 @@ def get_raspberry_id(serial_number):
         print(f"Error fetching raspberry_id: {e}")
         return None
 
+# Funktion zum Überprüfen, ob ein Sensor bereits registriert ist
+def check_sensor(raspberry_id, location):
+    try:
+        response = requests.get(f'http://45.149.78.188:5001/check_sensor?raspberry_id={raspberry_id}&location={location}')
+        if response.status_code == 200:
+            return response.json()['sensor_id']
+        else:
+            return None
+    except Exception as e:
+        print(f"Error checking sensor: {e}")
+        return None
+
 # Funktion zum Registrieren des Sensors
 def register_sensor(raspberry_id, location):
+    existing_sensor_id = check_sensor(raspberry_id, location)
+    if existing_sensor_id:
+        return existing_sensor_id
     data = {
         "raspberry_id": raspberry_id,
         "location": location
