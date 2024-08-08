@@ -19,4 +19,33 @@
         </div>
     </nav>
     <div class="container mt-5">
-        <h
+        <h1 class="mb-4">Welcome, {{ session['username'] }}</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <h3 class="mb-4">Your Assigned PIR Sensors</h3>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Sensor ID</th>
+                    <th>Location</th>
+                    <th>GPIO Pin</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sensor in sensors %}
+                <tr>
+                    <td>{{ sensor.sensor_id }}</td>
+                    <td>{{ sensor.location }}</td>
+                    <td>{{ sensor.gpio_pin }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
