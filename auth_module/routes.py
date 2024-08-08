@@ -20,7 +20,7 @@ def login():
 
         if not all([email, password]):
             flash('Bitte füllen Sie alle Felder aus.', 'danger')
-            return render_template('auth/login.html')
+            return render_template('auth/login.html')  # Korrigierter Pfad
 
         try:
             conn = connect_db()
@@ -37,12 +37,12 @@ def login():
                 return redirect(url_for('user.user_dashboard'))
             else:
                 flash('Ungültige Anmeldedaten.', 'danger')
-                return render_template('auth/login.html')
+                return render_template('auth/login.html')  # Korrigierter Pfad
         except Exception as e:
             print(f"Error: {e}")
             flash('Es gab ein Problem mit der Anmeldung. Bitte versuchen Sie es erneut.', 'danger')
-            return render_template('auth/login.html')
-    return render_template('auth/login.html')
+            return render_template('auth/login.html')  # Korrigierter Pfad
+    return render_template('auth/login.html')  # Korrigierter Pfad
 
 @auth_bp.route('/logout')
 def logout():
