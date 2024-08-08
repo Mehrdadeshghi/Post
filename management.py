@@ -25,6 +25,7 @@ def get_raspberry_pis():
         conn.close()
         return jsonify(raspberry_pis), 200
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API-Endpunkt zum Abrufen der PIR-Sensoren eines Raspberry Pi
@@ -39,6 +40,7 @@ def get_pir_sensors(raspberry_id):
         conn.close()
         return jsonify(sensors), 200
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API-Endpunkt zum Abrufen der Infos eines Raspberry Pi
@@ -53,6 +55,7 @@ def get_raspberry_pi_info(raspberry_id):
         conn.close()
         return jsonify(raspberry_pi), 200
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 # API-Endpunkt zum Aktualisieren der Standortinformationen eines Raspberry Pi
@@ -74,6 +77,7 @@ def update_raspberry_pi_location(raspberry_id):
 
         return jsonify({"status": "success"}), 200
     except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 # HTML-Seite rendern
