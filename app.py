@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from auth import auth_bp
+from auth_module import auth_bp
 from management import management_bp
 from user import user_bp
 
