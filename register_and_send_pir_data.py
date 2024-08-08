@@ -28,13 +28,21 @@ def get_public_ip():
         print(f"Error fetching public IP: {e}")
         return None
 
+# Funktion zum Kürzen von Strings auf eine maximale Länge
+def truncate_string(s, max_length):
+    return s if len(s) <= max_length else s[:max_length]
+
 # Funktion zum Registrieren eines neuen Raspberry Pi, wenn nicht vorhanden
 def register_raspberry_pi(serial_number):
+    model = "Raspberry Pi Model"
+    os_version = subprocess.check_output(['uname', '-a']).decode().strip()
+    firmware_version = subprocess.check_output(['vcgencmd', 'version']).decode().strip()
+    
     data = {
         "serial_number": serial_number,
-        "model": "Raspberry Pi Model",
-        "os_version": subprocess.check_output(['uname', '-a']).decode().strip(),
-        "firmware_version": subprocess.check_output(['vcgencmd', 'version']).decode().strip(),
+        "model": truncate_string(model, 100),
+        "os_version": truncate_string(os_version, 100),
+        "firmware_version": truncate_string(firmware_version, 100),
         "ip_address": get_public_ip()
     }
     try:
