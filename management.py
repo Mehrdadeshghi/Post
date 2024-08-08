@@ -99,9 +99,8 @@ def assign_user(sensor_id):
             conn = connect_db()
             cursor = conn.cursor()
             cursor.execute("""
-                UPDATE pir_sensors
-                SET user_id = %s
-                WHERE sensor_id = %s
+                INSERT INTO user_pir_assignments (user_id, sensor_id)
+                VALUES (%s, %s)
             """, (user_id, sensor_id))
             conn.commit()
             cursor.close()
@@ -124,6 +123,7 @@ def assign_user(sensor_id):
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == '__main__':
