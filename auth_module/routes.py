@@ -6,9 +6,9 @@ from psycopg2.extras import RealDictCursor
 
 def connect_db():
     return psycopg2.connect(
-        dbname="post",
-        user="myuser",
-        password="mypassword",
+        dbname="deine_datenbank",
+        user="dein_benutzer",
+        password="dein_passwort",
         host="localhost"
     )
 
@@ -41,7 +41,7 @@ def login():
         except Exception as e:
             print(f"Error: {e}")
             flash('Es gab ein Problem mit der Anmeldung. Bitte versuchen Sie es erneut.', 'danger')
-            return render_template('templates/auth/login.html')
+            return render_template('auth/login.html')
     return render_template('auth/login.html')
 
 @auth_bp.route('/logout')
