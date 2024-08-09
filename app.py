@@ -3,9 +3,15 @@ from config import Config
 from auth_module import auth_bp
 from management import management_bp
 from user import user_bp
+from flask_socketio import SocketIO
 
+
+# Initialize Flask app
 app = Flask(__name__)
 app.config.from_object(Config)
+
+# Initialize SocketIO
+socketio = SocketIO(app)
 
 # Registriere die Blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
