@@ -4,97 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Chart.js von CDN einbinden -->
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <a class="navbar-brand" href="/">User Dashboard</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="/auth/logout">Logout</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-    <div class="container mt-5">
-        <h1 class="mb-4">Welcome, {{ session['username'] }}</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <h3 class="mb-4">Your Assigned PIR Sensors</h3>
-        {% if sensors %}
-        <table class="table table-bordered table-striped">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Sensor ID</th>
-                    <th>Location</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for sensor in sensors %}
-                <tr>
-                    <td>{{ sensor.sensor_id }}</td>
-                    <td>{{ sensor.location }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        {% else %}
-        <p>No sensors assigned.</p>
-        {% endif %}
+    <h1>Dashboard</h1>
 
-        <h3 class="mb-4">Movement Data</h3>
-        <canvas id="movementChart" width="400" height="200"></canvas>
-        <script>
-            var ctx = document.getElementById('movementChart').getContext('2d');
-            var labels = {{ movement_data | map(attribute='timestamp') | list | safe }};
-            var data = {{ movement_data | map(attribute='movement_detected') | list | safe }};
-            
-            var formattedLabels = labels.map(label => new Date(label).toLocaleString());
+    <!-- Display the Graph -->
+    <h2>Bewegungserkennung</h2>
+    <img src="data:image/png;base64,{{ graph_url }}" alt="Bewegungserkennungsgraph">
 
-            var movementData = {
-                labels: formattedLabels,
-                datasets: [{
-                    label: 'Movement Detected',
-                    data: data,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            };
-
-            var movementChart = new Chart(ctx, {
-                type: 'line',
-                data: movementData,
-                options: {
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: {
-                                unit: 'minute'
-                            },
-                            title: {
-                                display: true,
-                                text: 'Timestamp'
-                            }
-                        },
-                        y: {
-                            title: {
-                                display: true,
-                                text: 'Movement Detected'
-                            }
-                        }
-                    }
-                }
-            });
-        </script>
-    </div>
+    <!-- Other useful user data or features here -->
+    <h2>Sensoren</h2>
+    <ul>
+        {% for sensor in sensors %}
+        <li>{{ sensor.sensor_id }} - {{ sensor.location }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
