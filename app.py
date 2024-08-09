@@ -1,10 +1,6 @@
 from flask import Flask
 from config import Config
-from auth_module import auth_bp
-from management import management_bp
-from user import user_bp
 from flask_socketio import SocketIO
-
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -13,7 +9,11 @@ app.config.from_object(Config)
 # Initialize SocketIO
 socketio = SocketIO(app)
 
-# Registriere die Blueprints
+# Import and register blueprints
+from auth_module import auth_bp
+from management import management_bp
+from user import user_bp
+
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(management_bp, url_prefix='/management')
 app.register_blueprint(user_bp, url_prefix='/user')
