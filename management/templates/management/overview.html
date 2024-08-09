@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Management Overview</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <h1>Management Overview</h1>
-        <p>Dies ist die Hauptseite des Managements. Hier können Sie alle registrierten Raspberry Pis und deren zugehörige PIR-Sensoren verwalten.</p>
-        <!-- Weitere Verwaltungsoptionen können hier hinzugefügt werden -->
-    </div>
+    <h1>Management Overview</h1>
+    <h2>Registered Raspberry Pis</h2>
+    <ul>
+        {% for raspberry in raspberrys %}
+            <li>{{ raspberry.model }} (Serial: {{ raspberry.serial_number }}) - Location: {{ raspberry.location }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Assigned Sensors</h2>
+    <ul>
+        {% for sensor in sensors %}
+            <li>Sensor ID: {{ sensor.sensor_id }} - Location: {{ sensor.location }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
