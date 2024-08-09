@@ -261,3 +261,26 @@ def assign_user(sensor_id):
         print(f"Error: {e}")
         flash('Es gab ein Problem beim Abrufen der Benutzer. Bitte versuchen Sie es erneut.', 'danger')
         return redirect(url_for('management.raspberry_list'))
+
+@management_bp.route('/overview')
+def management_overview():
+    try:
+        conn = connect_db()
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        # Get Raspberry Pis data
+        cursor.execute("SELECT * FROM raspberry_pis")
+        raspberrys = cursor.fetchall()
+
+        # Get Sensors data
+        cursor.execute("SELECT * FROM pir_sensors")
+        sensors = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return render_template('management/management_overview.html', raspberrys=raspberrys, sensors=sensors)
+    except Exception as e:
+        print(f"Error: {e}")
+        flash('Es gab ein Problem beim Abrufen der Übersichtsdaten. Bitte versuchen Sie es erneut.', 'danger')
+        return redirect(url_for('management.raspberry_list'))
