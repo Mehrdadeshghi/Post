@@ -9,7 +9,7 @@ app.config.from_object(Config)
 # Initialize SocketIO
 socketio = SocketIO(app)
 
-# Import and register blueprints
+# Import and register blueprints after initializing app and socketio
 from auth_module import auth_bp
 from management import management_bp
 from user import user_bp
